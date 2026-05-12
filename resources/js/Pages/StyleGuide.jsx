@@ -18,15 +18,11 @@ export default function StyleGuide() {
                     <div className="flex flex-wrap gap-4">
                         <div className="flex flex-col items-center gap-2">
                             <div className="h-16 w-32 rounded-md bg-primary" />
-                            <span className="text-sm text-muted-foreground">
-                                primary #0B3D91
-                            </span>
+                            <span className="text-sm text-muted-foreground">primary #0B3D91</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
                             <div className="h-16 w-32 rounded-md bg-accent" />
-                            <span className="text-sm text-muted-foreground">
-                                accent #E63946
-                            </span>
+                            <span className="text-sm text-muted-foreground">accent #E63946</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
                             <div className="h-16 w-32 rounded-md bg-secondary" />
