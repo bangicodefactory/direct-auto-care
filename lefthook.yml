@@ -1,0 +1,7 @@
+pre-commit:
+  parallel: false
+  jobs:
+    - name: pint
+      run: composer lint
+    - name: eslint
+      run: npm run lint
