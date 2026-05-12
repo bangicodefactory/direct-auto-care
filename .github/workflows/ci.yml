@@ -11,6 +11,14 @@ jobs:
     name: Backend (PHP 8.4 + Laravel)
     runs-on: ubuntu-latest
 
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
     services:
       mariadb:
         image: mariadb:10.11
@@ -36,11 +44,12 @@ jobs:
           coverage: none
           tools: composer:v2
 
-      - name: Cache Composer
+      - name: Cache Composer packages
         uses: actions/cache@v4
         with:
           path: vendor
-          key: composer-${{ hashFiles('composer.lock') }}
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
 
       - name: Install backend deps
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
@@ -48,30 +57,16 @@ jobs:
       - name: Copy .env
         run: cp .env.example .env
 
-      - name: Generate key
+      - name: Generate app key
         run: php artisan key:generate
 
-      - name: Run Pint
-        run: ./vendor/bin/pint --test
+      - name: Lint (Pint)
+        run: composer lint:check
 
-      - name: Migrate
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: testing
-          DB_USERNAME: root
-          DB_PASSWORD: root
+      - name: Migrate + seed
         run: php artisan migrate:fresh --seed
 
-      - name: Run tests
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: testing
-          DB_USERNAME: root
-          DB_PASSWORD: root
+      - name: PHPUnit
         run: php artisan test
 
   frontend:
@@ -90,8 +85,11 @@ jobs:
       - name: Install frontend deps
         run: npm ci
 
-      - name: Lint
+      - name: Lint (ESLint)
         run: npm run lint
+
+      - name: Format check (Prettier)
+        run: npm run format:check
 
       - name: Build
         run: npm run build
