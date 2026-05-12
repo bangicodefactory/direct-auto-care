@@ -12,7 +12,7 @@ Full spec: `~/Documents/Claude/Projects/SiyanaPlus/SiyanaPlus.md` on Ahmed's mac
 
 | Layer | Tech |
 |---|---|
-| Backend | Laravel 11, PHP 8.2 |
+| Backend | Laravel 11, PHP 8.4 |
 | Frontend | React 18 + Inertia.js |
 | DB | MariaDB / MySQL |
 | Styling | TailwindCSS + shadcn/ui |
