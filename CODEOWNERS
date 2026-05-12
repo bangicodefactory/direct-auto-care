@@ -1,0 +1,22 @@
+# Repository code owners — auto-requested for review on every PR touching matched paths.
+# Syntax: <path-pattern> <github-username1> <github-username2>
+# REPLACE the placeholder usernames below with real GitHub usernames before committing.
+
+# Default — at least one senior reviews everything
+*                       @ahmedchioua @bangiachraf-username
+
+# Critical fiscal/concurrency code — Ahmed reviews these specifically
+/app/Services/InvoiceNumberingService.php   @ahmedchioua
+/app/Services/InvoiceService.php            @ahmedchioua
+/app/Services/StockService.php              @ahmedchioua
+
+# CI + infra — DevOps owners
+/.github/                                    @ahmedchioua
+/Dockerfile                                  @ahmedchioua
+/docker-compose.yml                          @ahmedchioua
+
+# DB migrations — careful review
+/database/migrations/                        @ahmedchioua @bangiachraf-username
+
+# ADRs — Ahmed sign-off
+/docs/adrs/                                  @ahmedchioua
