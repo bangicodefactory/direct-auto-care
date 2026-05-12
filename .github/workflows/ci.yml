@@ -61,7 +61,7 @@ jobs:
         run: php artisan key:generate
 
       - name: Lint (Pint)
-        run: composer lint
+        run: composer lint:check
 
       - name: Migrate + seed
         run: php artisan migrate:fresh --seed
