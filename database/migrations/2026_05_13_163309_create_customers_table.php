@@ -17,7 +17,7 @@ return new class () extends Migration {
             $table->string('last_name', 100);
             $table->string('phone', 20)->unique();
 
-            $table->string('email', 150)->nullable();
+            $table->string('email', 150)->nullable()->unique();
             $table->text('address')->nullable();
             $table->text('notes')->nullable();
 
