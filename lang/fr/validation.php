@@ -1,5 +1,6 @@
 <?php
 
+// Extend this file as new validation rules are introduced — only a subset is currently covered.
 return [
     'accepted'             => 'Le champ :attribute doit être accepté.',
     'email'                => 'Le champ :attribute doit être une adresse e-mail valide.',
