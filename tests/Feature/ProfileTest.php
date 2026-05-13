@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -77,6 +78,22 @@ class ProfileTest extends TestCase
 
         $this->assertGuest();
         $this->assertSoftDeleted($user);
+    }
+
+    public function test_admin_cannot_delete_their_account_via_profile(): void
+    {
+        $this->seed(RoleSeeder::class);
+
+        $admin = User::factory()->create(['password' => bcrypt('password')]);
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->from('/profile')
+            ->delete('/profile', ['password' => 'password'])
+            ->assertSessionHasErrors('password')
+            ->assertRedirect('/profile');
+
+        $this->assertNotSoftDeleted($admin);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void

@@ -51,6 +51,10 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($user->hasRole('admin')) {
+            return back()->withErrors(['password' => 'Les comptes administrateur ne peuvent pas être supprimés via cette page.']);
+        }
+
         Auth::logout();
 
         $user->delete();
