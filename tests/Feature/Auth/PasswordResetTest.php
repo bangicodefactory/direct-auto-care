@@ -70,4 +70,26 @@ class PasswordResetTest extends TestCase
             return true;
         });
     }
+
+    public function test_reset_password_email_subject_is_in_french(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $this->post('/forgot-password', ['email' => $user->email]);
+
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+            $mail = $notification->toMail($user);
+
+            $this->assertEquals('Réinitialisation du mot de passe', $mail->subject);
+            $this->assertEquals('Réinitialiser le mot de passe', $mail->actionText);
+            $this->assertStringContainsString(
+                "Si vous n'avez pas demandé",
+                implode(' ', $mail->outroLines)
+            );
+
+            return true;
+        });
+    }
 }
