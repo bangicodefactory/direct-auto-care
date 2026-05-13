@@ -29,6 +29,56 @@ class CustomerPolicyTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
+    public function test_guest_is_redirected_from_customers_show(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->get(route('customers.show', $customer))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_guest_is_redirected_from_customers_edit(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->get(route('customers.edit', $customer))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_guest_is_redirected_from_customers_destroy(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->delete(route('customers.destroy', $customer))
+            ->assertRedirect(route('login'));
+    }
+
+    // -------------------------------------------------------------------------
+    // User without role — forbidden on all routes
+    // -------------------------------------------------------------------------
+
+    public function test_user_without_role_cannot_access_customers_index(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('customers.index'))
+            ->assertForbidden();
+    }
+
+    public function test_user_without_role_cannot_store_customer(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '+212612345678',
+            ])
+            ->assertForbidden();
+    }
+
     // -------------------------------------------------------------------------
     // Employee — can view, create, update; cannot delete
     // -------------------------------------------------------------------------
@@ -53,6 +103,22 @@ class CustomerPolicyTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->component('Customers/Create'));
     }
 
+    public function test_employee_can_store_customer(): void
+    {
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+
+        $this->actingAs($employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '+212612345678',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('customers', ['phone' => '+212612345678']);
+    }
+
     public function test_employee_can_view_customer(): void
     {
         $employee = User::factory()->create();
@@ -73,6 +139,21 @@ class CustomerPolicyTest extends TestCase
         $this->actingAs($employee)
             ->get(route('customers.edit', $customer))
             ->assertInertia(fn (Assert $page) => $page->component('Customers/Edit'));
+    }
+
+    public function test_employee_can_update_customer(): void
+    {
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($employee)
+            ->put(route('customers.update', $customer), [
+                'first_name' => 'Updated',
+                'last_name'  => 'Name',
+                'phone'      => $customer->phone,
+            ])
+            ->assertRedirect(route('customers.show', $customer));
     }
 
     public function test_employee_cannot_delete_customer(): void
