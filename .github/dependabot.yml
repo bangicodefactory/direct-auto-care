@@ -1,0 +1,52 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Africa/Casablanca
+    # Group minor and patch updates into a single PR to reduce noise.
+    # Major-version bumps still get individual PRs.
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    # SECURITY: auto-merge is intentionally disabled.
+    # Every dependency PR must be reviewed by Ahmed before merging.
+    # For any update touching React, Inertia, Vite, or Tailwind core,
+    # cross-reference the IOC list at https://socket.dev/supply-chain-attacks/mini-shai-hulud
+    # before approving.
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Africa/Casablanca
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    # SECURITY: auto-merge is intentionally disabled.
+    # Every dependency PR must be reviewed by Ahmed before merging.
+    open-pull-requests-limit: 10
+
+  # Keeps the commit SHAs pinned in ci.yml up-to-date automatically.
+  # Without this, pinned SHAs silently drift behind upstream security patches.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Africa/Casablanca
+    # SECURITY: auto-merge is intentionally disabled.
+    # Every dependency PR must be reviewed by Ahmed before merging.
+    open-pull-requests-limit: 10
