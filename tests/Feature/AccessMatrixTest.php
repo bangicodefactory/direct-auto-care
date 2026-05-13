@@ -10,6 +10,7 @@ use Tests\TestCase;
 /**
  * Access matrix smoke test — documents which roles can reach which routes.
  *
+ * GET routes:
  * | Route                  | Guest        | Employee | Admin |
  * |------------------------|--------------|----------|-------|
  * | GET /dashboard         | →/login      | 200      | 200   |
@@ -17,6 +18,9 @@ use Tests\TestCase;
  * | GET /users             | →/login      | 403      | 200   |
  * | GET /users/create      | →/login      | 403      | 200   |
  * | GET /users/{id}/edit   | →/login      | 403      | 200   |
+ *
+ * Write routes (POST /users, PUT /users/{id}, DELETE /users/{id}):
+ * covered in UserCrudTest — see that class for the full write matrix.
  */
 class AccessMatrixTest extends TestCase
 {
@@ -30,12 +34,18 @@ class AccessMatrixTest extends TestCase
 
     private function makeAdmin(): User
     {
-        return User::factory()->create()->assignRole('admin');
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        return $user;
     }
 
     private function makeEmployee(): User
     {
-        return User::factory()->create()->assignRole('employee');
+        $user = User::factory()->create();
+        $user->assignRole('employee');
+
+        return $user;
     }
 
     // -------------------------------------------------------------------------
@@ -66,6 +76,12 @@ class AccessMatrixTest extends TestCase
     {
         $target = User::factory()->create();
         $this->get(route('users.edit', $target))->assertRedirect(route('login'));
+    }
+
+    public function test_guest_is_redirected_from_users_destroy(): void
+    {
+        $target = User::factory()->create();
+        $this->delete(route('users.destroy', $target))->assertRedirect(route('login'));
     }
 
     // -------------------------------------------------------------------------
