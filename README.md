@@ -24,7 +24,8 @@ Garage & auto-service management platform. Laravel 11 + Inertia.js + React + Mar
 git clone git@github.com:bangicodefactory/direct-auto-care.git
 cd direct-auto-care
 composer install
-npm install
+npm ci
+npx lefthook install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate:fresh --seed
@@ -75,8 +76,11 @@ Or open phpMyAdmin at `http://localhost/phpmyadmin` and create the `direct_auto_
 git clone git@github.com:bangicodefactory/direct-auto-care.git
 cd direct-auto-care
 composer install
-npm install
+npm ci
+npx lefthook install
 ```
+
+> **Note:** `.npmrc` disables postinstall scripts (`ignore-scripts=true`) to guard against supply-chain attacks. `lefthook` git hooks must therefore be wired up manually with `npx lefthook install` after every `npm ci`.
 
 ---
 
