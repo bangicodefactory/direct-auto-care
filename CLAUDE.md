@@ -85,6 +85,20 @@ Before claiming any task complete:
 - Put authz in frontend. Always Policy server-side.
 - Add a new Composer or NPM package without asking Ahmed first.
 
+## npm / supply-chain hygiene (IST-88)
+
+- **Always use `npm ci`**, never `npm install`, when working from main or a clean checkout. `npm ci` is reproducible from the lockfile; `npm install` may silently resolve newer transitive versions.
+- **Commit `package-lock.json`** always. Never gitignore it.
+- **postinstall scripts are disabled** via `.npmrc` (`ignore-scripts=true`). If a new package requires scripts (e.g. native bindings), raise it explicitly with Ahmed before enabling.
+- Before approving any Dependabot PR that touches React, Inertia, Vite, or Tailwind core, cross-check against the IOC list: https://socket.dev/supply-chain-attacks/mini-shai-hulud
+- Recheck `npm ls @tanstack @mistralai @squawk` weekly until the Mini Shai-Hulud incident is declared closed.
+
+## Claude Code + MCP allowlist (IST-88)
+
+- **Do not run Claude Code inside CI runners.** Dev machines only.
+- MCP server allowlist: only first-party (Anthropic) + verified maintainers (Linear, GitHub). Do not add unknown MCP servers.
+- If anything unfamiliar appears under `~/.claude/` or `%APPDATA%\claude-code\`, flag it to Ahmed before proceeding.
+
 ## Open ADRs awaiting decision
 
 - ADR-001 — WhatsApp provider (Twilio recommended) — needed by Sprint 4
