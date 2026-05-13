@@ -10,18 +10,18 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // $this->call(RoleSeeder::class);
+        $this->call(RoleSeeder::class);
 
-        // $admin = User::firstOrCreate(
-        //     ['email' => env('ADMIN_EMAIL', 'admin@directautocare.ma')],
-        //     [
-        //         'name' => env('ADMIN_NAME', 'Administrateur'),
-        //         'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
-        //         'email_verified_at' => now(),
-        //     ]
-        // );
+        $admin = User::firstOrCreate(
+            ['email' => env('ADMIN_EMAIL', 'admin@directautocare.ma')],
+            [
+                'name' => env('ADMIN_NAME', 'Administrateur'),
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
+                'email_verified_at' => now(),
+            ]
+        );
 
-        // $admin->assignRole('admin');
+        $admin->assignRole('admin');
         $this->call(CustomerSeeder::class);
     }
 }
