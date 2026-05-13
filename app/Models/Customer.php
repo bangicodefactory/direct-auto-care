@@ -54,6 +54,8 @@ class Customer extends Model
         } elseif (str_starts_with($phone, '0')) {
             $this->attributes['phone'] = '+212' . substr($phone, 1);
         } else {
+            // Bare national digits (e.g. "612345678"). The Form Request for
+            // customer create/update must validate the format before this runs.
             $this->attributes['phone'] = '+212' . $phone;
         }
     }

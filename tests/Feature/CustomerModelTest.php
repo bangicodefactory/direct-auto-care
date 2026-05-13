@@ -45,25 +45,25 @@ class CustomerModelTest extends TestCase
 
     public function test_vehicles_returns_has_many(): void
     {
-        $customer = new Customer();
+        $relation = (new Customer())->vehicles();
 
-        $this->assertInstanceOf(HasMany::class, $customer->vehicles());
-        $this->assertInstanceOf(Vehicle::class, $customer->vehicles()->getRelated());
+        $this->assertInstanceOf(HasMany::class, $relation);
+        $this->assertInstanceOf(Vehicle::class, $relation->getRelated());
     }
 
     public function test_appointments_returns_has_many(): void
     {
-        $customer = new Customer();
+        $relation = (new Customer())->appointments();
 
-        $this->assertInstanceOf(HasMany::class, $customer->appointments());
-        $this->assertInstanceOf(Appointment::class, $customer->appointments()->getRelated());
+        $this->assertInstanceOf(HasMany::class, $relation);
+        $this->assertInstanceOf(Appointment::class, $relation->getRelated());
     }
 
     public function test_invoices_returns_has_many(): void
     {
-        $customer = new Customer();
+        $relation = (new Customer())->invoices();
 
-        $this->assertInstanceOf(HasMany::class, $customer->invoices());
-        $this->assertInstanceOf(Invoice::class, $customer->invoices()->getRelated());
+        $this->assertInstanceOf(HasMany::class, $relation);
+        $this->assertInstanceOf(Invoice::class, $relation->getRelated());
     }
 }
