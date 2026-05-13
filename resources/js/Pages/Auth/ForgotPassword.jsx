@@ -21,7 +21,7 @@ export default function ForgotPassword({ status }) {
 
             <div className="mb-4 text-sm text-gray-600">
                 Mot de passe oublié ? Aucun problème. Indiquez-nous votre adresse e-mail et nous
-                vous enverrons un lien de réinitialisation.
+                vous enverrons un lien pour choisir un nouveau mot de passe.
             </div>
 
             {status && <div className="mb-4 text-sm font-medium text-green-600">{status}</div>}

@@ -84,6 +84,10 @@ class PasswordResetTest extends TestCase
 
             $this->assertEquals('Réinitialisation du mot de passe', $mail->subject);
             $this->assertEquals('Réinitialiser le mot de passe', $mail->actionText);
+            $this->assertStringContainsString(
+                "Si vous n'avez pas demandé",
+                implode(' ', $mail->outroLines)
+            );
 
             return true;
         });

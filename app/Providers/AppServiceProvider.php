@@ -23,13 +23,13 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(User::class, UserPolicy::class);
 
-        $expire = config('auth.passwords.' . config('auth.defaults.passwords') . '.expire');
-
-        ResetPassword::toMailUsing(function (mixed $notifiable, string $token) use ($expire) {
+        ResetPassword::toMailUsing(function (mixed $notifiable, string $token) {
             $url = url(route('password.reset', [
                 'token' => $token,
                 'email' => $notifiable->getEmailForPasswordReset(),
             ], false));
+
+            $expire = config('auth.passwords.' . config('auth.defaults.passwords') . '.expire');
 
             return (new MailMessage())
                 ->subject('Réinitialisation du mot de passe')
