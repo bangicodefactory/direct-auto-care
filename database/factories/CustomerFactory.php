@@ -1,0 +1,39 @@
+<?php
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class CustomerFactory extends Factory
+{
+    private static array $firstNames = [
+        'Youssef', 'Omar', 'Mohammed', 'Ahmed', 'Karim',
+        'Hassan', 'Rachid', 'Hamza', 'Soufiane', 'Ayoub',
+        'Sara', 'Fatima', 'Khadija', 'Nadia', 'Imane',
+        'Sanaa', 'Layla', 'Zineb', 'Hanane', 'Meryem',
+    ];
+
+    private static array $lastNames = [
+        'El Amrani', 'Bennani', 'Haddad', 'Bouhali', 'Tazi',
+        'Alaoui', 'Chraibi', 'Fassi', 'Berrada', 'Squalli',
+        'El Idrissi', 'Benali', 'Rahmouni', 'Benhaddou', 'Lahlou',
+        'Kettani', 'El Khatib', 'Bouazza', 'Senhaji', 'Guessous',
+    ];
+
+    public function definition(): array
+    {
+        $firstName = fake()->randomElement(self::$firstNames);
+        $lastName = fake()->randomElement(self::$lastNames);
+
+        return [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'phone' => '+212' . fake()->unique()->numerify('6########'),
+            'email' => fake()->optional(0.8)->safeEmail(),
+            'address' => fake()->optional(0.6)->address(),
+            'notes' => fake()->optional(0.3)->sentence(),
+            'notify_email' => fake()->boolean(30),
+            'notify_whatsapp' => fake()->boolean(40),
+        ];
+    }
+}
