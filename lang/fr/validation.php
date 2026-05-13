@@ -14,6 +14,8 @@ return [
     ],
     'required'             => 'Le champ :attribute est obligatoire.',
     'string'               => 'Le champ :attribute doit être une chaîne de caractères.',
+    'boolean'              => 'Le champ :attribute doit être vrai ou faux.',
+    'in'                   => 'La valeur sélectionnée pour :attribute est invalide.',
     'unique'               => 'La valeur du champ :attribute est déjà utilisée.',
 
     'attributes' => [
