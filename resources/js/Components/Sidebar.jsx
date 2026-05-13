@@ -21,18 +21,12 @@ export default function Sidebar({ role }) {
     return (
         <aside className="flex h-full flex-col border-r border-gray-200 bg-white">
             <nav className="flex-1 space-y-1 px-3 py-4">
-                <SidebarLink
-                    href={route('dashboard')}
-                    active={route().current('dashboard')}
-                >
+                <SidebarLink href={route('dashboard')} active={route().current('dashboard')}>
                     Tableau de bord
                 </SidebarLink>
 
                 {isAdmin && (
-                    <SidebarLink
-                        href={route('users.index')}
-                        active={route().current('users.*')}
-                    >
+                    <SidebarLink href={route('users.index')} active={route().current('users.*')}>
                         Utilisateurs
                     </SidebarLink>
                 )}
