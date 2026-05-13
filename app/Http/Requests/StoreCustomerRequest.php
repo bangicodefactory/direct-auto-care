@@ -2,65 +2,53 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Customer;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCustomerRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('create', Customer::class);
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->phone) {
+            $this->merge(['phone' => $this->normalizePhone($this->phone)]);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name'  => ['required', 'string', 'max:100'],
-
-            'phone' => [
-                'required',
-                'unique:customers,phone',
-                'regex:/^(?:\+212|0)([5-7]\d{8})$/',
-            ],
-
-            'email' => ['nullable', 'email', 'max:150'],
-
-            'address' => ['nullable', 'string'],
-            'notes'   => ['nullable', 'string'],
-
-            'notify_email' => ['boolean'],
+            'first_name'      => ['required', 'string', 'max:100'],
+            'last_name'       => ['required', 'string', 'max:100'],
+            'phone'           => ['required', 'string', 'regex:/^\+212[5-7]\d{8}$/', 'unique:customers,phone'],
+            'email'           => ['nullable', 'email', 'max:150', 'unique:customers,email'],
+            'address'         => ['nullable', 'string'],
+            'notes'           => ['nullable', 'string'],
+            'notify_email'    => ['boolean'],
             'notify_whatsapp' => ['boolean'],
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     */
-    public function messages(): array
+    private function normalizePhone(string $value): string
     {
-        return [
-            'first_name.required' => 'Le prénom est requis.',
-            'first_name.string' => 'Le prénom doit être une chaîne de caractères.',
-            'first_name.max' => 'Le prénom ne doit pas dépasser 100 caractères.',
+        $phone = preg_replace('/[\s\-().]+/', '', $value);
 
-            'last_name.required' => 'Le nom est requis.',
-            'last_name.string' => 'Le nom doit être une chaîne de caractères.',
-            'last_name.max' => 'Le nom ne doit pas dépasser 100 caractères.',
+        if (str_starts_with($phone, '+212')) {
+            return $phone;
+        }
 
-            'phone.required' => 'Le téléphone est requis.',
-            'phone.unique' => 'Ce numéro de téléphone est déjà utilisé.',
-            'phone.regex' => 'Le téléphone doit être au format marocain (0612345678 ou +212612345678).',
+        if (str_starts_with($phone, '00212')) {
+            return '+' . substr($phone, 2);
+        }
 
-            'email.email' => 'L\'email doit être une adresse email valide.',
-            'email.max' => 'L\'email ne doit pas dépasser 150 caractères.',
-        ];
+        if (str_starts_with($phone, '0')) {
+            return '+212' . substr($phone, 1);
+        }
+
+        return '+212' . $phone;
     }
 }

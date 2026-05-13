@@ -7,61 +7,50 @@ use Illuminate\Validation\Rule;
 
 class UpdateCustomerRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('update', $this->route('customer'));
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->phone) {
+            $this->merge(['phone' => $this->normalizePhone($this->phone)]);
+        }
+    }
+
     public function rules(): array
     {
+        $customer = $this->route('customer');
+
         return [
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name'  => ['required', 'string', 'max:100'],
-
-            'phone' => [
-                'required',
-                'regex:/^(?:\+212|0)([5-7]\d{8})$/',
-                Rule::unique('customers', 'phone')->ignore($this->customer),
-            ],
-
-            'email' => ['nullable', 'email', 'max:150'],
-
-            'address' => ['nullable', 'string'],
-            'notes'   => ['nullable', 'string'],
-
-            'notify_email' => ['boolean'],
+            'first_name'      => ['required', 'string', 'max:100'],
+            'last_name'       => ['required', 'string', 'max:100'],
+            'phone'           => ['required', 'string', 'regex:/^\+212[5-7]\d{8}$/', Rule::unique('customers', 'phone')->ignore($customer)],
+            'email'           => ['nullable', 'email', 'max:150', Rule::unique('customers', 'email')->ignore($customer)],
+            'address'         => ['nullable', 'string'],
+            'notes'           => ['nullable', 'string'],
+            'notify_email'    => ['boolean'],
             'notify_whatsapp' => ['boolean'],
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     */
-    public function messages(): array
+    private function normalizePhone(string $value): string
     {
-        return [
-            'first_name.required' => 'Le prénom est requis.',
-            'first_name.string' => 'Le prénom doit être une chaîne de caractères.',
-            'first_name.max' => 'Le prénom ne doit pas dépasser 100 caractères.',
+        $phone = preg_replace('/[\s\-().]+/', '', $value);
 
-            'last_name.required' => 'Le nom est requis.',
-            'last_name.string' => 'Le nom doit être une chaîne de caractères.',
-            'last_name.max' => 'Le nom ne doit pas dépasser 100 caractères.',
+        if (str_starts_with($phone, '+212')) {
+            return $phone;
+        }
 
-            'phone.required' => 'Le téléphone est requis.',
-            'phone.regex' => 'Le téléphone doit être au format marocain (0612345678 ou +212612345678).',
-            'phone.unique' => 'Ce numéro de téléphone est déjà utilisé.',
+        if (str_starts_with($phone, '00212')) {
+            return '+' . substr($phone, 2);
+        }
 
-            'email.email' => 'L\'email doit être une adresse email valide.',
-            'email.max' => 'L\'email ne doit pas dépasser 150 caractères.',
-        ];
+        if (str_starts_with($phone, '0')) {
+            return '+212' . substr($phone, 1);
+        }
+
+        return '+212' . $phone;
     }
 }
