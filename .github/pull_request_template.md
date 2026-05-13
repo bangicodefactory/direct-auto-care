@@ -1,23 +1,22 @@
-# PR — Add Customer model relationships and mutator
+# PR — _<short title in present tense>_
 
-Linear issue: [IST-19](https://linear.app/bangicodefactory/issue/IST-19)
+Linear issue: IST-___ (link)
 
 ## What changed
 
-Added Eloquent relationships (hasMany: vehicles, appointments, invoices) to the Customer model and implemented a phone number mutator that normalizes phone numbers to international format (+212).
+_One paragraph: what does this PR do?_
 
 ## Why
 
-Enables relational queries and data consistency across the application. The phone mutator ensures all customer phone numbers are stored in a standardized format for consistency and international compatibility.
+_Link to the spec section or acceptance criterion this addresses._
 
 ## How to test
 
-Manual verification of the Customer model relationships and phone mutator:
+_Step-by-step manual verification path. Include mobile + desktop._
 
-1. Create a customer via tinker: `Customer::create(['first_name' => 'Test', 'last_name' => 'User', 'phone' => '0612345678'])`
-2. Verify phone is stored as `+212612345678` in database
-3. Test relationship: `Customer.first()->vehicles` returns related vehicles
-4. Test relationship: `Customer.first()->appointments` returns related appointments
+1.
+2.
+3.
 
 ## Definition of Done checklist
 
