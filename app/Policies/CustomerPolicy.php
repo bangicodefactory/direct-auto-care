@@ -4,18 +4,16 @@ namespace App\Policies;
 
 use App\Models\Customer;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CustomerPolicy
 {
-
     public function before(User $user, string $ability): bool|null
-        {
-            if ($user->role === 'admin') {
-                return true;
-            }
-            return null;
+    {
+        if ($user->role === 'admin') {
+            return true;
         }
+        return null;
+    }
     /**
      * Determine whether the user can view any models.
      */
@@ -46,7 +44,7 @@ class CustomerPolicy
      */
     public function update(User $user, Customer $customer): bool
     {
-       return $user->role === 'employee';
+        return $user->role === 'employee';
     }
 
     /**

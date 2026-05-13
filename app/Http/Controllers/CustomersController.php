@@ -6,7 +6,6 @@ use App\Models\Customer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
-
 use Illuminate\Routing\Controller as BaseController;
 
 class CustomersController extends BaseController
@@ -15,7 +14,7 @@ class CustomersController extends BaseController
 
     public function __construct()
     {
-        $this->authorizeResource(Customer::class,'customer');
+        $this->authorizeResource(Customer::class, 'customer');
     }
 
     /**
