@@ -58,7 +58,7 @@ export default function Index({ users }) {
                                             {user.email}
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {roleLabels[user.roles[0]?.name] ?? '—'}
+                                            {roleLabels[user.roles[0]] ?? '—'}
                                         </td>
                                         <td className="whitespace-nowrap px-6 py-4 text-sm">
                                             {user.is_active ? (

@@ -47,7 +47,45 @@ class UserCrudTest extends TestCase
     {
         $this->actingAs($this->makeEmployee())
             ->get(route('users.index'))
-            ->assertStatus(403);
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_create_user(): void
+    {
+        $this->actingAs($this->makeEmployee())
+            ->post(route('users.store'), [
+                'name'                  => 'Test',
+                'email'                 => 'test@example.com',
+                'password'              => 'password123',
+                'password_confirmation' => 'password123',
+                'role'                  => 'employee',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_update_user(): void
+    {
+        $target = User::factory()->create();
+        $target->assignRole('employee');
+
+        $this->actingAs($this->makeEmployee())
+            ->put(route('users.update', $target), [
+                'name'      => $target->name,
+                'email'     => $target->email,
+                'role'      => 'employee',
+                'is_active' => true,
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_delete_user(): void
+    {
+        $target = User::factory()->create();
+        $target->assignRole('employee');
+
+        $this->actingAs($this->makeEmployee())
+            ->delete(route('users.destroy', $target))
+            ->assertForbidden();
     }
 
     // --- Create / Store ---
@@ -152,7 +190,7 @@ class UserCrudTest extends TestCase
             ->delete(route('users.destroy', $admin))
             ->assertSessionHasErrors(['delete']);
 
-        $this->assertDatabaseHas('users', ['id' => $admin->id, 'deleted_at' => null]);
+        $this->assertNotSoftDeleted($admin);
     }
 
     // --- Disabled user login ---

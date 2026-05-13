@@ -15,7 +15,16 @@ class UsersController extends Controller
         $this->authorize('viewAny', User::class);
 
         return Inertia::render('Users/Index', [
-            'users' => User::with('roles')->orderBy('name')->paginate(15),
+            'users' => User::with('roles')
+                ->orderBy('name')
+                ->paginate(15)
+                ->through(fn ($u) => [
+                    'id'        => $u->id,
+                    'name'      => $u->name,
+                    'email'     => $u->email,
+                    'is_active' => $u->is_active,
+                    'roles'     => $u->roles->pluck('name'),
+                ]),
         ]);
     }
 
@@ -30,8 +39,6 @@ class UsersController extends Controller
 
     public function store(StoreUserRequest $request)
     {
-        $this->authorize('create', User::class);
-
         $user = User::create($request->safe()->except('role', 'password_confirmation'));
         $user->assignRole($request->validated('role'));
 
@@ -51,8 +58,6 @@ class UsersController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        $this->authorize('update', $user);
-
         $user->update($request->safe()->except('role'));
         $user->syncRoles([$request->validated('role')]);
 
