@@ -16,11 +16,17 @@ class CustomerRequestTest extends TestCase
     // prepareForValidation — phone normalization
     // -------------------------------------------------------------------------
 
+    private function callPrepare(StoreCustomerRequest $request): void
+    {
+        $method = new \ReflectionMethod($request, 'prepareForValidation');
+        $method->invoke($request);
+    }
+
     public function test_local_phone_is_normalized_before_validation(): void
     {
         $request = new StoreCustomerRequest();
         $request->merge(['phone' => '0612345678']);
-        $request->prepareForValidation();
+        $this->callPrepare($request);
 
         $this->assertSame('+212612345678', $request->phone);
     }
@@ -29,7 +35,7 @@ class CustomerRequestTest extends TestCase
     {
         $request = new StoreCustomerRequest();
         $request->merge(['phone' => '00212612345678']);
-        $request->prepareForValidation();
+        $this->callPrepare($request);
 
         $this->assertSame('+212612345678', $request->phone);
     }
@@ -38,7 +44,7 @@ class CustomerRequestTest extends TestCase
     {
         $request = new StoreCustomerRequest();
         $request->merge(['phone' => '+212612345678']);
-        $request->prepareForValidation();
+        $this->callPrepare($request);
 
         $this->assertSame('+212612345678', $request->phone);
     }
