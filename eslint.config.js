@@ -20,6 +20,7 @@ export default [
                 console: 'readonly',
                 process: 'readonly',
                 route: 'readonly',
+                confirm: 'readonly',
             },
             parserOptions: {
                 ecmaFeatures: { jsx: true },

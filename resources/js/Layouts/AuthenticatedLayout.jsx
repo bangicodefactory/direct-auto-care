@@ -7,6 +7,7 @@ import { useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const { user, role } = usePage().props.auth;
+    const flash = usePage().props.flash;
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
 
@@ -160,6 +161,12 @@ export default function AuthenticatedLayout({ header, children }) {
                 <header className="bg-white shadow">
                     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{header}</div>
                 </header>
+            )}
+
+            {flash && (
+                <div className="border-l-4 border-green-400 bg-green-50 p-4">
+                    <p className="text-sm text-green-700">{flash}</p>
+                </div>
             )}
 
             <main>{children}</main>
