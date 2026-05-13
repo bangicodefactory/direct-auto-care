@@ -85,7 +85,7 @@ Before claiming any task complete:
 - Put authz in frontend. Always Policy server-side.
 - Add a new Composer or NPM package without asking Ahmed first.
 
-## npm / supply-chain hygiene (IST-88)
+## npm / supply-chain hygiene
 
 - **Always use `npm ci`**, never `npm install`, when working from main or a clean checkout. `npm ci` is reproducible from the lockfile; `npm install` may silently resolve newer transitive versions.
 - **Commit `package-lock.json`** always. Never gitignore it.
@@ -93,7 +93,7 @@ Before claiming any task complete:
 - Before approving any Dependabot PR that touches React, Inertia, Vite, or Tailwind core, cross-check against the IOC list: https://socket.dev/supply-chain-attacks/mini-shai-hulud
 - Recheck `npm ls @tanstack @mistralai @squawk` weekly until the Mini Shai-Hulud incident is declared closed.
 
-## Claude Code + MCP allowlist (IST-88)
+## Claude Code + MCP allowlist
 
 - **Do not run Claude Code inside CI runners.** Dev machines only.
 - MCP server allowlist: only first-party (Anthropic) + verified maintainers (Linear, GitHub). Do not add unknown MCP servers.

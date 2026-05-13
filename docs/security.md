@@ -85,10 +85,10 @@ token exposure), rotate in this order:
 1. **GitHub PATs** — Settings → Developer settings → Personal access tokens → revoke and regenerate.
 2. **npm tokens** — npmjs.com → Access Tokens → delete and regenerate.
 3. **Cloud provider credentials** — rotate in the relevant provider console, then update any GitHub Actions secrets.
-4. Verify no tokens are committed: run `git log --all -p | grep -E '(ghp_|npm_|eyJ)'` and `gitleaks detect` if available.
+4. Verify no tokens are committed: run `gitleaks detect` (preferred) or `trufflehog filesystem .`. Avoid raw `grep -E 'eyJ'` — it matches any base64-encoded JSON and generates excessive false positives.
 
 Rotation evidence for the 2026-05-11 incident window should be linked as a
-comment on PR #18.
+comment on PR #19.
 
 ---
 

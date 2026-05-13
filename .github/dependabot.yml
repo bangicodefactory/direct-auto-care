@@ -34,4 +34,19 @@ updates:
         update-types:
           - minor
           - patch
+    # SECURITY: auto-merge is intentionally disabled.
+    # Every dependency PR must be reviewed by Ahmed before merging.
+    open-pull-requests-limit: 10
+
+  # Keeps the commit SHAs pinned in ci.yml up-to-date automatically.
+  # Without this, pinned SHAs silently drift behind upstream security patches.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Africa/Casablanca
+    # SECURITY: auto-merge is intentionally disabled.
+    # Every dependency PR must be reviewed by Ahmed before merging.
     open-pull-requests-limit: 10
