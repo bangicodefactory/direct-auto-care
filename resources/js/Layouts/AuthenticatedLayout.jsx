@@ -76,6 +76,10 @@ export default function AuthenticatedLayout({ header, children }) {
                             </Dropdown.Trigger>
 
                             <Dropdown.Content>
+                                <div className="border-b border-gray-100 px-4 py-2">
+                                    <p className="text-sm font-medium text-gray-800">{user.name}</p>
+                                    <p className="truncate text-xs text-gray-500">{user.email}</p>
+                                </div>
                                 <Dropdown.Link href={route('profile.edit')}>Profil</Dropdown.Link>
                                 <Dropdown.Link href={route('logout')} method="post" as="button">
                                     Déconnexion
@@ -86,23 +90,22 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
             </nav>
 
-            {/* Mobile sidebar backdrop */}
-            {sidebarOpen && (
-                <div
-                    className="fixed inset-0 z-20 bg-black/50 md:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
+            {/* Mobile sidebar backdrop — rendered as button for keyboard/screen-reader accessibility */}
+            <button
+                type="button"
+                aria-label="Fermer le menu"
+                className={`fixed inset-0 z-20 cursor-default bg-black/50 md:hidden ${
+                    sidebarOpen ? 'block' : 'hidden'
+                }`}
+                onClick={() => setSidebarOpen(false)}
+                onKeyDown={(e) => e.key === 'Escape' && setSidebarOpen(false)}
+                tabIndex={sidebarOpen ? 0 : -1}
+            />
 
             <div className="flex pt-16">
-                {/* Desktop sidebar */}
-                <div className="fixed inset-y-0 left-0 hidden w-64 pt-16 md:flex md:flex-col">
-                    <Sidebar role={role} />
-                </div>
-
-                {/* Mobile sidebar (slide-out) */}
+                {/* Sidebar — single instance, visibility controlled by CSS */}
                 <div
-                    className={`fixed inset-y-0 left-0 z-20 w-64 pt-16 transition-transform duration-200 md:hidden ${
+                    className={`fixed inset-y-0 left-0 z-20 w-64 pt-16 transition-transform duration-200 md:z-auto md:translate-x-0 ${
                         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
                 >
