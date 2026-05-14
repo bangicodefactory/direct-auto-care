@@ -31,6 +31,7 @@ function VehiclesTab({ vehicles }) {
 }
 
 function HistoryTab() {
+    // Placeholder until the interventions model is built (future IST)
     return <EmptyState message="Aucun historique d'intervention." />;
 }
 
@@ -91,6 +92,7 @@ export default function Show({ customer, can }) {
                         </Link>
                         {can.delete && (
                             <button
+                                type="button"
                                 onClick={() => setConfirmingDeletion(true)}
                                 className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                             >
@@ -132,10 +134,18 @@ export default function Show({ customer, can }) {
                     {/* TABS */}
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="border-b border-gray-200">
-                            <nav className="-mb-px flex overflow-x-auto">
+                            <nav
+                                className="-mb-px flex overflow-x-auto"
+                                role="tablist"
+                                aria-label="Sections du client"
+                            >
                                 {TABS.map((tab) => (
                                     <button
                                         key={tab.key}
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={activeTab === tab.key}
+                                        aria-controls={`tabpanel-${tab.key}`}
                                         onClick={() => setActiveTab(tab.key)}
                                         className={`whitespace-nowrap border-b-2 px-6 py-4 text-sm font-medium transition-colors ${
                                             activeTab === tab.key
@@ -148,7 +158,7 @@ export default function Show({ customer, can }) {
                                 ))}
                             </nav>
                         </div>
-                        <div className="p-6">
+                        <div role="tabpanel" id={`tabpanel-${activeTab}`} className="p-6">
                             {activeTab === 'vehicles' && (
                                 <VehiclesTab vehicles={customer.vehicles} />
                             )}
