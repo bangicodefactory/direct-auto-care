@@ -84,8 +84,8 @@ class CustomersControllerTest extends TestCase
 
     public function test_index_filters_by_email(): void
     {
-        Customer::factory()->create(['email' => 'youssef@example.com']);
-        Customer::factory()->create(['email' => 'sara@example.com']);
+        Customer::factory()->create(['first_name' => 'Youssef', 'last_name' => 'Alaoui', 'email' => 'youssef@example.com']);
+        Customer::factory()->create(['first_name' => 'Sara', 'last_name' => 'Bennani', 'email' => 'sara@example.com']);
 
         $this->actingAs($this->employee)
             ->get(route('customers.index', ['search' => 'youssef']))
