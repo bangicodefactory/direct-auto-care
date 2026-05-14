@@ -16,6 +16,7 @@ Route::get('/', function () {
     ]);
 });
 
+
 Route::get('/style-guide', function () {
     return Inertia::render('StyleGuide');
 })->name('style-guide');
@@ -36,5 +37,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('customers', CustomersController::class);
+});
+
 
 require __DIR__.'/auth.php';
