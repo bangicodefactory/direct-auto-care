@@ -5,24 +5,44 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CustomersController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', Customer::class);
 
+        $sortField = in_array($request->get('sort'), ['last_name', 'first_name', 'email', 'created_at'])
+            ? $request->get('sort')
+            : 'last_name';
+
+        $sortDirection = $request->get('direction') === 'desc' ? 'desc' : 'asc';
+
+        $customers = Customer::query()
+            ->when($request->string('search')->trim()->value(), function ($q, $search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('first_name', 'LIKE', "%{$search}%")
+                        ->orWhere('last_name', 'LIKE', "%{$search}%")
+                        ->orWhere('phone', 'LIKE', "%{$search}%")
+                        ->orWhere('email', 'LIKE', "%{$search}%");
+                });
+            })
+            ->orderBy($sortField, $sortDirection)
+            ->paginate(20)
+            ->withQueryString()
+            ->through(fn ($c) => [
+                'id'         => $c->id,
+                'first_name' => $c->first_name,
+                'last_name'  => $c->last_name,
+                'phone'      => $c->phone,
+                'email'      => $c->email,
+            ]);
+
         return Inertia::render('Customers/Index', [
-            'customers' => Customer::orderBy('last_name')->orderBy('first_name')
-                ->paginate(15)
-                ->through(fn ($c) => [
-                    'id'         => $c->id,
-                    'first_name' => $c->first_name,
-                    'last_name'  => $c->last_name,
-                    'phone'      => $c->phone,
-                    'email'      => $c->email,
-                ]),
+            'customers' => $customers,
+            'filters'   => $request->only(['search', 'sort', 'direction']),
         ]);
     }
 
@@ -44,6 +64,8 @@ class CustomersController extends Controller
     public function show(Customer $customer)
     {
         $this->authorize('view', $customer);
+
+        $customer->load(['vehicles', 'invoices', 'appointments']);
 
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
