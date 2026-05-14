@@ -233,6 +233,93 @@ class CustomersControllerTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // create / store
+    // -------------------------------------------------------------------------
+
+    public function test_create_returns_create_component(): void
+    {
+        $this->actingAs($this->employee)
+            ->get(route('customers.create'))
+            ->assertInertia(
+                fn (Assert $page) => $page->component('Customers/Create')
+            );
+    }
+
+    public function test_store_creates_customer_and_redirects(): void
+    {
+        $response = $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '0612345678',
+                'email'      => 'youssef@example.com',
+            ]);
+
+        $customer = Customer::where('email', 'youssef@example.com')->firstOrFail();
+        $response->assertRedirect(route('customers.show', $customer));
+
+        $this->assertDatabaseHas('customers', [
+            'first_name' => 'Youssef',
+            'last_name'  => 'Alaoui',
+            'phone'      => '+212612345678',
+            'email'      => 'youssef@example.com',
+        ]);
+    }
+
+    public function test_store_rejects_missing_required_fields(): void
+    {
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [])
+            ->assertSessionHasErrors(['first_name', 'last_name', 'phone']);
+    }
+
+    // -------------------------------------------------------------------------
+    // edit / update
+    // -------------------------------------------------------------------------
+
+    public function test_edit_returns_edit_component_with_customer(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('customers.edit', $customer))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->component('Customers/Edit')
+                ->where('customer.id', $customer->id)
+            );
+    }
+
+    public function test_update_saves_changes_and_redirects(): void
+    {
+        $customer = Customer::factory()->create(['phone' => '+212611111111']);
+
+        $this->actingAs($this->employee)
+            ->put(route('customers.update', $customer), [
+                'first_name' => 'Sara',
+                'last_name'  => 'Bennani',
+                'phone'      => '0622222222',
+            ])
+            ->assertRedirect(route('customers.show', $customer->id));
+
+        $this->assertDatabaseHas('customers', [
+            'id'         => $customer->id,
+            'first_name' => 'Sara',
+            'last_name'  => 'Bennani',
+            'phone'      => '+212622222222',
+        ]);
+    }
+
+    public function test_update_rejects_missing_required_fields(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->put(route('customers.update', $customer), [])
+            ->assertSessionHasErrors(['first_name', 'last_name', 'phone']);
+    }
+
+    // -------------------------------------------------------------------------
     // destroy — authorization
     // -------------------------------------------------------------------------
 
