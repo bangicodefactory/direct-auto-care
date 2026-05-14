@@ -3,20 +3,23 @@ import { Head, router, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Index({ customers, filters }) {
-
     const [search, setSearch] = useState(filters?.search || '');
 
     const submitSearch = (e) => {
         e.preventDefault();
 
-        router.get(route('customers.index'), {
-            search,
-            sort: filters?.sort,
-            direction: filters?.direction,
-        }, {
-            preserveState: true,
-            replace: true,
-        });
+        router.get(
+            route('customers.index'),
+            {
+                search,
+                sort: filters?.sort,
+                direction: filters?.direction,
+            },
+            {
+                preserveState: true,
+                replace: true,
+            },
+        );
     };
 
     return (
@@ -24,7 +27,6 @@ export default function Index({ customers, filters }) {
             <Head title="Clients" />
 
             <div className="p-6 space-y-4">
-
                 {/* HEADER */}
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold">Clients</h1>
@@ -46,9 +48,7 @@ export default function Index({ customers, filters }) {
                         onChange={(e) => setSearch(e.target.value)}
                     />
 
-                    <button className="bg-black text-white px-4">
-                        Search
-                    </button>
+                    <button className="bg-black text-white px-4">Search</button>
                 </form>
 
                 {/* TABLE */}
@@ -66,22 +66,16 @@ export default function Index({ customers, filters }) {
                     <tbody>
                         {customers.data.map((c) => (
                             <tr key={c.id} className="border-t">
-
                                 <td>{c.first_name}</td>
                                 <td>{c.last_name}</td>
                                 <td>{c.email}</td>
                                 <td>{c.phone}</td>
 
                                 <td className="flex gap-2">
-                                    <Link href={route('customers.show', c.id)}>
-                                        Voir
-                                    </Link>
+                                    <Link href={route('customers.show', c.id)}>Voir</Link>
 
-                                    <Link href={route('customers.edit', c.id)}>
-                                        Modifier
-                                    </Link>
+                                    <Link href={route('customers.edit', c.id)}>Modifier</Link>
                                 </td>
-
                             </tr>
                         ))}
                     </tbody>
@@ -100,7 +94,6 @@ export default function Index({ customers, filters }) {
                         />
                     ))}
                 </div>
-
             </div>
         </AuthenticatedLayout>
     );
