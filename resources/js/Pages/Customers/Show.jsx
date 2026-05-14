@@ -47,9 +47,7 @@ export default function Show({ customer, can }) {
                     {/* INFO CLIENT */}
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6">
-                            <h3 className="mb-4 text-lg font-medium text-gray-900">
-                                Informations
-                            </h3>
+                            <h3 className="mb-4 text-lg font-medium text-gray-900">Informations</h3>
                             <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                                 <dt className="font-medium text-gray-500">Téléphone</dt>
                                 <dd className="text-gray-900">{customer.phone}</dd>
@@ -135,9 +133,7 @@ export default function Show({ customer, can }) {
                 onClose={() => setConfirmingDeletion(false)}
             >
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Supprimer ce client ?
-                    </h2>
+                    <h2 className="text-lg font-medium text-gray-900">Supprimer ce client ?</h2>
                     <p className="mt-1 text-sm text-gray-600">
                         Cette action est irréversible. Toutes les données associées seront
                         définitivement supprimées.
@@ -146,9 +142,7 @@ export default function Show({ customer, can }) {
                         <SecondaryButton onClick={() => setConfirmingDeletion(false)}>
                             Annuler
                         </SecondaryButton>
-                        <DangerButton onClick={destroy}>
-                            Supprimer définitivement
-                        </DangerButton>
+                        <DangerButton onClick={destroy}>Supprimer définitivement</DangerButton>
                     </div>
                 </div>
             </Modal>
