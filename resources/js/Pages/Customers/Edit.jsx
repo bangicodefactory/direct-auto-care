@@ -37,6 +37,7 @@ export default function Edit({ customer }) {
                             processing={processing}
                             onSubmit={submit}
                             cancelHref={route('customers.show', customer.id)}
+                            autoFocus={false}
                         />
                     </div>
                 </div>

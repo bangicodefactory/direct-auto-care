@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 
 const FIELD_ORDER = ['first_name', 'last_name', 'phone', 'email', 'address', 'notes'];
 
-export default function CustomerForm({ data, setData, errors, processing, onSubmit, cancelHref }) {
+export default function CustomerForm({ data, setData, errors, processing, onSubmit, cancelHref, autoFocus = true }) {
     const inputRefs = useRef({});
 
     useEffect(() => {
@@ -27,7 +27,7 @@ export default function CustomerForm({ data, setData, errors, processing, onSubm
                         ref={(el) => (inputRefs.current.first_name = el)}
                         value={data.first_name}
                         className="mt-1 block w-full"
-                        isFocused
+                        isFocused={autoFocus}
                         onChange={(e) => setData('first_name', e.target.value)}
                     />
                     <InputError message={errors.first_name} className="mt-2" />
