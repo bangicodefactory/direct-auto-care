@@ -21,7 +21,7 @@ class VehicleFactory extends Factory
     public function definition(): array
     {
         $letter = fake()->randomElement(['A', 'B', 'W', 'H', 'D']);
-        $digits = fake()->unique()->numerify('####');
+        $digits = str_pad((string) fake()->unique()->numberBetween(1, 99999), 5, '0', STR_PAD_LEFT);
         $region = fake()->numerify('##');
 
         return [

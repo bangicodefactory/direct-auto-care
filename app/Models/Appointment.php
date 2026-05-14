@@ -10,4 +10,9 @@ class Appointment extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
+    protected $fillable = [
+        'customer_id',
+        'vehicle_id',
+    ];
 }

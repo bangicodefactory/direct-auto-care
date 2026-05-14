@@ -22,11 +22,11 @@ class VehicleModelTest extends TestCase
     {
         $vehicle = Vehicle::factory()->create();
 
-        $this->assertNotNull($vehicle->make);
-        $this->assertNotNull($vehicle->model);
-        $this->assertNotNull($vehicle->year);
-        $this->assertNotNull($vehicle->license_plate);
-        $this->assertNotNull($vehicle->fuel_type);
+        $this->assertNotEmpty($vehicle->make);
+        $this->assertNotEmpty($vehicle->model);
+        $this->assertGreaterThan(0, $vehicle->year);
+        $this->assertNotEmpty($vehicle->license_plate);
+        $this->assertInstanceOf(FuelType::class, $vehicle->fuel_type);
     }
 
     // -------------------------------------------------------------------------
