@@ -20,7 +20,6 @@ export default [
                 console: 'readonly',
                 process: 'readonly',
                 route: 'readonly',
-                confirm: 'readonly',
                 setTimeout: 'readonly',
                 clearTimeout: 'readonly',
             },

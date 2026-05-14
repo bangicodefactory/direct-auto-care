@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 export default function Index({ customers, filters, can }) {
     const [search, setSearch] = useState(filters?.search ?? '');
     const [deletingCustomer, setDeletingCustomer] = useState(null);
+    const [processing, setProcessing] = useState(false);
     const isFirstRender = useRef(true);
     const filtersRef = useRef(filters);
 
@@ -53,8 +54,12 @@ export default function Index({ customers, filters, can }) {
     }
 
     function destroy() {
+        setProcessing(true);
         router.delete(route('customers.destroy', deletingCustomer.id), {
-            onFinish: () => setDeletingCustomer(null),
+            onFinish: () => {
+                setProcessing(false);
+                setDeletingCustomer(null);
+            },
         });
     }
 
@@ -86,7 +91,7 @@ export default function Index({ customers, filters, can }) {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                             <select
-                                className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                 value={filters?.sort ?? 'last_name'}
                                 onChange={handleSortSelect}
                             >
@@ -243,7 +248,9 @@ export default function Index({ customers, filters, can }) {
                         <SecondaryButton onClick={() => setDeletingCustomer(null)}>
                             Annuler
                         </SecondaryButton>
-                        <DangerButton onClick={destroy}>Supprimer définitivement</DangerButton>
+                        <DangerButton onClick={destroy} disabled={processing}>
+                            Supprimer définitivement
+                        </DangerButton>
                     </div>
                 </div>
             </Modal>
