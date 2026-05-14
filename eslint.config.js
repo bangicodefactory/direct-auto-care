@@ -21,6 +21,8 @@ export default [
                 process: 'readonly',
                 route: 'readonly',
                 confirm: 'readonly',
+                setTimeout: 'readonly',
+                clearTimeout: 'readonly',
             },
             parserOptions: {
                 ecmaFeatures: { jsx: true },

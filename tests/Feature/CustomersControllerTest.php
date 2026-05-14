@@ -171,6 +171,33 @@ class CustomersControllerTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // index — can prop
+    // -------------------------------------------------------------------------
+
+    public function test_index_exposes_can_delete_false_for_employee(): void
+    {
+        $this->actingAs($this->employee)
+            ->get(route('customers.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('can.delete', false)
+            );
+    }
+
+    public function test_index_exposes_can_delete_true_for_admin(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('customers.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('can.delete', true)
+            );
+    }
+
+    // -------------------------------------------------------------------------
     // index — filters echoed back
     // -------------------------------------------------------------------------
 

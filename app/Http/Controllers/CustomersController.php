@@ -43,6 +43,7 @@ class CustomersController extends Controller
         return Inertia::render('Customers/Index', [
             'customers' => $customers,
             'filters'   => $request->only(['search', 'sort', 'direction']),
+            'can'       => ['delete' => auth()->user()->can('delete', new Customer())],
         ]);
     }
 
