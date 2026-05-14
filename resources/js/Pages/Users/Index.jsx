@@ -1,12 +1,24 @@
+import DangerButton from '@/Components/DangerButton';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 
 const roleLabels = { admin: 'Administrateur', employee: 'Employé' };
 
 export default function Index({ users }) {
-    function destroy(id) {
-        if (!confirm('Supprimer cet utilisateur ?')) return;
-        router.delete(route('users.destroy', id));
+    const [deletingUser, setDeletingUser] = useState(null);
+    const [processing, setProcessing] = useState(false);
+
+    function destroy() {
+        setProcessing(true);
+        router.delete(route('users.destroy', deletingUser.id), {
+            onFinish: () => {
+                setProcessing(false);
+                setDeletingUser(null);
+            },
+        });
     }
 
     return (
@@ -79,7 +91,7 @@ export default function Index({ users }) {
                                                 Modifier
                                             </Link>
                                             <button
-                                                onClick={() => destroy(user.id)}
+                                                onClick={() => setDeletingUser(user)}
                                                 className="text-red-600 hover:text-red-800"
                                             >
                                                 Supprimer
@@ -123,6 +135,27 @@ export default function Index({ users }) {
                     </div>
                 </div>
             </div>
+
+            {/* DELETE MODAL */}
+            <Modal show={deletingUser !== null} maxWidth="sm" onClose={() => setDeletingUser(null)}>
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Supprimer cet utilisateur ?
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-600">
+                        <span className="font-medium">{deletingUser?.name}</span> sera
+                        définitivement supprimé. Cette action est irréversible.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <SecondaryButton onClick={() => setDeletingUser(null)}>
+                            Annuler
+                        </SecondaryButton>
+                        <DangerButton onClick={destroy} disabled={processing}>
+                            Supprimer définitivement
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }
