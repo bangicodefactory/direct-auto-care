@@ -7,6 +7,8 @@ use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\ServiceRecord;
 use App\Models\Vehicle;
+use Database\Seeders\CustomerSeeder;
+use Database\Seeders\VehicleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -89,6 +91,53 @@ class VehicleModelTest extends TestCase
         Appointment::factory(2)->create(['vehicle_id' => $vehicle->id]);
 
         $this->assertCount(2, $vehicle->appointments);
+    }
+
+    // -------------------------------------------------------------------------
+    // mileage business rule
+    // -------------------------------------------------------------------------
+
+    public function test_mileage_can_increase_on_update(): void
+    {
+        $vehicle = Vehicle::factory()->create(['mileage' => 10_000]);
+        $vehicle->update(['mileage' => 20_000]);
+
+        $this->assertSame(20_000, $vehicle->fresh()->mileage);
+    }
+
+    public function test_mileage_cannot_decrease_on_update(): void
+    {
+        $vehicle = Vehicle::factory()->create(['mileage' => 50_000]);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('Le kilométrage ne peut pas diminuer.');
+
+        $vehicle->update(['mileage' => 49_999]);
+    }
+
+    public function test_mileage_can_be_set_on_creation(): void
+    {
+        $vehicle = Vehicle::factory()->create(['mileage' => 0]);
+
+        $this->assertSame(0, $vehicle->mileage);
+    }
+
+    // -------------------------------------------------------------------------
+    // seeder
+    // -------------------------------------------------------------------------
+
+    public function test_vehicle_seeder_creates_two_to_three_vehicles_per_customer(): void
+    {
+        $this->seed(CustomerSeeder::class);
+        $this->seed(VehicleSeeder::class);
+
+        $customers = Customer::all();
+
+        foreach ($customers as $customer) {
+            $count = $customer->vehicles()->count();
+            $this->assertGreaterThanOrEqual(2, $count);
+            $this->assertLessThanOrEqual(3, $count);
+        }
     }
 
     // -------------------------------------------------------------------------

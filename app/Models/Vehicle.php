@@ -32,6 +32,15 @@ class Vehicle extends Model
         'fuel_type' => FuelType::class,
     ];
 
+    protected static function booted(): void
+    {
+        static::updating(function (Vehicle $vehicle) {
+            if ($vehicle->isDirty('mileage') && $vehicle->mileage < $vehicle->getOriginal('mileage')) {
+                throw new \DomainException('Le kilométrage ne peut pas diminuer.');
+            }
+        });
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
