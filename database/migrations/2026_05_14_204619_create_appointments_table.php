@@ -13,8 +13,6 @@ return new class () extends Migration {
         Schema::create('appointments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
-            $table->dateTime('scheduled_at');
-            $table->text('notes')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

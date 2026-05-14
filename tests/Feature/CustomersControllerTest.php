@@ -204,4 +204,17 @@ class CustomersControllerTest extends TestCase
                 ->has('customer.appointments')
             );
     }
+
+    // -------------------------------------------------------------------------
+    // destroy — authorization
+    // -------------------------------------------------------------------------
+
+    public function test_employee_cannot_delete_customer(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->delete(route('customers.destroy', $customer))
+            ->assertForbidden();
+    }
 }

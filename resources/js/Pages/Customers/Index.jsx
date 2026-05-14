@@ -1,3 +1,4 @@
+import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -17,7 +18,7 @@ export default function Index({ customers, filters }) {
     function sortLink(field) {
         const isCurrent = filters?.sort === field;
         const direction = isCurrent && filters?.direction === 'asc' ? 'desc' : 'asc';
-        return route('customers.index', { search: filters?.search, sort: field, direction });
+        return route('customers.index', { search: filters?.search ?? '', sort: field, direction });
     }
 
     function sortIcon(field) {
@@ -46,8 +47,8 @@ export default function Index({ customers, filters }) {
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         {/* SEARCH */}
                         <form onSubmit={submitSearch} className="flex gap-2 border-b p-4">
-                            <input
-                                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none"
+                            <TextInput
+                                className="flex-1"
                                 placeholder="Rechercher par nom, téléphone ou e-mail…"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}

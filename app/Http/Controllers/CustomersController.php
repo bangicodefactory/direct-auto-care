@@ -14,7 +14,7 @@ class CustomersController extends Controller
     {
         $this->authorize('viewAny', Customer::class);
 
-        $sortField = in_array($request->get('sort'), ['last_name', 'first_name', 'email', 'created_at'])
+        $sortField = in_array($request->get('sort'), ['last_name', 'first_name', 'email'])
             ? $request->get('sort')
             : 'last_name';
 
@@ -69,6 +69,7 @@ class CustomersController extends Controller
 
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
+            'can'      => ['delete' => auth()->user()->can('delete', $customer)],
         ]);
     }
 

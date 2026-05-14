@@ -1,10 +1,17 @@
+import DangerButton from '@/Components/DangerButton';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 
-export default function Show({ customer }) {
+export default function Show({ customer, can }) {
+    const [confirmingDeletion, setConfirmingDeletion] = useState(false);
+
     function destroy() {
-        if (!confirm('Supprimer ce client ?')) return;
-        router.delete(route('customers.destroy', customer.id));
+        router.delete(route('customers.destroy', customer.id), {
+            onFinish: () => setConfirmingDeletion(false),
+        });
     }
 
     return (
@@ -21,12 +28,14 @@ export default function Show({ customer }) {
                         >
                             Modifier
                         </Link>
-                        <button
-                            onClick={destroy}
-                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-                        >
-                            Supprimer
-                        </button>
+                        {can.delete && (
+                            <button
+                                onClick={() => setConfirmingDeletion(true)}
+                                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                            >
+                                Supprimer
+                            </button>
+                        )}
                     </div>
                 </div>
             }
@@ -119,6 +128,30 @@ export default function Show({ customer }) {
                     </Link>
                 </div>
             </div>
+
+            <Modal
+                show={confirmingDeletion}
+                maxWidth="sm"
+                onClose={() => setConfirmingDeletion(false)}
+            >
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Supprimer ce client ?
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-600">
+                        Cette action est irréversible. Toutes les données associées seront
+                        définitivement supprimées.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <SecondaryButton onClick={() => setConfirmingDeletion(false)}>
+                            Annuler
+                        </SecondaryButton>
+                        <DangerButton onClick={destroy}>
+                            Supprimer définitivement
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }
