@@ -7,7 +7,15 @@ import { useEffect, useRef } from 'react';
 
 const FIELD_ORDER = ['first_name', 'last_name', 'phone', 'email', 'address', 'notes'];
 
-export default function CustomerForm({ data, setData, errors, processing, onSubmit, cancelHref, autoFocus = true }) {
+export default function CustomerForm({
+    data,
+    setData,
+    errors,
+    processing,
+    onSubmit,
+    cancelHref,
+    autoFocus = true,
+}) {
     const inputRefs = useRef({});
 
     useEffect(() => {
