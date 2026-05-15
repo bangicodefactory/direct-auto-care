@@ -15,6 +15,7 @@ class ServiceRecord extends Model
 
     protected $fillable = [
         'vehicle_id',
+        'invoice_id',
         'mileage_at_service',
         'notes',
         'serviced_at',
@@ -28,6 +29,11 @@ class ServiceRecord extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class);
     }
 
     public function serviceTypes(): BelongsToMany
