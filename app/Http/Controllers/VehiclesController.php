@@ -8,12 +8,17 @@ use App\Models\Customer;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class VehiclesController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Vehicle::class);
+
+        $allowedSorts = ['license_plate', 'make', 'year'];
+        $sort      = in_array($request->input('sort'), $allowedSorts) ? $request->input('sort') : 'license_plate';
+        $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
 
         $vehicles = Vehicle::query()
             ->with('customer')
@@ -26,7 +31,7 @@ class VehiclesController extends Controller
                         });
                 });
             })
-            ->orderBy('license_plate')
+            ->orderBy($sort, $direction)
             ->paginate(20)
             ->withQueryString()
             ->through(fn ($v) => [
@@ -44,12 +49,32 @@ class VehiclesController extends Controller
 
         return Inertia::render('Vehicles/Index', [
             'vehicles' => $vehicles,
-            'filters'  => $request->only(['search']),
+            'filters'  => $request->only(['search', 'sort', 'direction']),
             'can'      => ['delete' => auth()->user()->can('delete', new Vehicle())],
         ]);
     }
 
-    public function create(Customer $customer)
+    public function standaloneCreate(): Response
+    {
+        $this->authorize('create', Vehicle::class);
+
+        return Inertia::render('Vehicles/Create', [
+            'customers' => Customer::select('id', 'first_name', 'last_name', 'phone')
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->get(),
+        ]);
+    }
+
+    public function standaloneStore(StoreVehicleRequest $request)
+    {
+        $vehicle = Vehicle::create($request->validated());
+
+        return redirect()->route('vehicles.show', $vehicle)
+            ->with('success', 'Véhicule créé avec succès.');
+    }
+
+    public function create(Customer $customer): Response
     {
         $this->authorize('create', Vehicle::class);
 
@@ -68,7 +93,7 @@ class VehiclesController extends Controller
             ->with('success', 'Véhicule créé avec succès.');
     }
 
-    public function show(Vehicle $vehicle)
+    public function show(Vehicle $vehicle): Response
     {
         $this->authorize('view', $vehicle);
 
@@ -80,7 +105,7 @@ class VehiclesController extends Controller
         ]);
     }
 
-    public function edit(Vehicle $vehicle)
+    public function edit(Vehicle $vehicle): Response
     {
         $this->authorize('update', $vehicle);
 

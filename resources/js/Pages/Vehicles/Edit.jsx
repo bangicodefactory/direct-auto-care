@@ -41,6 +41,7 @@ export default function Edit({ vehicle }) {
                             onSubmit={submit}
                             cancelHref={route('vehicles.show', vehicle.id)}
                             autoFocus={false}
+                            minMileage={vehicle.mileage ?? 0}
                         />
                     </div>
                 </div>
