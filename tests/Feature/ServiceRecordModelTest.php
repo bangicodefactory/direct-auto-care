@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\ServiceRecord;
 use App\Models\ServiceType;
@@ -81,7 +82,7 @@ class ServiceRecordModelTest extends TestCase
 
     public function test_service_record_belongs_to_invoice_when_set(): void
     {
-        $invoice = Invoice::create(['customer_id' => \App\Models\Customer::factory()->create()->id]);
+        $invoice = Invoice::create(['customer_id' => Customer::factory()->create()->id]);
         $record  = ServiceRecord::factory()->create(['invoice_id' => $invoice->id]);
 
         $this->assertTrue($record->invoice->is($invoice));
@@ -89,7 +90,7 @@ class ServiceRecordModelTest extends TestCase
 
     public function test_invoice_has_many_service_records(): void
     {
-        $invoice = Invoice::create(['customer_id' => \App\Models\Customer::factory()->create()->id]);
+        $invoice = Invoice::create(['customer_id' => Customer::factory()->create()->id]);
         ServiceRecord::factory(2)->create(['invoice_id' => $invoice->id]);
 
         $this->assertCount(2, $invoice->serviceRecords);
@@ -126,5 +127,32 @@ class ServiceRecordModelTest extends TestCase
         $record->delete();
 
         $this->assertCount(2, ServiceRecord::all());
+    }
+
+    // -------------------------------------------------------------------------
+    // invoice nullOnDelete edge case
+    // -------------------------------------------------------------------------
+
+    public function test_invoice_id_remains_set_after_invoice_soft_delete(): void
+    {
+        $invoice = Invoice::create(['customer_id' => Customer::factory()->create()->id]);
+        $record  = ServiceRecord::factory()->create(['invoice_id' => $invoice->id]);
+
+        $invoice->delete();
+
+        // Soft delete does NOT trigger nullOnDelete — the FK value is preserved.
+        $this->assertSame($invoice->id, $record->fresh()->invoice_id);
+        // But the ORM returns null because soft-deleted models are excluded.
+        $this->assertNull($record->fresh()->invoice);
+    }
+
+    public function test_invoice_id_is_nulled_after_invoice_force_delete(): void
+    {
+        $invoice = Invoice::create(['customer_id' => Customer::factory()->create()->id]);
+        $record  = ServiceRecord::factory()->create(['invoice_id' => $invoice->id]);
+
+        $invoice->forceDelete();
+
+        $this->assertNull($record->fresh()->invoice_id);
     }
 }
