@@ -22,9 +22,9 @@ class UpdateVehicleRequest extends FormRequest
             'make'          => ['required', 'string', 'max:100'],
             'model'         => ['required', 'string', 'max:100'],
             'year'          => ['required', 'integer', 'between:1950,' . (date('Y') + 1)],
-            'license_plate' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'license_plate')->ignore($vehicle)],
-            'vin'           => ['nullable', 'string', 'size:17', Rule::unique('vehicles', 'vin')->ignore($vehicle)],
-            'mileage'       => ['required', 'integer', 'min:0', new MileageNotDecreasing($vehicle->mileage)],
+            'license_plate' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'license_plate')->ignore($vehicle)->whereNull('deleted_at')],
+            'vin'           => ['nullable', 'string', 'size:17', Rule::unique('vehicles', 'vin')->ignore($vehicle)->whereNull('deleted_at')],
+            'mileage'       => ['required', 'bail', 'integer', 'min:0', new MileageNotDecreasing($vehicle->mileage)],
             'fuel_type'     => ['required', Rule::in(array_column(FuelType::cases(), 'value'))],
             'color'         => ['nullable', 'string', 'max:50'],
         ];

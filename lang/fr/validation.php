@@ -34,6 +34,8 @@ return [
         ],
     ],
 
+    'mileage_not_decreasing' => 'Le kilométrage ne peut pas diminuer.',
+
     'attributes' => [
         // Auth
         'email'                 => 'adresse e-mail',

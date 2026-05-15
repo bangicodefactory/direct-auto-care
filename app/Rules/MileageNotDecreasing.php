@@ -14,7 +14,7 @@ class MileageNotDecreasing implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if ((int) $value < $this->currentMileage) {
-            $fail('Le kilométrage ne peut pas diminuer.');
+            $fail(trans('validation.mileage_not_decreasing'));
         }
     }
 }

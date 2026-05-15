@@ -195,6 +195,55 @@ class VehicleRequestTest extends TestCase
         $this->assertArrayHasKey('license_plate', $v->errors()->toArray());
     }
 
+    public function test_store_license_plate_of_soft_deleted_vehicle_is_reusable(): void
+    {
+        $customer = Customer::factory()->create();
+        $deleted  = Vehicle::factory()->create(['license_plate' => '12345-A-01', 'customer_id' => $customer->id]);
+        $deleted->delete();
+
+        $rules = (new StoreVehicleRequest())->rules();
+        $v     = Validator::make($this->validStorePayload($customer), $rules);
+
+        $this->assertArrayNotHasKey('license_plate', $v->errors()->toArray());
+    }
+
+    // -------------------------------------------------------------------------
+    // StoreVehicleRequest — max length
+    // -------------------------------------------------------------------------
+
+    public function test_store_make_max_length_is_enforced(): void
+    {
+        $customer = Customer::factory()->create();
+        $rules    = (new StoreVehicleRequest())->rules();
+        $payload  = array_merge($this->validStorePayload($customer), ['make' => str_repeat('a', 101)]);
+
+        $v = Validator::make($payload, $rules);
+
+        $this->assertArrayHasKey('make', $v->errors()->toArray());
+    }
+
+    public function test_store_model_max_length_is_enforced(): void
+    {
+        $customer = Customer::factory()->create();
+        $rules    = (new StoreVehicleRequest())->rules();
+        $payload  = array_merge($this->validStorePayload($customer), ['model' => str_repeat('a', 101)]);
+
+        $v = Validator::make($payload, $rules);
+
+        $this->assertArrayHasKey('model', $v->errors()->toArray());
+    }
+
+    public function test_store_license_plate_max_length_is_enforced(): void
+    {
+        $customer = Customer::factory()->create();
+        $rules    = (new StoreVehicleRequest())->rules();
+        $payload  = array_merge($this->validStorePayload($customer), ['license_plate' => str_repeat('a', 21)]);
+
+        $v = Validator::make($payload, $rules);
+
+        $this->assertArrayHasKey('license_plate', $v->errors()->toArray());
+    }
+
     // -------------------------------------------------------------------------
     // StoreVehicleRequest — VIN
     // -------------------------------------------------------------------------
@@ -213,7 +262,10 @@ class VehicleRequestTest extends TestCase
         $customer = Customer::factory()->create();
         $rules    = (new StoreVehicleRequest())->rules();
 
-        foreach (['1HGCM82633A00000', '1HGCM82633A000000X'] as $invalid) {
+        foreach ([
+            '1HGCM82633A00000',   // 16 chars — too short
+            '1HGCM82633A000000X', // 18 chars — too long
+        ] as $invalid) {
             $v = Validator::make(
                 array_merge($this->validStorePayload($customer), ['vin' => $invalid]),
                 $rules
@@ -326,6 +378,32 @@ class VehicleRequestTest extends TestCase
         $v = Validator::make($this->validUpdatePayload($vehicle), $rules);
 
         $this->assertFalse($v->fails());
+    }
+
+    // -------------------------------------------------------------------------
+    // UpdateVehicleRequest — year range
+    // -------------------------------------------------------------------------
+
+    public function test_update_year_rejects_before_1950(): void
+    {
+        $vehicle = Vehicle::factory()->create(['mileage' => 0]);
+        $rules   = $this->makeUpdateRequest($vehicle)->rules();
+        $payload = array_merge($this->validUpdatePayload($vehicle), ['year' => 1949]);
+
+        $v = Validator::make($payload, $rules);
+
+        $this->assertArrayHasKey('year', $v->errors()->toArray());
+    }
+
+    public function test_update_year_rejects_too_far_future(): void
+    {
+        $vehicle = Vehicle::factory()->create(['mileage' => 0]);
+        $rules   = $this->makeUpdateRequest($vehicle)->rules();
+        $payload = array_merge($this->validUpdatePayload($vehicle), ['year' => date('Y') + 2]);
+
+        $v = Validator::make($payload, $rules);
+
+        $this->assertArrayHasKey('year', $v->errors()->toArray());
     }
 
     // -------------------------------------------------------------------------
