@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServiceRecordsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiclesController;
 use Illuminate\Foundation\Application;
@@ -55,10 +56,11 @@ Route::resource('vehicles', VehiclesController::class)
     ->middleware(['auth', 'verified'])
     ->except(['index', 'create', 'store']);
 
-// Service Records — nested under vehicle; full CRUD to be added in service-records IST
-Route::get('/vehicles/{vehicle}/service-records/create', fn () => abort(501))
+// Service Records — shallow nested under vehicle
+Route::resource('vehicles.service-records', ServiceRecordsController::class)
     ->middleware(['auth', 'verified'])
-    ->name('vehicles.service-records.create');
+    ->only(['create', 'store', 'edit', 'update', 'destroy'])
+    ->shallow();
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
