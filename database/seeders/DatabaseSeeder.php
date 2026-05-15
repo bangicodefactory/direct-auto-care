@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(RoleSeeder::class);
+        $this->call(ServiceTypeSeeder::class);
 
         $admin = User::firstOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@directautocare.ma')],

@@ -10,6 +10,9 @@ return new class () extends Migration {
         Schema::create('service_records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vehicle_id')->constrained()->cascadeOnDelete();
+            $table->unsignedInteger('mileage_at_service')->nullable();
+            $table->text('notes')->nullable();
+            $table->date('serviced_at');
             $table->softDeletes();
             $table->timestamps();
         });
