@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Enums\FuelType;
+use App\Models\Appointment;
 use App\Models\Customer;
+use App\Models\ServiceRecord;
 use App\Models\User;
 use App\Models\Vehicle;
 use Database\Seeders\RoleSeeder;
@@ -362,6 +364,37 @@ class VehiclesControllerTest extends TestCase
                 ->component('Vehicles/Show')
                 ->where('vehicle.id', $vehicle->id)
                 ->has('vehicle.customer')
+                ->has('vehicle.service_records')
+                ->has('vehicle.appointments')
+            );
+    }
+
+    public function test_show_includes_service_records_newest_first(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        ServiceRecord::factory()->create(['vehicle_id' => $vehicle->id, 'created_at' => now()->subDays(2)]);
+        ServiceRecord::factory()->create(['vehicle_id' => $vehicle->id, 'created_at' => now()->subDay()]);
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.show', $vehicle))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->has('vehicle.service_records', 2)
+                ->where('vehicle.service_records.0.created_at', now()->subDay()->translatedFormat('d/m/Y'))
+                ->where('vehicle.service_records.1.created_at', now()->subDays(2)->translatedFormat('d/m/Y'))
+            );
+    }
+
+    public function test_show_includes_appointments_for_vehicle(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        Appointment::factory()->create(['vehicle_id' => $vehicle->id]);
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.show', $vehicle))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->has('vehicle.appointments', 1)
             );
     }
 

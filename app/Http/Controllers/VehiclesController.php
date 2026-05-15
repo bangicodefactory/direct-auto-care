@@ -100,11 +100,28 @@ class VehiclesController extends Controller
     {
         $this->authorize('view', $vehicle);
 
-        $vehicle->load('customer');
+        // All records loaded; acceptable for a small garage — revisit with pagination if lists grow large.
+        $vehicle->load([
+            'customer',
+            'serviceRecords' => fn ($q) => $q->latest(),
+            'appointments'   => fn ($q) => $q->latest(),
+        ]);
 
         return Inertia::render('Vehicles/Show', [
-            'vehicle' => $this->vehiclePayload($vehicle),
-            'can'     => ['delete' => auth()->user()->can('delete', $vehicle)],
+            'vehicle' => array_merge(
+                $this->vehiclePayload($vehicle),
+                [
+                    'service_records' => $vehicle->serviceRecords->map(fn ($r) => [
+                        'id'         => $r->id,
+                        'created_at' => $r->created_at->translatedFormat('d/m/Y'),
+                    ]),
+                    'appointments' => $vehicle->appointments->map(fn ($a) => [
+                        'id'         => $a->id,
+                        'created_at' => $a->created_at->translatedFormat('d/m/Y'),
+                    ]),
+                ]
+            ),
+            'can' => ['delete' => auth()->user()->can('delete', $vehicle)],
         ]);
     }
 

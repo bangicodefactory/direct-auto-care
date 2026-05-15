@@ -6,7 +6,48 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
+const TABS = [
+    { key: 'history', label: 'Historique de service' },
+    { key: 'appointments', label: 'Rendez-vous' },
+    { key: 'documents', label: 'Documents' },
+];
+
+function EmptyState({ message }) {
+    return <p className="text-sm text-gray-500">{message}</p>;
+}
+
+function ServiceHistoryTab({ records }) {
+    if (!records.length) return <EmptyState message="Aucun historique de service enregistré." />;
+    return (
+        <ul className="divide-y divide-gray-100">
+            {records.map((r) => (
+                <li key={r.id} className="py-3 text-sm text-gray-700">
+                    Compte rendu du {r.created_at}
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function AppointmentsTab({ appointments }) {
+    if (!appointments.length) return <EmptyState message="Aucun rendez-vous enregistré." />;
+    return (
+        <ul className="divide-y divide-gray-100">
+            {appointments.map((a) => (
+                <li key={a.id} className="py-3 text-sm text-gray-700">
+                    Rendez-vous du {a.created_at}
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function DocumentsTab() {
+    return <EmptyState message="Module documents à venir." />;
+}
+
 export default function Show({ vehicle, can }) {
+    const [activeTab, setActiveTab] = useState('history');
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);
     const [processing, setProcessing] = useState(false);
 
@@ -30,8 +71,14 @@ export default function Show({ vehicle, can }) {
                     </h2>
                     <div className="flex gap-2">
                         <Link
-                            href={route('vehicles.edit', vehicle.id)}
+                            href={route('vehicles.service-records.create', vehicle.id)}
                             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                        >
+                            Nouveau compte rendu
+                        </Link>
+                        <Link
+                            href={route('vehicles.edit', vehicle.id)}
+                            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
                             Modifier
                         </Link>
@@ -52,6 +99,7 @@ export default function Show({ vehicle, can }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-4xl space-y-6 sm:px-6 lg:px-8">
+                    {/* INFO CARD */}
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="border-b p-6">
                             <h3 className="text-base font-semibold text-gray-900">Informations</h3>
@@ -116,6 +164,57 @@ export default function Show({ vehicle, can }) {
                             </div>
                         </dl>
                     </div>
+
+                    {/* TABS */}
+                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                        <div className="border-b border-gray-200">
+                            <nav
+                                className="-mb-px flex overflow-x-auto"
+                                role="tablist"
+                                aria-label="Sections du véhicule"
+                            >
+                                {TABS.map((tab) => (
+                                    <button
+                                        key={tab.key}
+                                        id={`tab-${tab.key}`}
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={activeTab === tab.key}
+                                        aria-controls={`tabpanel-${tab.key}`}
+                                        onClick={() => setActiveTab(tab.key)}
+                                        className={`whitespace-nowrap border-b-2 px-6 py-4 text-sm font-medium transition-colors ${
+                                            activeTab === tab.key
+                                                ? 'border-primary text-primary'
+                                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                        <div
+                            role="tabpanel"
+                            id={`tabpanel-${activeTab}`}
+                            aria-labelledby={`tab-${activeTab}`}
+                            className="p-6"
+                        >
+                            {activeTab === 'history' && (
+                                <ServiceHistoryTab records={vehicle.service_records} />
+                            )}
+                            {activeTab === 'appointments' && (
+                                <AppointmentsTab appointments={vehicle.appointments} />
+                            )}
+                            {activeTab === 'documents' && <DocumentsTab />}
+                        </div>
+                    </div>
+
+                    <Link
+                        href={route('vehicles.index')}
+                        className="text-sm text-gray-600 hover:text-gray-900"
+                    >
+                        ← Retour à la liste
+                    </Link>
                 </div>
             </div>
 
