@@ -539,6 +539,8 @@ class VehiclesControllerTest extends TestCase
                 'fuel_type'     => $vehicle->fuel_type->value,
             ])
             ->assertRedirect(route('vehicles.show', $vehicle->id));
+
+        $this->assertDatabaseHas('vehicles', ['id' => $vehicle->id, 'mileage' => 10_000]);
     }
 
     // -------------------------------------------------------------------------
@@ -560,6 +562,38 @@ class VehiclesControllerTest extends TestCase
 
         $this->actingAs($this->employee)
             ->post(route('vehicles.store'), array_merge($this->validPayload($customer), ['year' => (int) date('Y') + 2]))
+            ->assertSessionHasErrors('year');
+    }
+
+    public function test_update_rejects_year_before_1950(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [
+                'make'          => $vehicle->make,
+                'model'         => $vehicle->model,
+                'year'          => 1949,
+                'license_plate' => $vehicle->license_plate,
+                'mileage'       => $vehicle->mileage,
+                'fuel_type'     => $vehicle->fuel_type->value,
+            ])
+            ->assertSessionHasErrors('year');
+    }
+
+    public function test_update_rejects_year_after_next_year(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [
+                'make'          => $vehicle->make,
+                'model'         => $vehicle->model,
+                'year'          => (int) date('Y') + 2,
+                'license_plate' => $vehicle->license_plate,
+                'mileage'       => $vehicle->mileage,
+                'fuel_type'     => $vehicle->fuel_type->value,
+            ])
             ->assertSessionHasErrors('year');
     }
 
