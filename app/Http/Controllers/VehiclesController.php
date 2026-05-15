@@ -100,6 +100,7 @@ class VehiclesController extends Controller
     {
         $this->authorize('view', $vehicle);
 
+        // All records loaded; acceptable for a small garage — revisit with pagination if lists grow large.
         $vehicle->load([
             'customer',
             'serviceRecords' => fn ($q) => $q->latest(),

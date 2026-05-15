@@ -176,6 +176,7 @@ export default function Show({ vehicle, can }) {
                                 {TABS.map((tab) => (
                                     <button
                                         key={tab.key}
+                                        id={`tab-${tab.key}`}
                                         type="button"
                                         role="tab"
                                         aria-selected={activeTab === tab.key}
@@ -192,7 +193,12 @@ export default function Show({ vehicle, can }) {
                                 ))}
                             </nav>
                         </div>
-                        <div role="tabpanel" id={`tabpanel-${activeTab}`} className="p-6">
+                        <div
+                            role="tabpanel"
+                            id={`tabpanel-${activeTab}`}
+                            aria-labelledby={`tab-${activeTab}`}
+                            className="p-6"
+                        >
                             {activeTab === 'history' && (
                                 <ServiceHistoryTab records={vehicle.service_records} />
                             )}
