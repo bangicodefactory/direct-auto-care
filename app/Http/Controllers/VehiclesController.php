@@ -112,11 +112,11 @@ class VehiclesController extends Controller
                 [
                     'service_records' => $vehicle->serviceRecords->map(fn ($r) => [
                         'id'         => $r->id,
-                        'created_at' => $r->created_at->toDateString(),
+                        'created_at' => $r->created_at->translatedFormat('d/m/Y'),
                     ]),
                     'appointments' => $vehicle->appointments->map(fn ($a) => [
                         'id'         => $a->id,
-                        'created_at' => $a->created_at->toDateString(),
+                        'created_at' => $a->created_at->translatedFormat('d/m/Y'),
                     ]),
                 ]
             ),

@@ -380,6 +380,8 @@ class VehiclesControllerTest extends TestCase
             ->assertInertia(
                 fn (Assert $page) => $page
                 ->has('vehicle.service_records', 2)
+                ->where('vehicle.service_records.0.created_at', now()->subDay()->translatedFormat('d/m/Y'))
+                ->where('vehicle.service_records.1.created_at', now()->subDays(2)->translatedFormat('d/m/Y'))
             );
     }
 

@@ -17,12 +17,12 @@ function EmptyState({ message }) {
 }
 
 function ServiceHistoryTab({ records }) {
-    if (!records?.length) return <EmptyState message="Aucun historique de service enregistré." />;
+    if (!records.length) return <EmptyState message="Aucun historique de service enregistré." />;
     return (
         <ul className="divide-y divide-gray-100">
             {records.map((r) => (
                 <li key={r.id} className="py-3 text-sm text-gray-700">
-                    Compte rendu du {new Date(r.created_at).toLocaleDateString('fr-MA')}
+                    Compte rendu du {r.created_at}
                 </li>
             ))}
         </ul>
@@ -30,12 +30,12 @@ function ServiceHistoryTab({ records }) {
 }
 
 function AppointmentsTab({ appointments }) {
-    if (!appointments?.length) return <EmptyState message="Aucun rendez-vous enregistré." />;
+    if (!appointments.length) return <EmptyState message="Aucun rendez-vous enregistré." />;
     return (
         <ul className="divide-y divide-gray-100">
             {appointments.map((a) => (
                 <li key={a.id} className="py-3 text-sm text-gray-700">
-                    Rendez-vous du {new Date(a.created_at).toLocaleDateString('fr-MA')}
+                    Rendez-vous du {a.created_at}
                 </li>
             ))}
         </ul>
