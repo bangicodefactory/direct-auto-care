@@ -3,19 +3,28 @@
 // Extend this file as new validation rules are introduced — only a subset is currently covered.
 return [
     'accepted'         => 'Le champ :attribute doit être accepté.',
+    'between'          => [
+        'numeric' => 'Le champ :attribute doit être compris entre :min et :max.',
+    ],
     'boolean'          => 'Le champ :attribute doit être vrai ou faux.',
     'confirmed'        => 'La confirmation du champ :attribute ne correspond pas.',
     'current_password' => 'Le mot de passe est incorrect.',
     'email'            => 'Le champ :attribute doit être une adresse e-mail valide.',
+    'exists'           => 'La valeur sélectionnée pour :attribute est invalide.',
     'in'               => 'La valeur sélectionnée pour :attribute est invalide.',
+    'integer'          => 'Le champ :attribute doit être un nombre entier.',
     'max'              => [
         'string' => 'Le champ :attribute ne peut pas dépasser :max caractères.',
     ],
     'min'              => [
-        'string' => 'Le champ :attribute doit contenir au moins :min caractères.',
+        'numeric' => 'Le champ :attribute doit être au moins :min.',
+        'string'  => 'Le champ :attribute doit contenir au moins :min caractères.',
     ],
     'regex'            => 'Le format du champ :attribute est invalide.',
     'required'         => 'Le champ :attribute est obligatoire.',
+    'size'             => [
+        'string' => 'Le champ :attribute doit contenir exactement :size caractères.',
+    ],
     'string'           => 'Le champ :attribute doit être une chaîne de caractères.',
     'unique'           => 'La valeur du champ :attribute est déjà utilisée.',
 
@@ -40,5 +49,15 @@ return [
         'notes'                 => 'notes',
         'notify_email'          => 'notification par e-mail',
         'notify_whatsapp'       => 'notification par WhatsApp',
+        // Vehicle
+        'customer_id'           => 'client',
+        'make'                  => 'marque',
+        'model'                 => 'modèle',
+        'year'                  => 'année',
+        'license_plate'         => 'plaque d\'immatriculation',
+        'vin'                   => 'numéro de châssis',
+        'mileage'               => 'kilométrage',
+        'fuel_type'             => 'type de carburant',
+        'color'                 => 'couleur',
     ],
 ];
