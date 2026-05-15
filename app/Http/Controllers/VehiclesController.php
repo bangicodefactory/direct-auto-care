@@ -6,6 +6,7 @@ use App\Http\Requests\StoreVehicleRequest;
 use App\Http\Requests\UpdateVehicleRequest;
 use App\Models\Customer;
 use App\Models\Vehicle;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -58,6 +59,8 @@ class VehiclesController extends Controller
     {
         $this->authorize('create', Vehicle::class);
 
+        // Loads the full customer list for the combobox. Acceptable for a small garage;
+        // revisit with server-side search if the list grows large.
         return Inertia::render('Vehicles/Create', [
             'customers' => Customer::select('id', 'first_name', 'last_name', 'phone')
                 ->orderBy('last_name')
@@ -66,7 +69,7 @@ class VehiclesController extends Controller
         ]);
     }
 
-    public function standaloneStore(StoreVehicleRequest $request)
+    public function standaloneStore(StoreVehicleRequest $request): RedirectResponse
     {
         $vehicle = Vehicle::create($request->validated());
 
@@ -83,7 +86,7 @@ class VehiclesController extends Controller
         ]);
     }
 
-    public function store(StoreVehicleRequest $request, Customer $customer)
+    public function store(StoreVehicleRequest $request, Customer $customer): RedirectResponse
     {
         $vehicle = Vehicle::create(
             array_merge($request->validated(), ['customer_id' => $customer->id])
@@ -136,7 +139,7 @@ class VehiclesController extends Controller
         ];
     }
 
-    public function update(UpdateVehicleRequest $request, Vehicle $vehicle)
+    public function update(UpdateVehicleRequest $request, Vehicle $vehicle): RedirectResponse
     {
         try {
             $vehicle->update($request->validated());
@@ -148,7 +151,7 @@ class VehiclesController extends Controller
             ->with('success', 'Véhicule mis à jour avec succès.');
     }
 
-    public function destroy(Vehicle $vehicle)
+    public function destroy(Vehicle $vehicle): RedirectResponse
     {
         $this->authorize('delete', $vehicle);
 

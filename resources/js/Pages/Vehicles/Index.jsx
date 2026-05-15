@@ -68,6 +68,8 @@ export default function Index({ vehicles, filters, can }) {
         );
     }
 
+    const sortProps = { currentSort: sort, currentDirection: direction, onSort: handleSort };
+
     function destroy() {
         setProcessing(true);
         router.delete(route('vehicles.destroy', deletingVehicle.id), {
@@ -121,31 +123,13 @@ export default function Index({ vehicles, filters, can }) {
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-3 text-left">
-                                        <SortableHeader
-                                            column="license_plate"
-                                            label="Plaque"
-                                            currentSort={sort}
-                                            currentDirection={direction}
-                                            onSort={handleSort}
-                                        />
+                                        <SortableHeader column="license_plate" label="Plaque" {...sortProps} />
                                     </th>
                                     <th className="px-6 py-3 text-left">
-                                        <SortableHeader
-                                            column="make"
-                                            label="Marque / Modèle"
-                                            currentSort={sort}
-                                            currentDirection={direction}
-                                            onSort={handleSort}
-                                        />
+                                        <SortableHeader column="make" label="Marque / Modèle" {...sortProps} />
                                     </th>
                                     <th className="px-6 py-3 text-left">
-                                        <SortableHeader
-                                            column="year"
-                                            label="Année"
-                                            currentSort={sort}
-                                            currentDirection={direction}
-                                            onSort={handleSort}
-                                        />
+                                        <SortableHeader column="year" label="Année" {...sortProps} />
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Carburant

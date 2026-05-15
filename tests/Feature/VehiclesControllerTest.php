@@ -244,6 +244,12 @@ class VehiclesControllerTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
+    public function test_guest_is_redirected_from_standalone_store(): void
+    {
+        $this->post(route('vehicles.store'), [])
+            ->assertRedirect(route('login'));
+    }
+
     public function test_standalone_create_returns_create_component_with_customers_list(): void
     {
         Customer::factory(3)->create();
