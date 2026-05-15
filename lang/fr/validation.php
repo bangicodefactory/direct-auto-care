@@ -65,5 +65,6 @@ return [
         'mileage_at_service'    => 'kilométrage au moment du service',
         'serviced_at'           => 'date du service',
         'notes'                 => 'notes',
+        'service_type_ids'      => 'types de service',
     ],
 ];
