@@ -61,5 +61,9 @@ return [
         'mileage'               => 'kilométrage',
         'fuel_type'             => 'type de carburant',
         'color'                 => 'couleur',
+        // Service Record
+        'mileage_at_service'    => 'kilométrage au moment du service',
+        'serviced_at'           => 'date du service',
+        'notes'                 => 'notes',
     ],
 ];
