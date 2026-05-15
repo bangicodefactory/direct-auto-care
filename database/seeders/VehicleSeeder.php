@@ -10,7 +10,7 @@ class VehicleSeeder extends Seeder
 {
     public function run(): void
     {
-        Customer::all()->each(function (Customer $customer) {
+        Customer::query()->each(function (Customer $customer) {
             Vehicle::factory(fake()->numberBetween(2, 3))->create([
                 'customer_id' => $customer->id,
             ]);

@@ -109,10 +109,12 @@ class VehicleModelTest extends TestCase
     {
         $vehicle = Vehicle::factory()->create(['mileage' => 50_000]);
 
-        $this->expectException(\DomainException::class);
-        $this->expectExceptionMessage('Le kilométrage ne peut pas diminuer.');
-
-        $vehicle->update(['mileage' => 49_999]);
+        try {
+            $vehicle->update(['mileage' => 49_999]);
+            $this->fail('Expected DomainException was not thrown.');
+        } catch (\DomainException $e) {
+            $this->assertSame('Le kilométrage ne peut pas diminuer.', $e->getMessage());
+        }
     }
 
     public function test_mileage_can_be_set_on_creation(): void
