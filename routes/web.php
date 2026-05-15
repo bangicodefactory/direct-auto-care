@@ -55,6 +55,11 @@ Route::resource('vehicles', VehiclesController::class)
     ->middleware(['auth', 'verified'])
     ->except(['index', 'create', 'store']);
 
+// Service Records — nested under vehicle; full CRUD to be added in service-records IST
+Route::get('/vehicles/{vehicle}/service-records/create', fn () => abort(501))
+    ->middleware(['auth', 'verified'])
+    ->name('vehicles.service-records.create');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

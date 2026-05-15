@@ -100,11 +100,27 @@ class VehiclesController extends Controller
     {
         $this->authorize('view', $vehicle);
 
-        $vehicle->load('customer');
+        $vehicle->load([
+            'customer',
+            'serviceRecords' => fn ($q) => $q->latest(),
+            'appointments'   => fn ($q) => $q->latest(),
+        ]);
 
         return Inertia::render('Vehicles/Show', [
-            'vehicle' => $this->vehiclePayload($vehicle),
-            'can'     => ['delete' => auth()->user()->can('delete', $vehicle)],
+            'vehicle' => array_merge(
+                $this->vehiclePayload($vehicle),
+                [
+                    'service_records' => $vehicle->serviceRecords->map(fn ($r) => [
+                        'id'         => $r->id,
+                        'created_at' => $r->created_at->toDateString(),
+                    ]),
+                    'appointments' => $vehicle->appointments->map(fn ($a) => [
+                        'id'         => $a->id,
+                        'created_at' => $a->created_at->toDateString(),
+                    ]),
+                ]
+            ),
+            'can' => ['delete' => auth()->user()->can('delete', $vehicle)],
         ]);
     }
 
