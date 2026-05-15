@@ -3,6 +3,7 @@
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\VehiclesController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,6 +31,21 @@ Route::resource('customers', CustomersController::class)
 Route::resource('users', UsersController::class)
     ->middleware(['auth', 'verified'])
     ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+
+// Vehicles — global index
+Route::get('/vehicles', [VehiclesController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('vehicles.index');
+
+// Vehicles — create + store nested under customer (customer_id comes from route)
+Route::resource('customers.vehicles', VehiclesController::class)
+    ->middleware(['auth', 'verified'])
+    ->only(['create', 'store']);
+
+// Vehicles — show, edit, update, destroy as top-level resources
+Route::resource('vehicles', VehiclesController::class)
+    ->middleware(['auth', 'verified'])
+    ->except(['index', 'create', 'store']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

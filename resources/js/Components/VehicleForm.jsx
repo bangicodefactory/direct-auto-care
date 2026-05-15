@@ -1,0 +1,173 @@
+import InputError from '@/Components/InputError';
+import InputLabel from '@/Components/InputLabel';
+import PrimaryButton from '@/Components/PrimaryButton';
+import TextInput from '@/Components/TextInput';
+import { Link } from '@inertiajs/react';
+import { useEffect, useRef } from 'react';
+
+const FIELD_ORDER = [
+    'make',
+    'model',
+    'year',
+    'license_plate',
+    'vin',
+    'mileage',
+    'fuel_type',
+    'color',
+];
+
+const FUEL_TYPE_OPTIONS = [
+    { value: 'essence', label: 'Essence' },
+    { value: 'diesel', label: 'Diesel' },
+    { value: 'hybride', label: 'Hybride' },
+    { value: 'electrique', label: 'Électrique' },
+];
+
+export default function VehicleForm({
+    data,
+    setData,
+    errors,
+    processing,
+    onSubmit,
+    cancelHref,
+    autoFocus = true,
+}) {
+    const inputRefs = useRef({});
+
+    useEffect(() => {
+        const firstErrorField = FIELD_ORDER.find((field) => errors[field]);
+        if (firstErrorField) {
+            inputRefs.current[firstErrorField]?.focus();
+        }
+    }, [errors]);
+
+    return (
+        <form onSubmit={onSubmit} className="space-y-6 p-6">
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <InputLabel htmlFor="make" value="Marque" />
+                    <TextInput
+                        id="make"
+                        ref={(el) => (inputRefs.current.make = el)}
+                        value={data.make}
+                        className="mt-1 block w-full"
+                        isFocused={autoFocus}
+                        onChange={(e) => setData('make', e.target.value)}
+                    />
+                    <InputError message={errors.make} className="mt-2" />
+                </div>
+
+                <div>
+                    <InputLabel htmlFor="model" value="Modèle" />
+                    <TextInput
+                        id="model"
+                        ref={(el) => (inputRefs.current.model = el)}
+                        value={data.model}
+                        className="mt-1 block w-full"
+                        onChange={(e) => setData('model', e.target.value)}
+                    />
+                    <InputError message={errors.model} className="mt-2" />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <InputLabel htmlFor="year" value="Année" />
+                    <TextInput
+                        id="year"
+                        type="number"
+                        ref={(el) => (inputRefs.current.year = el)}
+                        value={data.year}
+                        className="mt-1 block w-full"
+                        min={1950}
+                        max={new Date().getFullYear() + 1}
+                        onChange={(e) => setData('year', e.target.value)}
+                    />
+                    <InputError message={errors.year} className="mt-2" />
+                </div>
+
+                <div>
+                    <InputLabel htmlFor="fuel_type" value="Carburant" />
+                    <select
+                        id="fuel_type"
+                        ref={(el) => (inputRefs.current.fuel_type = el)}
+                        value={data.fuel_type}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                        onChange={(e) => setData('fuel_type', e.target.value)}
+                    >
+                        <option value="">— Sélectionner —</option>
+                        {FUEL_TYPE_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </select>
+                    <InputError message={errors.fuel_type} className="mt-2" />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <InputLabel htmlFor="license_plate" value="Plaque d'immatriculation" />
+                    <TextInput
+                        id="license_plate"
+                        ref={(el) => (inputRefs.current.license_plate = el)}
+                        value={data.license_plate}
+                        className="mt-1 block w-full"
+                        placeholder="12345-A-01"
+                        onChange={(e) => setData('license_plate', e.target.value)}
+                    />
+                    <InputError message={errors.license_plate} className="mt-2" />
+                </div>
+
+                <div>
+                    <InputLabel htmlFor="color" value="Couleur" />
+                    <TextInput
+                        id="color"
+                        ref={(el) => (inputRefs.current.color = el)}
+                        value={data.color}
+                        className="mt-1 block w-full"
+                        onChange={(e) => setData('color', e.target.value)}
+                    />
+                    <InputError message={errors.color} className="mt-2" />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <InputLabel htmlFor="mileage" value="Kilométrage (km)" />
+                    <TextInput
+                        id="mileage"
+                        type="number"
+                        ref={(el) => (inputRefs.current.mileage = el)}
+                        value={data.mileage}
+                        className="mt-1 block w-full"
+                        min={0}
+                        onChange={(e) => setData('mileage', e.target.value)}
+                    />
+                    <InputError message={errors.mileage} className="mt-2" />
+                </div>
+
+                <div>
+                    <InputLabel htmlFor="vin" value="Numéro de châssis (VIN)" />
+                    <TextInput
+                        id="vin"
+                        ref={(el) => (inputRefs.current.vin = el)}
+                        value={data.vin}
+                        className="mt-1 block w-full"
+                        placeholder="17 caractères"
+                        onChange={(e) => setData('vin', e.target.value)}
+                    />
+                    <InputError message={errors.vin} className="mt-2" />
+                </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-4">
+                <Link href={cancelHref} className="text-sm text-gray-600 hover:text-gray-900">
+                    Annuler
+                </Link>
+                <PrimaryButton disabled={processing}>Enregistrer</PrimaryButton>
+            </div>
+        </form>
+    );
+}

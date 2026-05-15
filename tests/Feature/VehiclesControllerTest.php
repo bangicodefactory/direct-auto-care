@@ -1,0 +1,344 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\FuelType;
+use App\Models\Customer;
+use App\Models\User;
+use App\Models\Vehicle;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
+use Tests\TestCase;
+
+class VehiclesControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $employee;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RoleSeeder::class);
+        $this->employee = User::factory()->create();
+        $this->employee->assignRole('employee');
+    }
+
+    private function validPayload(Customer $customer): array
+    {
+        return [
+            'customer_id'   => $customer->id,
+            'make'          => 'Toyota',
+            'model'         => 'Corolla',
+            'year'          => 2020,
+            'license_plate' => '12345-A-01',
+            'mileage'       => 0,
+            'fuel_type'     => FuelType::Essence->value,
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // index — search
+    // -------------------------------------------------------------------------
+
+    public function test_index_returns_all_vehicles_without_search(): void
+    {
+        Vehicle::factory(3)->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->component('Vehicles/Index')
+                ->has('vehicles.data', 3)
+            );
+    }
+
+    public function test_index_filters_by_license_plate(): void
+    {
+        $customer = Customer::factory()->create();
+        Vehicle::factory()->create(['license_plate' => '11111-A-01', 'customer_id' => $customer->id]);
+        Vehicle::factory()->create(['license_plate' => '22222-B-02', 'customer_id' => $customer->id]);
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index', ['search' => '11111']))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->has('vehicles.data', 1)
+                ->where('vehicles.data.0.license_plate', '11111-A-01')
+            );
+    }
+
+    public function test_index_filters_by_customer_first_name(): void
+    {
+        $youssef = Customer::factory()->create(['first_name' => 'Youssef', 'last_name' => 'Alaoui']);
+        $sara    = Customer::factory()->create(['first_name' => 'Sara', 'last_name' => 'Bennani']);
+        Vehicle::factory()->create(['customer_id' => $youssef->id]);
+        Vehicle::factory()->create(['customer_id' => $sara->id]);
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index', ['search' => 'Youssef']))
+            ->assertInertia(
+                fn (Assert $page) => $page->has('vehicles.data', 1)
+            );
+    }
+
+    public function test_index_filters_by_customer_last_name(): void
+    {
+        $alaoui  = Customer::factory()->create(['first_name' => 'Omar', 'last_name' => 'Alaoui']);
+        $bennani = Customer::factory()->create(['first_name' => 'Sara', 'last_name' => 'Bennani']);
+        Vehicle::factory()->create(['customer_id' => $alaoui->id]);
+        Vehicle::factory()->create(['customer_id' => $bennani->id]);
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index', ['search' => 'Alaoui']))
+            ->assertInertia(
+                fn (Assert $page) => $page->has('vehicles.data', 1)
+            );
+    }
+
+    public function test_index_returns_empty_when_no_match(): void
+    {
+        Vehicle::factory(2)->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index', ['search' => 'zzznomatch']))
+            ->assertInertia(
+                fn (Assert $page) => $page->has('vehicles.data', 0)
+            );
+    }
+
+    // -------------------------------------------------------------------------
+    // index — pagination
+    // -------------------------------------------------------------------------
+
+    public function test_index_paginates_20_per_page(): void
+    {
+        Vehicle::factory(25)->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->has('vehicles.data', 20)
+                ->where('vehicles.total', 25)
+            );
+    }
+
+    // -------------------------------------------------------------------------
+    // index — can prop
+    // -------------------------------------------------------------------------
+
+    public function test_index_exposes_can_delete_false_for_employee(): void
+    {
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page->where('can.delete', false)
+            );
+    }
+
+    public function test_index_exposes_can_delete_true_for_admin(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('vehicles.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page->where('can.delete', true)
+            );
+    }
+
+    // -------------------------------------------------------------------------
+    // index — filters echoed back
+    // -------------------------------------------------------------------------
+
+    public function test_index_echoes_search_filter_back(): void
+    {
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index', ['search' => '12345']))
+            ->assertInertia(
+                fn (Assert $page) => $page->where('filters.search', '12345')
+            );
+    }
+
+    // -------------------------------------------------------------------------
+    // create
+    // -------------------------------------------------------------------------
+
+    public function test_create_returns_create_component_with_customer(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('customers.vehicles.create', $customer))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->component('Vehicles/Create')
+                ->where('customer.id', $customer->id)
+            );
+    }
+
+    // -------------------------------------------------------------------------
+    // store
+    // -------------------------------------------------------------------------
+
+    public function test_store_creates_vehicle_and_redirects_to_show(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $response = $this->actingAs($this->employee)
+            ->post(route('customers.vehicles.store', $customer), $this->validPayload($customer));
+
+        $vehicle = Vehicle::where('license_plate', '12345-A-01')->firstOrFail();
+        $response->assertRedirect(route('vehicles.show', $vehicle));
+
+        $this->assertDatabaseHas('vehicles', [
+            'customer_id'   => $customer->id,
+            'make'          => 'Toyota',
+            'model'         => 'Corolla',
+            'license_plate' => '12345-A-01',
+        ]);
+    }
+
+    public function test_store_ignores_tampered_customer_id_and_uses_route_customer(): void
+    {
+        $customer  = Customer::factory()->create();
+        $other     = Customer::factory()->create();
+        $payload   = array_merge($this->validPayload($customer), ['customer_id' => $other->id]);
+
+        $this->actingAs($this->employee)
+            ->post(route('customers.vehicles.store', $customer), $payload);
+
+        $vehicle = Vehicle::where('license_plate', '12345-A-01')->firstOrFail();
+        $this->assertSame($customer->id, $vehicle->customer_id);
+    }
+
+    public function test_store_rejects_missing_required_fields(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->post(route('customers.vehicles.store', $customer), [])
+            ->assertSessionHasErrors(['make', 'model', 'year', 'license_plate', 'fuel_type']);
+    }
+
+    // -------------------------------------------------------------------------
+    // show
+    // -------------------------------------------------------------------------
+
+    public function test_show_returns_show_component_with_vehicle_data(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.show', $vehicle))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->component('Vehicles/Show')
+                ->where('vehicle.id', $vehicle->id)
+                ->has('vehicle.customer')
+            );
+    }
+
+    public function test_show_exposes_can_delete_false_for_employee(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.show', $vehicle))
+            ->assertInertia(
+                fn (Assert $page) => $page->where('can.delete', false)
+            );
+    }
+
+    public function test_show_exposes_can_delete_true_for_admin(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($admin)
+            ->get(route('vehicles.show', $vehicle))
+            ->assertInertia(
+                fn (Assert $page) => $page->where('can.delete', true)
+            );
+    }
+
+    // -------------------------------------------------------------------------
+    // edit / update
+    // -------------------------------------------------------------------------
+
+    public function test_edit_returns_edit_component_with_vehicle(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.edit', $vehicle))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->component('Vehicles/Edit')
+                ->where('vehicle.id', $vehicle->id)
+            );
+    }
+
+    public function test_update_saves_changes_and_redirects_to_show(): void
+    {
+        $vehicle = Vehicle::factory()->create(['mileage' => 10_000]);
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [
+                'make'          => 'Honda',
+                'model'         => 'Civic',
+                'year'          => 2021,
+                'license_plate' => $vehicle->license_plate,
+                'mileage'       => 15_000,
+                'fuel_type'     => FuelType::Diesel->value,
+            ])
+            ->assertRedirect(route('vehicles.show', $vehicle->id));
+
+        $this->assertDatabaseHas('vehicles', [
+            'id'    => $vehicle->id,
+            'make'  => 'Honda',
+            'model' => 'Civic',
+            'year'  => 2021,
+        ]);
+    }
+
+    public function test_update_rejects_missing_required_fields(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [])
+            ->assertSessionHasErrors(['make', 'model', 'year', 'license_plate', 'mileage', 'fuel_type']);
+    }
+
+    // -------------------------------------------------------------------------
+    // destroy — authorization
+    // -------------------------------------------------------------------------
+
+    public function test_employee_cannot_delete_vehicle(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->delete(route('vehicles.destroy', $vehicle))
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_delete_vehicle(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($admin)
+            ->delete(route('vehicles.destroy', $vehicle))
+            ->assertRedirect(route('vehicles.index'));
+
+        $this->assertSoftDeleted('vehicles', ['id' => $vehicle->id]);
+    }
+}
