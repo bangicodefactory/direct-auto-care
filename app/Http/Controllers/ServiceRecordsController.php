@@ -51,7 +51,9 @@ class ServiceRecordsController extends Controller
     {
         $this->authorize('update', $serviceRecord);
 
-        $serviceRecord->load(['vehicle', 'serviceTypes']);
+        $vehicle = $serviceRecord->vehicle()->withTrashed()->firstOrFail();
+        $serviceRecord->setRelation('vehicle', $vehicle);
+        $serviceRecord->load('serviceTypes');
 
         return Inertia::render('ServiceRecords/Edit', [
             'record'       => $this->recordPayload($serviceRecord),
@@ -61,8 +63,9 @@ class ServiceRecordsController extends Controller
 
     public function update(UpdateServiceRecordRequest $request, ServiceRecord $serviceRecord): RedirectResponse
     {
-        $data    = $request->validated();
-        $vehicle = $serviceRecord->vehicle;
+        $data      = $request->validated();
+        $vehicleId = $serviceRecord->vehicle_id;
+        $vehicle   = $serviceRecord->vehicle()->withTrashed()->first();
 
         DB::transaction(function () use ($data, $serviceRecord, $vehicle) {
             $serviceRecord->update([
@@ -73,12 +76,12 @@ class ServiceRecordsController extends Controller
 
             $serviceRecord->serviceTypes()->sync($data['service_type_ids']);
 
-            if (isset($data['mileage_at_service']) && $data['mileage_at_service'] > $vehicle->mileage) {
+            if ($vehicle && isset($data['mileage_at_service']) && $data['mileage_at_service'] > $vehicle->mileage) {
                 $vehicle->update(['mileage' => $data['mileage_at_service']]);
             }
         });
 
-        return redirect()->route('vehicles.show', $vehicle)
+        return redirect()->route('vehicles.show', $vehicleId)
             ->with('success', 'Fiche de service mise à jour avec succès.');
     }
 
@@ -86,10 +89,10 @@ class ServiceRecordsController extends Controller
     {
         $this->authorize('delete', $serviceRecord);
 
-        $vehicle = $serviceRecord->vehicle;
+        $vehicleId = $serviceRecord->vehicle_id;
         $serviceRecord->delete();
 
-        return redirect()->route('vehicles.show', $vehicle)
+        return redirect()->route('vehicles.show', $vehicleId)
             ->with('success', 'Fiche de service supprimée.');
     }
 

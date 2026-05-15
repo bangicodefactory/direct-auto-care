@@ -105,7 +105,7 @@ class ServiceRecordsControllerTest extends TestCase
         $this->assertSame(12_000, $this->vehicle->fresh()->mileage);
     }
 
-    public function test_store_does_not_update_vehicle_mileage_when_not_greater(): void
+    public function test_store_does_not_update_vehicle_mileage_when_equal_or_lower(): void
     {
         $payload                      = $this->validPayload();
         $payload['mileage_at_service'] = 10_000;
@@ -113,6 +113,22 @@ class ServiceRecordsControllerTest extends TestCase
         $this->actingAs($this->employee)
             ->post(route('vehicles.service-records.store', $this->vehicle), $payload);
 
+        $this->assertSame(10_000, $this->vehicle->fresh()->mileage);
+    }
+
+    public function test_store_allows_null_mileage_at_service(): void
+    {
+        $payload = $this->validPayload();
+        unset($payload['mileage_at_service']);
+
+        $this->actingAs($this->employee)
+            ->post(route('vehicles.service-records.store', $this->vehicle), $payload)
+            ->assertRedirect(route('vehicles.show', $this->vehicle));
+
+        $this->assertDatabaseHas('service_records', [
+            'vehicle_id'         => $this->vehicle->id,
+            'mileage_at_service' => null,
+        ]);
         $this->assertSame(10_000, $this->vehicle->fresh()->mileage);
     }
 
@@ -200,6 +216,22 @@ class ServiceRecordsControllerTest extends TestCase
             'service_record_id' => $record->id,
             'service_type_id'   => $newType->id,
         ]);
+    }
+
+    public function test_update_rejects_empty_service_type_ids(): void
+    {
+        $record = ServiceRecord::factory()->create(['vehicle_id' => $this->vehicle->id]);
+        $record->serviceTypes()->attach(ServiceType::first());
+
+        $payload = [
+            'service_type_ids'   => [],
+            'mileage_at_service' => 11_000,
+            'serviced_at'        => now()->toDateString(),
+        ];
+
+        $this->actingAs($this->employee)
+            ->patch(route('service-records.update', $record), $payload)
+            ->assertSessionHasErrors('service_type_ids');
     }
 
     // -------------------------------------------------------------------------
