@@ -12,11 +12,7 @@ function SortIcon({ column, currentSort, currentDirection }) {
     if (currentSort !== column) {
         return <span className="ml-1 text-gray-300">↕</span>;
     }
-    return (
-        <span className="ml-1 text-primary">
-            {currentDirection === 'asc' ? '↑' : '↓'}
-        </span>
-    );
+    return <span className="ml-1 text-primary">{currentDirection === 'asc' ? '↑' : '↓'}</span>;
 }
 
 function SortableHeader({ column, label, currentSort, currentDirection, onSort }) {
@@ -27,7 +23,11 @@ function SortableHeader({ column, label, currentSort, currentDirection, onSort }
             className="flex items-center text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
         >
             {label}
-            <SortIcon column={column} currentSort={currentSort} currentDirection={currentDirection} />
+            <SortIcon
+                column={column}
+                currentSort={currentSort}
+                currentDirection={currentDirection}
+            />
         </button>
     );
 }
@@ -123,13 +123,25 @@ export default function Index({ vehicles, filters, can }) {
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-3 text-left">
-                                        <SortableHeader column="license_plate" label="Plaque" {...sortProps} />
+                                        <SortableHeader
+                                            column="license_plate"
+                                            label="Plaque"
+                                            {...sortProps}
+                                        />
                                     </th>
                                     <th className="px-6 py-3 text-left">
-                                        <SortableHeader column="make" label="Marque / Modèle" {...sortProps} />
+                                        <SortableHeader
+                                            column="make"
+                                            label="Marque / Modèle"
+                                            {...sortProps}
+                                        />
                                     </th>
                                     <th className="px-6 py-3 text-left">
-                                        <SortableHeader column="year" label="Année" {...sortProps} />
+                                        <SortableHeader
+                                            column="year"
+                                            label="Année"
+                                            {...sortProps}
+                                        />
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Carburant
