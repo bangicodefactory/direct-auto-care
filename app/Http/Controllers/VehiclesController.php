@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreVehicleRequest;
 use App\Http\Requests\UpdateVehicleRequest;
 use App\Models\Customer;
+use App\Models\ServiceRecord;
 use App\Models\Vehicle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -103,17 +104,24 @@ class VehiclesController extends Controller
         // All records loaded; acceptable for a small garage — revisit with pagination if lists grow large.
         $vehicle->load([
             'customer',
-            'serviceRecords' => fn ($q) => $q->latest(),
+            'serviceRecords' => fn ($q) => $q->with('serviceTypes')->latest('serviced_at'),
             'appointments'   => fn ($q) => $q->latest(),
         ]);
+
+        $user = auth()->user();
 
         return Inertia::render('Vehicles/Show', [
             'vehicle' => array_merge(
                 $this->vehiclePayload($vehicle),
                 [
                     'service_records' => $vehicle->serviceRecords->map(fn ($r) => [
-                        'id'         => $r->id,
-                        'created_at' => $r->created_at->translatedFormat('d/m/Y'),
+                        'id'                 => $r->id,
+                        'serviced_at'        => $r->serviced_at->translatedFormat('d/m/Y'),
+                        'mileage_at_service' => $r->mileage_at_service,
+                        'notes'              => $r->notes,
+                        'service_types'      => $r->serviceTypes->pluck('name')->values()->toArray(),
+                        'can_edit'           => $user->can('update', $r),
+                        'can_delete'         => $user->can('delete', $r),
                     ]),
                     'appointments' => $vehicle->appointments->map(fn ($a) => [
                         'id'         => $a->id,
@@ -121,7 +129,10 @@ class VehiclesController extends Controller
                     ]),
                 ]
             ),
-            'can' => ['delete' => auth()->user()->can('delete', $vehicle)],
+            'can' => [
+                'delete'                => $user->can('delete', $vehicle),
+                'create_service_record' => $user->can('create', ServiceRecord::class),
+            ],
         ]);
     }
 

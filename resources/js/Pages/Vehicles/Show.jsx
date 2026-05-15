@@ -16,13 +16,61 @@ function EmptyState({ message }) {
     return <p className="text-sm text-gray-500">{message}</p>;
 }
 
-function ServiceHistoryTab({ records }) {
+function ServiceHistoryTab({ records, onDeleteRecord }) {
     if (!records.length) return <EmptyState message="Aucun historique de service enregistré." />;
+
     return (
         <ul className="divide-y divide-gray-100">
             {records.map((r) => (
-                <li key={r.id} className="py-3 text-sm text-gray-700">
-                    Compte rendu du {r.created_at}
+                <li key={r.id} className="py-4">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 space-y-1">
+                            <p className="text-sm font-semibold text-gray-900">{r.serviced_at}</p>
+
+                            {r.service_types.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                    {r.service_types.map((name) => (
+                                        <span
+                                            key={name}
+                                            className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                                        >
+                                            {name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
+                            {r.mileage_at_service != null && (
+                                <p className="text-sm text-gray-500">
+                                    {r.mileage_at_service.toLocaleString('fr-MA')} km
+                                </p>
+                            )}
+
+                            {r.notes && (
+                                <p className="line-clamp-2 text-sm text-gray-500">{r.notes}</p>
+                            )}
+                        </div>
+
+                        <div className="flex shrink-0 gap-3">
+                            {r.can_edit && (
+                                <Link
+                                    href={route('service-records.edit', r.id)}
+                                    className="text-sm text-primary hover:underline"
+                                >
+                                    Modifier
+                                </Link>
+                            )}
+                            {r.can_delete && (
+                                <button
+                                    type="button"
+                                    onClick={() => onDeleteRecord(r)}
+                                    className="text-sm text-red-600 hover:text-red-700"
+                                >
+                                    Supprimer
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </li>
             ))}
         </ul>
@@ -50,6 +98,7 @@ export default function Show({ vehicle, can }) {
     const [activeTab, setActiveTab] = useState('history');
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [deletingRecord, setDeletingRecord] = useState(null);
 
     function destroy() {
         setProcessing(true);
@@ -58,6 +107,12 @@ export default function Show({ vehicle, can }) {
                 setProcessing(false);
                 setConfirmingDeletion(false);
             },
+        });
+    }
+
+    function destroyRecord() {
+        router.delete(route('service-records.destroy', deletingRecord.id), {
+            onFinish: () => setDeletingRecord(null),
         });
     }
 
@@ -70,12 +125,14 @@ export default function Show({ vehicle, can }) {
                         <span className="font-normal text-gray-500">({vehicle.year})</span>
                     </h2>
                     <div className="flex gap-2">
-                        <Link
-                            href={route('vehicles.service-records.create', vehicle.id)}
-                            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                        >
-                            Nouveau compte rendu
-                        </Link>
+                        {can.create_service_record && (
+                            <Link
+                                href={route('vehicles.service-records.create', vehicle.id)}
+                                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                            >
+                                Nouveau compte rendu
+                            </Link>
+                        )}
                         <Link
                             href={route('vehicles.edit', vehicle.id)}
                             className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -200,7 +257,10 @@ export default function Show({ vehicle, can }) {
                             className="p-6"
                         >
                             {activeTab === 'history' && (
-                                <ServiceHistoryTab records={vehicle.service_records} />
+                                <ServiceHistoryTab
+                                    records={vehicle.service_records}
+                                    onDeleteRecord={setDeletingRecord}
+                                />
                             )}
                             {activeTab === 'appointments' && (
                                 <AppointmentsTab appointments={vehicle.appointments} />
@@ -218,6 +278,7 @@ export default function Show({ vehicle, can }) {
                 </div>
             </div>
 
+            {/* Vehicle delete modal */}
             <Modal
                 show={confirmingDeletion}
                 maxWidth="sm"
@@ -238,6 +299,30 @@ export default function Show({ vehicle, can }) {
                         <DangerButton onClick={destroy} disabled={processing}>
                             Supprimer définitivement
                         </DangerButton>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Service record delete modal */}
+            <Modal
+                show={!!deletingRecord}
+                maxWidth="sm"
+                onClose={() => setDeletingRecord(null)}
+            >
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Supprimer ce compte rendu ?
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-600">
+                        Le compte rendu du{' '}
+                        <span className="font-medium">{deletingRecord?.serviced_at}</span> sera
+                        supprimé définitivement.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <SecondaryButton onClick={() => setDeletingRecord(null)}>
+                            Annuler
+                        </SecondaryButton>
+                        <DangerButton onClick={destroyRecord}>Supprimer</DangerButton>
                     </div>
                 </div>
             </Modal>

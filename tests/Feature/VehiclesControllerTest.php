@@ -372,16 +372,16 @@ class VehiclesControllerTest extends TestCase
     public function test_show_includes_service_records_newest_first(): void
     {
         $vehicle = Vehicle::factory()->create();
-        ServiceRecord::factory()->create(['vehicle_id' => $vehicle->id, 'created_at' => now()->subDays(2)]);
-        ServiceRecord::factory()->create(['vehicle_id' => $vehicle->id, 'created_at' => now()->subDay()]);
+        ServiceRecord::factory()->create(['vehicle_id' => $vehicle->id, 'serviced_at' => now()->subDays(2)->toDateString()]);
+        ServiceRecord::factory()->create(['vehicle_id' => $vehicle->id, 'serviced_at' => now()->subDay()->toDateString()]);
 
         $this->actingAs($this->employee)
             ->get(route('vehicles.show', $vehicle))
             ->assertInertia(
                 fn (Assert $page) => $page
                 ->has('vehicle.service_records', 2)
-                ->where('vehicle.service_records.0.created_at', now()->subDay()->translatedFormat('d/m/Y'))
-                ->where('vehicle.service_records.1.created_at', now()->subDays(2)->translatedFormat('d/m/Y'))
+                ->where('vehicle.service_records.0.serviced_at', now()->subDay()->translatedFormat('d/m/Y'))
+                ->where('vehicle.service_records.1.serviced_at', now()->subDays(2)->translatedFormat('d/m/Y'))
             );
     }
 
