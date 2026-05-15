@@ -8,7 +8,7 @@ class UpdateServiceRecordRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('update', $this->route('service_record'));
+        return true; // handled by ServiceRecordsController::middleware()
     }
 
     public function rules(): array

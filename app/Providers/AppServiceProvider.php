@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Customer;
+use App\Models\ServiceRecord;
 use App\Models\User;
 use App\Policies\CustomerPolicy;
+use App\Policies\ServiceRecordPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
+        Gate::policy(ServiceRecord::class, ServiceRecordPolicy::class);
 
         ResetPassword::toMailUsing(function (mixed $notifiable, string $token) {
             $url = url(route('password.reset', [

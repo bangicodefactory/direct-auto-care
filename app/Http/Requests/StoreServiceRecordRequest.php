@@ -2,14 +2,13 @@
 
 namespace App\Http\Requests;
 
-use App\Models\ServiceRecord;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreServiceRecordRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', ServiceRecord::class);
+        return true; // handled by ServiceRecordsController::middleware()
     }
 
     public function rules(): array

@@ -45,12 +45,34 @@ class ServiceRecordsControllerTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // guest — redirected to login
+    // guest — redirected to login (HasMiddleware)
     // -------------------------------------------------------------------------
 
     public function test_guest_is_redirected_from_create(): void
     {
         $this->get(route('vehicles.service-records.create', $this->vehicle))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_guest_is_redirected_from_store(): void
+    {
+        $this->post(route('vehicles.service-records.store', $this->vehicle), $this->validPayload())
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_guest_is_redirected_from_edit(): void
+    {
+        $record = ServiceRecord::factory()->create(['vehicle_id' => $this->vehicle->id]);
+
+        $this->get(route('service-records.edit', $record))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_guest_is_redirected_from_destroy(): void
+    {
+        $record = ServiceRecord::factory()->create(['vehicle_id' => $this->vehicle->id]);
+
+        $this->delete(route('service-records.destroy', $record))
             ->assertRedirect(route('login'));
     }
 

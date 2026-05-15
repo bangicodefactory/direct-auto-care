@@ -8,16 +8,25 @@ use App\Models\ServiceRecord;
 use App\Models\ServiceType;
 use App\Models\Vehicle;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ServiceRecordsController extends Controller
+class ServiceRecordsController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:create,' . ServiceRecord::class, only: ['create', 'store']),
+            new Middleware('can:update,service_record', only: ['edit', 'update']),
+            new Middleware('can:delete,service_record', only: ['destroy']),
+        ];
+    }
+
     public function create(Vehicle $vehicle): Response
     {
-        $this->authorize('create', ServiceRecord::class);
-
         return Inertia::render('ServiceRecords/Create', [
             'vehicle'      => $vehicle->only('id', 'make', 'model', 'license_plate', 'mileage'),
             'serviceTypes' => ServiceType::orderBy('name')->get(['id', 'name']),
@@ -49,8 +58,6 @@ class ServiceRecordsController extends Controller
 
     public function edit(ServiceRecord $serviceRecord): Response
     {
-        $this->authorize('update', $serviceRecord);
-
         $vehicle = $serviceRecord->vehicle()->withTrashed()->firstOrFail();
         $serviceRecord->setRelation('vehicle', $vehicle);
         $serviceRecord->load('serviceTypes');
@@ -87,8 +94,6 @@ class ServiceRecordsController extends Controller
 
     public function destroy(ServiceRecord $serviceRecord): RedirectResponse
     {
-        $this->authorize('delete', $serviceRecord);
-
         $vehicleId = $serviceRecord->vehicle_id;
         $serviceRecord->delete();
 
