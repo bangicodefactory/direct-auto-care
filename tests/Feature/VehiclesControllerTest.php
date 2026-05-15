@@ -25,6 +25,16 @@ class VehiclesControllerTest extends TestCase
         $this->employee->assignRole('employee');
     }
 
+    // -------------------------------------------------------------------------
+    // guest — redirected to login
+    // -------------------------------------------------------------------------
+
+    public function test_guest_is_redirected_from_index(): void
+    {
+        $this->get(route('vehicles.index'))
+            ->assertRedirect(route('login'));
+    }
+
     private function validPayload(Customer $customer): array
     {
         return [
@@ -314,6 +324,24 @@ class VehiclesControllerTest extends TestCase
         $this->actingAs($this->employee)
             ->put(route('vehicles.update', $vehicle), [])
             ->assertSessionHasErrors(['make', 'model', 'year', 'license_plate', 'mileage', 'fuel_type']);
+    }
+
+    public function test_update_rejects_decreasing_mileage(): void
+    {
+        $vehicle = Vehicle::factory()->create(['mileage' => 50_000]);
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [
+                'make'          => $vehicle->make,
+                'model'         => $vehicle->model,
+                'year'          => $vehicle->year,
+                'license_plate' => $vehicle->license_plate,
+                'mileage'       => 49_999,
+                'fuel_type'     => $vehicle->fuel_type->value,
+            ])
+            ->assertSessionHasErrors('mileage');
+
+        $this->assertDatabaseHas('vehicles', ['id' => $vehicle->id, 'mileage' => 50_000]);
     }
 
     // -------------------------------------------------------------------------

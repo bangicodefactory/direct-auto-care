@@ -75,23 +75,8 @@ class VehiclesController extends Controller
         $vehicle->load('customer');
 
         return Inertia::render('Vehicles/Show', [
-            'vehicle' => [
-                'id'            => $vehicle->id,
-                'make'          => $vehicle->make,
-                'model'         => $vehicle->model,
-                'year'          => $vehicle->year,
-                'license_plate' => $vehicle->license_plate,
-                'vin'           => $vehicle->vin,
-                'mileage'       => $vehicle->mileage,
-                'fuel_type'     => $vehicle->fuel_type->value,
-                'color'         => $vehicle->color,
-                'customer'      => [
-                    'id'         => $vehicle->customer->id,
-                    'first_name' => $vehicle->customer->first_name,
-                    'last_name'  => $vehicle->customer->last_name,
-                ],
-            ],
-            'can' => ['delete' => auth()->user()->can('delete', $vehicle)],
+            'vehicle' => $this->vehiclePayload($vehicle),
+            'can'     => ['delete' => auth()->user()->can('delete', $vehicle)],
         ]);
     }
 
@@ -102,23 +87,28 @@ class VehiclesController extends Controller
         $vehicle->load('customer');
 
         return Inertia::render('Vehicles/Edit', [
-            'vehicle' => [
-                'id'            => $vehicle->id,
-                'make'          => $vehicle->make,
-                'model'         => $vehicle->model,
-                'year'          => $vehicle->year,
-                'license_plate' => $vehicle->license_plate,
-                'vin'           => $vehicle->vin,
-                'mileage'       => $vehicle->mileage,
-                'fuel_type'     => $vehicle->fuel_type->value,
-                'color'         => $vehicle->color,
-                'customer'      => [
-                    'id'         => $vehicle->customer->id,
-                    'first_name' => $vehicle->customer->first_name,
-                    'last_name'  => $vehicle->customer->last_name,
-                ],
-            ],
+            'vehicle' => $this->vehiclePayload($vehicle),
         ]);
+    }
+
+    private function vehiclePayload(Vehicle $vehicle): array
+    {
+        return [
+            'id'            => $vehicle->id,
+            'make'          => $vehicle->make,
+            'model'         => $vehicle->model,
+            'year'          => $vehicle->year,
+            'license_plate' => $vehicle->license_plate,
+            'vin'           => $vehicle->vin,
+            'mileage'       => $vehicle->mileage,
+            'fuel_type'     => $vehicle->fuel_type->value,
+            'color'         => $vehicle->color,
+            'customer'      => [
+                'id'         => $vehicle->customer->id,
+                'first_name' => $vehicle->customer->first_name,
+                'last_name'  => $vehicle->customer->last_name,
+            ],
+        ];
     }
 
     public function update(UpdateVehicleRequest $request, Vehicle $vehicle)

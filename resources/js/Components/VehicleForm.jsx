@@ -2,6 +2,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import { FUEL_TYPE_OPTIONS } from '@/constants/fuelTypes';
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
 
@@ -14,13 +15,6 @@ const FIELD_ORDER = [
     'mileage',
     'fuel_type',
     'color',
-];
-
-const FUEL_TYPE_OPTIONS = [
-    { value: 'essence', label: 'Essence' },
-    { value: 'diesel', label: 'Diesel' },
-    { value: 'hybride', label: 'Hybride' },
-    { value: 'electrique', label: 'Électrique' },
 ];
 
 export default function VehicleForm({

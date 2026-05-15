@@ -1,16 +1,10 @@
 import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
+import { FUEL_LABELS } from '@/constants/fuelTypes';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-
-const FUEL_LABELS = {
-    essence: 'Essence',
-    diesel: 'Diesel',
-    hybride: 'Hybride',
-    electrique: 'Électrique',
-};
 
 export default function Show({ vehicle, can }) {
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);

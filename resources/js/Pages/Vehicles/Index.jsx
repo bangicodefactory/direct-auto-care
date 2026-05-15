@@ -3,27 +3,16 @@ import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
+import { FUEL_LABELS } from '@/constants/fuelTypes';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-
-const FUEL_LABELS = {
-    essence: 'Essence',
-    diesel: 'Diesel',
-    hybride: 'Hybride',
-    electrique: 'Électrique',
-};
 
 export default function Index({ vehicles, filters, can }) {
     const [search, setSearch] = useState(filters?.search ?? '');
     const [deletingVehicle, setDeletingVehicle] = useState(null);
     const [processing, setProcessing] = useState(false);
     const isFirstRender = useRef(true);
-    const filtersRef = useRef(filters);
-
-    useEffect(() => {
-        filtersRef.current = filters;
-    });
 
     useEffect(() => {
         if (isFirstRender.current) {

@@ -23,7 +23,8 @@ export default function Edit({ vehicle }) {
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Modifier le véhicule
+                    Modifier le véhicule —{' '}
+                    <span className="font-normal text-gray-500">{vehicle.license_plate}</span>
                 </h2>
             }
         >
