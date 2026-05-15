@@ -45,7 +45,7 @@ class ServiceRecordsControllerTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // guest — redirected to login (authorizeResource middleware)
+    // guest — redirected to login (HasMiddleware)
     // -------------------------------------------------------------------------
 
     public function test_guest_is_redirected_from_create(): void
