@@ -490,6 +490,136 @@ class VehiclesControllerTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // IST-32 — smoke: uniqueness (duplicate matricule)
+    // -------------------------------------------------------------------------
+
+    public function test_store_rejects_duplicate_license_plate_with_french_error(): void
+    {
+        $customer = Customer::factory()->create();
+        Vehicle::factory()->create(['license_plate' => '12345-A-01', 'customer_id' => $customer->id]);
+
+        $this->actingAs($this->employee)
+            ->post(route('vehicles.store'), $this->validPayload($customer))
+            ->assertSessionHasErrors([
+                'license_plate' => "La valeur du champ plaque d'immatriculation est déjà utilisée.",
+            ]);
+    }
+
+    public function test_update_rejects_duplicate_license_plate_of_another_vehicle(): void
+    {
+        $customer = Customer::factory()->create();
+        Vehicle::factory()->create(['license_plate' => '99999-Z-99', 'customer_id' => $customer->id]);
+        $vehicle = Vehicle::factory()->create(['license_plate' => '11111-A-01', 'customer_id' => $customer->id]);
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [
+                'make'          => $vehicle->make,
+                'model'         => $vehicle->model,
+                'year'          => $vehicle->year,
+                'license_plate' => '99999-Z-99',
+                'mileage'       => $vehicle->mileage,
+                'fuel_type'     => $vehicle->fuel_type->value,
+            ])
+            ->assertSessionHasErrors([
+                'license_plate' => "La valeur du champ plaque d'immatriculation est déjà utilisée.",
+            ]);
+    }
+
+    public function test_update_allows_same_license_plate_on_same_vehicle(): void
+    {
+        $vehicle = Vehicle::factory()->create(['mileage' => 10_000]);
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [
+                'make'          => $vehicle->make,
+                'model'         => $vehicle->model,
+                'year'          => $vehicle->year,
+                'license_plate' => $vehicle->license_plate,
+                'mileage'       => 10_000,
+                'fuel_type'     => $vehicle->fuel_type->value,
+            ])
+            ->assertRedirect(route('vehicles.show', $vehicle->id));
+
+        $this->assertDatabaseHas('vehicles', ['id' => $vehicle->id, 'mileage' => 10_000]);
+    }
+
+    // -------------------------------------------------------------------------
+    // IST-32 — smoke: year out of range
+    // -------------------------------------------------------------------------
+
+    public function test_store_rejects_year_before_1950(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->post(route('vehicles.store'), array_merge($this->validPayload($customer), ['year' => 1949]))
+            ->assertSessionHasErrors('year');
+    }
+
+    public function test_store_rejects_year_after_next_year(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->post(route('vehicles.store'), array_merge($this->validPayload($customer), ['year' => (int) date('Y') + 2]))
+            ->assertSessionHasErrors('year');
+    }
+
+    public function test_update_rejects_year_before_1950(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [
+                'make'          => $vehicle->make,
+                'model'         => $vehicle->model,
+                'year'          => 1949,
+                'license_plate' => $vehicle->license_plate,
+                'mileage'       => $vehicle->mileage,
+                'fuel_type'     => $vehicle->fuel_type->value,
+            ])
+            ->assertSessionHasErrors('year');
+    }
+
+    public function test_update_rejects_year_after_next_year(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [
+                'make'          => $vehicle->make,
+                'model'         => $vehicle->model,
+                'year'          => (int) date('Y') + 2,
+                'license_plate' => $vehicle->license_plate,
+                'mileage'       => $vehicle->mileage,
+                'fuel_type'     => $vehicle->fuel_type->value,
+            ])
+            ->assertSessionHasErrors('year');
+    }
+
+    // -------------------------------------------------------------------------
+    // IST-32 — smoke: mileage decrease French message
+    // -------------------------------------------------------------------------
+
+    public function test_mileage_decrease_produces_french_error_message(): void
+    {
+        $vehicle = Vehicle::factory()->create(['mileage' => 50_000]);
+
+        $this->actingAs($this->employee)
+            ->put(route('vehicles.update', $vehicle), [
+                'make'          => $vehicle->make,
+                'model'         => $vehicle->model,
+                'year'          => $vehicle->year,
+                'license_plate' => $vehicle->license_plate,
+                'mileage'       => 49_999,
+                'fuel_type'     => $vehicle->fuel_type->value,
+            ])
+            ->assertSessionHasErrors([
+                'mileage' => 'Le kilométrage ne peut pas diminuer.',
+            ]);
+    }
+
+    // -------------------------------------------------------------------------
     // destroy — authorization
     // -------------------------------------------------------------------------
 
