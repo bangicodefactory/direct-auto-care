@@ -1,3 +1,4 @@
+import CustomerCombobox from '@/Components/CustomerCombobox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -7,6 +8,7 @@ import { Link } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
 
 const FIELD_ORDER = [
+    'customer_id',
     'make',
     'model',
     'year',
@@ -25,8 +27,13 @@ export default function VehicleForm({
     onSubmit,
     cancelHref,
     autoFocus = true,
+    customers = null,
+    minMileage = null,
 }) {
     const inputRefs = useRef({});
+
+    const mileageDecreasing =
+        minMileage !== null && data.mileage !== '' && Number(data.mileage) < minMileage;
 
     useEffect(() => {
         const firstErrorField = FIELD_ORDER.find((field) => errors[field]);
@@ -37,6 +44,19 @@ export default function VehicleForm({
 
     return (
         <form onSubmit={onSubmit} className="space-y-6 p-6">
+            {customers !== null && (
+                <div>
+                    <InputLabel value="Client" />
+                    <CustomerCombobox
+                        customers={customers}
+                        value={data.customer_id}
+                        onChange={(id) => setData('customer_id', id)}
+                        error={errors.customer_id}
+                        inputRef={(el) => (inputRefs.current.customer_id = el)}
+                    />
+                </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <InputLabel htmlFor="make" value="Marque" />
@@ -45,7 +65,7 @@ export default function VehicleForm({
                         ref={(el) => (inputRefs.current.make = el)}
                         value={data.make}
                         className="mt-1 block w-full"
-                        isFocused={autoFocus}
+                        isFocused={autoFocus && customers === null}
                         onChange={(e) => setData('make', e.target.value)}
                     />
                     <InputError message={errors.make} className="mt-2" />
@@ -136,9 +156,15 @@ export default function VehicleForm({
                         ref={(el) => (inputRefs.current.mileage = el)}
                         value={data.mileage}
                         className="mt-1 block w-full"
-                        min={0}
+                        min={minMileage ?? 0}
                         onChange={(e) => setData('mileage', e.target.value)}
                     />
+                    {mileageDecreasing && (
+                        <p className="mt-2 text-sm text-amber-600">
+                            Le kilométrage ne peut pas être inférieur à{' '}
+                            {minMileage.toLocaleString('fr-MA')} km.
+                        </p>
+                    )}
                     <InputError message={errors.mileage} className="mt-2" />
                 </div>
 
@@ -160,7 +186,9 @@ export default function VehicleForm({
                 <Link href={cancelHref} className="text-sm text-gray-600 hover:text-gray-900">
                     Annuler
                 </Link>
-                <PrimaryButton disabled={processing}>Enregistrer</PrimaryButton>
+                <PrimaryButton disabled={processing || mileageDecreasing}>
+                    Enregistrer
+                </PrimaryButton>
             </div>
         </form>
     );

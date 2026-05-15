@@ -175,6 +175,118 @@ class VehiclesControllerTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // index — sort
+    // -------------------------------------------------------------------------
+
+    public function test_index_sorts_by_make_ascending(): void
+    {
+        $customer = Customer::factory()->create();
+        Vehicle::factory()->create(['make' => 'Toyota', 'customer_id' => $customer->id]);
+        Vehicle::factory()->create(['make' => 'Renault', 'customer_id' => $customer->id]);
+        Vehicle::factory()->create(['make' => 'Peugeot', 'customer_id' => $customer->id]);
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index', ['sort' => 'make', 'direction' => 'asc']))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('vehicles.data.0.make', 'Peugeot')
+                ->where('vehicles.data.1.make', 'Renault')
+                ->where('vehicles.data.2.make', 'Toyota')
+            );
+    }
+
+    public function test_index_sorts_by_year_descending(): void
+    {
+        $customer = Customer::factory()->create();
+        Vehicle::factory()->create(['year' => 2018, 'customer_id' => $customer->id]);
+        Vehicle::factory()->create(['year' => 2022, 'customer_id' => $customer->id]);
+        Vehicle::factory()->create(['year' => 2020, 'customer_id' => $customer->id]);
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index', ['sort' => 'year', 'direction' => 'desc']))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('vehicles.data.0.year', 2022)
+                ->where('vehicles.data.1.year', 2020)
+                ->where('vehicles.data.2.year', 2018)
+            );
+    }
+
+    public function test_index_echoes_sort_and_direction_filters_back(): void
+    {
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index', ['sort' => 'make', 'direction' => 'desc']))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('filters.sort', 'make')
+                ->where('filters.direction', 'desc')
+            );
+    }
+
+    public function test_index_ignores_invalid_sort_column(): void
+    {
+        Vehicle::factory(2)->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.index', ['sort' => 'fuel_type']))
+            ->assertInertia(
+                fn (Assert $page) => $page->has('vehicles.data', 2)
+            );
+    }
+
+    // -------------------------------------------------------------------------
+    // standalone create / store
+    // -------------------------------------------------------------------------
+
+    public function test_guest_is_redirected_from_standalone_create(): void
+    {
+        $this->get(route('vehicles.create'))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_guest_is_redirected_from_standalone_store(): void
+    {
+        $this->post(route('vehicles.store'), [])
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_standalone_create_returns_create_component_with_customers_list(): void
+    {
+        Customer::factory(3)->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.create'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->component('Vehicles/Create')
+                ->has('customers', 3)
+            );
+    }
+
+    public function test_standalone_store_creates_vehicle_and_redirects_to_show(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $response = $this->actingAs($this->employee)
+            ->post(route('vehicles.store'), $this->validPayload($customer));
+
+        $vehicle = Vehicle::where('license_plate', '12345-A-01')->firstOrFail();
+        $response->assertRedirect(route('vehicles.show', $vehicle));
+
+        $this->assertDatabaseHas('vehicles', [
+            'customer_id'   => $customer->id,
+            'license_plate' => '12345-A-01',
+        ]);
+    }
+
+    public function test_standalone_store_rejects_missing_required_fields(): void
+    {
+        $this->actingAs($this->employee)
+            ->post(route('vehicles.store'), [])
+            ->assertSessionHasErrors(['customer_id', 'make', 'model', 'year', 'license_plate', 'fuel_type']);
+    }
+
+    // -------------------------------------------------------------------------
     // create
     // -------------------------------------------------------------------------
 

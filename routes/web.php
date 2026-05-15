@@ -37,6 +37,14 @@ Route::get('/vehicles', [VehiclesController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('vehicles.index');
 
+// Vehicles — standalone create + store (customer selected from dropdown)
+Route::get('/vehicles/create', [VehiclesController::class, 'standaloneCreate'])
+    ->middleware(['auth', 'verified'])
+    ->name('vehicles.create');
+Route::post('/vehicles', [VehiclesController::class, 'standaloneStore'])
+    ->middleware(['auth', 'verified'])
+    ->name('vehicles.store');
+
 // Vehicles — create + store nested under customer (customer_id comes from route)
 Route::resource('customers.vehicles', VehiclesController::class)
     ->middleware(['auth', 'verified'])

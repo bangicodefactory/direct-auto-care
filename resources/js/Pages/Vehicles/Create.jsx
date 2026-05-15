@@ -2,9 +2,11 @@ import VehicleForm from '@/Components/VehicleForm';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 
-export default function Create({ customer }) {
+export default function Create({ customer = null, customers = null }) {
+    const isStandalone = customers !== null;
+
     const { data, setData, post, processing, errors } = useForm({
-        customer_id: customer.id,
+        customer_id: customer?.id ?? '',
         make: '',
         model: '',
         year: new Date().getFullYear(),
@@ -17,17 +19,27 @@ export default function Create({ customer }) {
 
     function submit(e) {
         e.preventDefault();
-        post(route('customers.vehicles.store', customer.id));
+        if (isStandalone) {
+            post(route('vehicles.store'));
+        } else {
+            post(route('customers.vehicles.store', customer.id));
+        }
     }
 
     return (
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Nouveau véhicule —{' '}
-                    <span className="font-normal text-gray-500">
-                        {customer.first_name} {customer.last_name}
-                    </span>
+                    Nouveau véhicule
+                    {customer && (
+                        <>
+                            {' '}
+                            —{' '}
+                            <span className="font-normal text-gray-500">
+                                {customer.first_name} {customer.last_name}
+                            </span>
+                        </>
+                    )}
                 </h2>
             }
         >
@@ -42,7 +54,12 @@ export default function Create({ customer }) {
                             errors={errors}
                             processing={processing}
                             onSubmit={submit}
-                            cancelHref={route('customers.show', customer.id)}
+                            cancelHref={
+                                isStandalone
+                                    ? route('vehicles.index')
+                                    : route('customers.show', customer.id)
+                            }
+                            customers={isStandalone ? customers : null}
                         />
                     </div>
                 </div>

@@ -8,11 +8,38 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
+function SortIcon({ column, currentSort, currentDirection }) {
+    if (currentSort !== column) {
+        return <span className="ml-1 text-gray-300">↕</span>;
+    }
+    return <span className="ml-1 text-primary">{currentDirection === 'asc' ? '↑' : '↓'}</span>;
+}
+
+function SortableHeader({ column, label, currentSort, currentDirection, onSort }) {
+    return (
+        <button
+            type="button"
+            onClick={() => onSort(column)}
+            className="flex items-center text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
+        >
+            {label}
+            <SortIcon
+                column={column}
+                currentSort={currentSort}
+                currentDirection={currentDirection}
+            />
+        </button>
+    );
+}
+
 export default function Index({ vehicles, filters, can }) {
     const [search, setSearch] = useState(filters?.search ?? '');
     const [deletingVehicle, setDeletingVehicle] = useState(null);
     const [processing, setProcessing] = useState(false);
     const isFirstRender = useRef(true);
+
+    const sort = filters?.sort ?? 'license_plate';
+    const direction = filters?.direction ?? 'asc';
 
     useEffect(() => {
         if (isFirstRender.current) {
@@ -22,12 +49,26 @@ export default function Index({ vehicles, filters, can }) {
         const timer = setTimeout(() => {
             router.get(
                 route('vehicles.index'),
-                { search: search || undefined },
+                { search: search || undefined, sort, direction },
                 { preserveState: true, replace: true },
             );
         }, 300);
         return () => clearTimeout(timer);
+        // sort/direction changes go through handleSort directly; adding them here
+        // would trigger a spurious debounced navigation after every sort click.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
+
+    function handleSort(column) {
+        const newDirection = sort === column && direction === 'asc' ? 'desc' : 'asc';
+        router.get(
+            route('vehicles.index'),
+            { search: search || undefined, sort: column, direction: newDirection },
+            { preserveState: true, replace: true },
+        );
+    }
+
+    const sortProps = { currentSort: sort, currentDirection: direction, onSort: handleSort };
 
     function destroy() {
         setProcessing(true);
@@ -42,7 +83,15 @@ export default function Index({ vehicles, filters, can }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">Véhicules</h2>
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold leading-tight text-gray-800">Véhicules</h2>
+                    <Link
+                        href={route('vehicles.create')}
+                        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                    >
+                        Nouveau véhicule
+                    </Link>
+                </div>
             }
         >
             <Head title="Véhicules" />
@@ -73,14 +122,26 @@ export default function Index({ vehicles, filters, can }) {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Plaque
+                                    <th className="px-6 py-3 text-left">
+                                        <SortableHeader
+                                            column="license_plate"
+                                            label="Plaque"
+                                            {...sortProps}
+                                        />
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Marque / Modèle
+                                    <th className="px-6 py-3 text-left">
+                                        <SortableHeader
+                                            column="make"
+                                            label="Marque / Modèle"
+                                            {...sortProps}
+                                        />
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Année
+                                    <th className="px-6 py-3 text-left">
+                                        <SortableHeader
+                                            column="year"
+                                            label="Année"
+                                            {...sortProps}
+                                        />
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Carburant
