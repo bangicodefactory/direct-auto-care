@@ -23,7 +23,13 @@ export default function Create({ categories }) {
     }
 
     return (
-        <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Ajouter un produit</h2>}>
+        <AuthenticatedLayout
+            header={
+                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    Ajouter un produit
+                </h2>
+            }
+        >
             <Head title="Nouveau produit" />
 
             <div className="py-8">
@@ -39,7 +45,9 @@ export default function Create({ categories }) {
                             >
                                 <option value="">— Choisir —</option>
                                 {categories.map((c) => (
-                                    <option key={c.value} value={c.value}>{c.name}</option>
+                                    <option key={c.value} value={c.value}>
+                                        {c.name}
+                                    </option>
                                 ))}
                             </select>
                             <InputError message={errors.category} className="mt-1" />
@@ -47,19 +55,34 @@ export default function Create({ categories }) {
 
                         <div>
                             <InputLabel htmlFor="name" value="Nom *" />
-                            <TextInput id="name" className="mt-1 block w-full" value={data.name} onChange={(e) => setData('name', e.target.value)} />
+                            <TextInput
+                                id="name"
+                                className="mt-1 block w-full"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                            />
                             <InputError message={errors.name} className="mt-1" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <InputLabel htmlFor="sku" value="Référence" />
-                                <TextInput id="sku" className="mt-1 block w-full" value={data.sku} onChange={(e) => setData('sku', e.target.value)} />
+                                <TextInput
+                                    id="sku"
+                                    className="mt-1 block w-full"
+                                    value={data.sku}
+                                    onChange={(e) => setData('sku', e.target.value)}
+                                />
                                 <InputError message={errors.sku} className="mt-1" />
                             </div>
                             <div>
                                 <InputLabel htmlFor="unit" value="Unité *" />
-                                <TextInput id="unit" className="mt-1 block w-full" value={data.unit} onChange={(e) => setData('unit', e.target.value)} />
+                                <TextInput
+                                    id="unit"
+                                    className="mt-1 block w-full"
+                                    value={data.unit}
+                                    onChange={(e) => setData('unit', e.target.value)}
+                                />
                                 <InputError message={errors.unit} className="mt-1" />
                             </div>
                         </div>
@@ -67,31 +90,70 @@ export default function Create({ categories }) {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <InputLabel htmlFor="price_buy" value="Prix d'achat (DH)" />
-                                <TextInput id="price_buy" type="number" step="0.01" min="0" className="mt-1 block w-full" value={data.price_buy} onChange={(e) => setData('price_buy', e.target.value)} />
+                                <TextInput
+                                    id="price_buy"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    className="mt-1 block w-full"
+                                    value={data.price_buy}
+                                    onChange={(e) => setData('price_buy', e.target.value)}
+                                />
                                 <InputError message={errors.price_buy} className="mt-1" />
                             </div>
                             <div>
                                 <InputLabel htmlFor="price_sell" value="Prix de vente (DH) *" />
-                                <TextInput id="price_sell" type="number" step="0.01" min="0" className="mt-1 block w-full" value={data.price_sell} onChange={(e) => setData('price_sell', e.target.value)} />
+                                <TextInput
+                                    id="price_sell"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    className="mt-1 block w-full"
+                                    value={data.price_sell}
+                                    onChange={(e) => setData('price_sell', e.target.value)}
+                                />
                                 <InputError message={errors.price_sell} className="mt-1" />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <InputLabel htmlFor="quantity_on_hand" value="Quantité en stock *" />
-                                <TextInput id="quantity_on_hand" type="number" min="0" className="mt-1 block w-full" value={data.quantity_on_hand} onChange={(e) => setData('quantity_on_hand', e.target.value)} />
+                                <InputLabel
+                                    htmlFor="quantity_on_hand"
+                                    value="Quantité en stock *"
+                                />
+                                <TextInput
+                                    id="quantity_on_hand"
+                                    type="number"
+                                    min="0"
+                                    className="mt-1 block w-full"
+                                    value={data.quantity_on_hand}
+                                    onChange={(e) => setData('quantity_on_hand', e.target.value)}
+                                />
                                 <InputError message={errors.quantity_on_hand} className="mt-1" />
                             </div>
                             <div>
-                                <InputLabel htmlFor="low_stock_threshold" value="Seuil d'alerte *" />
-                                <TextInput id="low_stock_threshold" type="number" min="1" className="mt-1 block w-full" value={data.low_stock_threshold} onChange={(e) => setData('low_stock_threshold', e.target.value)} />
+                                <InputLabel
+                                    htmlFor="low_stock_threshold"
+                                    value="Seuil d'alerte *"
+                                />
+                                <TextInput
+                                    id="low_stock_threshold"
+                                    type="number"
+                                    min="1"
+                                    className="mt-1 block w-full"
+                                    value={data.low_stock_threshold}
+                                    onChange={(e) => setData('low_stock_threshold', e.target.value)}
+                                />
                                 <InputError message={errors.low_stock_threshold} className="mt-1" />
                             </div>
                         </div>
 
                         <div className="flex items-center justify-between pt-2">
-                            <Link href={route('products.index')} className="text-sm text-gray-600 hover:underline">
+                            <Link
+                                href={route('products.index')}
+                                className="text-sm text-gray-600 hover:underline"
+                            >
                                 Annuler
                             </Link>
                             <PrimaryButton disabled={processing}>Créer</PrimaryButton>

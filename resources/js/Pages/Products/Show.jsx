@@ -27,9 +27,17 @@ export default function Show({ product, can }) {
                                 ['Catégorie', product.category],
                                 ['Référence', product.sku ?? '—'],
                                 ['Unité', product.unit],
-                                ["Prix d'achat", product.price_buy ? `${Number(product.price_buy).toFixed(2)} DH` : '—'],
+                                [
+                                    "Prix d'achat",
+                                    product.price_buy
+                                        ? `${Number(product.price_buy).toFixed(2)} DH`
+                                        : '—',
+                                ],
                                 ['Prix de vente', `${Number(product.price_sell).toFixed(2)} DH`],
-                                ['Quantité en stock', `${product.quantity_on_hand} ${product.unit}`],
+                                [
+                                    'Quantité en stock',
+                                    `${product.quantity_on_hand} ${product.unit}`,
+                                ],
                                 ["Seuil d'alerte", product.low_stock_threshold],
                             ].map(([label, value]) => (
                                 <div key={label} className="grid grid-cols-3 gap-4 px-6 py-4">
@@ -47,7 +55,10 @@ export default function Show({ product, can }) {
                     )}
 
                     <div className="mt-6 flex gap-3">
-                        <Link href={route('products.index')} className="text-sm text-gray-600 hover:underline">
+                        <Link
+                            href={route('products.index')}
+                            className="text-sm text-gray-600 hover:underline"
+                        >
                             ← Retour
                         </Link>
 
@@ -72,11 +83,21 @@ export default function Show({ product, can }) {
 
                         {confirmDelete && (
                             <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-700">Confirmer la suppression ?</span>
-                                <button type="button" onClick={handleDelete} className="rounded bg-red-600 px-3 py-1 text-sm text-white">
+                                <span className="text-sm text-gray-700">
+                                    Confirmer la suppression ?
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={handleDelete}
+                                    className="rounded bg-red-600 px-3 py-1 text-sm text-white"
+                                >
                                     Oui
                                 </button>
-                                <button type="button" onClick={() => setConfirmDelete(false)} className="rounded border px-3 py-1 text-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => setConfirmDelete(false)}
+                                    className="rounded border px-3 py-1 text-sm"
+                                >
                                     Annuler
                                 </button>
                             </div>
