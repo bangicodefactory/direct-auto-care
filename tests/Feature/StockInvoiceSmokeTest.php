@@ -86,10 +86,11 @@ class StockInvoiceSmokeTest extends TestCase
             );
             $this->fail('Expected InsufficientStockException was not thrown.');
         } catch (InsufficientStockException $e) {
-            // French error message includes product name and current stock
+            // French error message includes product name, available qty, and requested qty
             $this->assertStringContainsString('Stock insuffisant', $e->getMessage());
             $this->assertStringContainsString('Filtre à huile', $e->getMessage());
-            $this->assertStringContainsString('2', $e->getMessage());
+            $this->assertStringContainsString('disponible : 2', $e->getMessage());
+            $this->assertStringContainsString('demandé : 5', $e->getMessage());
         }
 
         // Quantity on hand is unchanged
@@ -108,6 +109,8 @@ class StockInvoiceSmokeTest extends TestCase
         $admin   = User::factory()->create()->assignRole('admin');
         $product = Product::factory()->create(['name' => 'Bougie allumage', 'quantity_on_hand' => 1]);
 
+        // No invoice HTTP endpoint exists yet — adjust-stock reuses the same
+        // InsufficientStockException → 422 mapping from bootstrap/app.php.
         $this->actingAs($admin)
             ->postJson(route('products.adjust-stock', $product), ['quantity' => -5])
             ->assertStatus(422)
