@@ -52,6 +52,12 @@ function ServiceHistoryTab({ records, onDeleteRecord }) {
                         </div>
 
                         <div className="flex shrink-0 gap-3">
+                            <Link
+                                href={route('service-records.show', r.id)}
+                                className="text-sm text-gray-600 hover:underline"
+                            >
+                                Voir
+                            </Link>
                             {r.can_edit && (
                                 <Link
                                     href={route('service-records.edit', r.id)}

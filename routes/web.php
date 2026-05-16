@@ -59,7 +59,7 @@ Route::resource('vehicles', VehiclesController::class)
 // Service Records — shallow nested under vehicle
 Route::resource('vehicles.service-records', ServiceRecordsController::class)
     ->middleware(['auth', 'verified'])
-    ->only(['create', 'store', 'edit', 'update', 'destroy'])
+    ->only(['create', 'store', 'show', 'edit', 'update', 'destroy'])
     ->shallow();
 
 Route::middleware('auth')->group(function () {

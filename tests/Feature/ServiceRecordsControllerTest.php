@@ -68,6 +68,14 @@ class ServiceRecordsControllerTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
+    public function test_guest_is_redirected_from_show(): void
+    {
+        $record = ServiceRecord::factory()->create(['vehicle_id' => $this->vehicle->id]);
+
+        $this->get(route('service-records.show', $record))
+            ->assertRedirect(route('login'));
+    }
+
     public function test_guest_is_redirected_from_destroy(): void
     {
         $record = ServiceRecord::factory()->create(['vehicle_id' => $this->vehicle->id]);
@@ -199,6 +207,29 @@ class ServiceRecordsControllerTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // show
+    // -------------------------------------------------------------------------
+
+    public function test_employee_can_access_show_page(): void
+    {
+        $record = ServiceRecord::factory()->create(['vehicle_id' => $this->vehicle->id]);
+        $record->serviceTypes()->attach(ServiceType::first());
+
+        $this->actingAs($this->employee)
+            ->get(route('service-records.show', $record))
+            ->assertOk()
+            ->assertInertia(
+                fn ($page) => $page
+                ->component('ServiceRecords/Show')
+                ->has('record.serviced_at')
+                ->has('record.mileage_at_service')
+                ->has('record.service_types')
+                ->where('can.edit', true)
+                ->where('can.delete', false)
+            );
+    }
+
+    // -------------------------------------------------------------------------
     // edit / update
     // -------------------------------------------------------------------------
 
@@ -238,6 +269,27 @@ class ServiceRecordsControllerTest extends TestCase
             'service_record_id' => $record->id,
             'service_type_id'   => $newType->id,
         ]);
+    }
+
+    public function test_update_updates_vehicle_mileage_when_greater(): void
+    {
+        $record = ServiceRecord::factory()->create([
+            'vehicle_id'         => $this->vehicle->id,
+            'mileage_at_service' => 10_000,
+        ]);
+        $record->serviceTypes()->attach(ServiceType::first());
+
+        $payload = [
+            'service_type_ids'   => [ServiceType::first()->id],
+            'mileage_at_service' => 15_000,
+            'serviced_at'        => now()->toDateString(),
+        ];
+
+        $this->actingAs($this->employee)
+            ->patch(route('service-records.update', $record), $payload)
+            ->assertRedirect(route('vehicles.show', $this->vehicle));
+
+        $this->assertSame(15_000, $this->vehicle->fresh()->mileage);
     }
 
     public function test_update_rejects_empty_service_type_ids(): void

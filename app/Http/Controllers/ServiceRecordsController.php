@@ -20,6 +20,7 @@ class ServiceRecordsController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('can:create,' . ServiceRecord::class, only: ['create', 'store']),
+            new Middleware('can:view,service_record', only: ['show']),
             new Middleware('can:update,service_record', only: ['edit', 'update']),
             new Middleware('can:delete,service_record', only: ['destroy']),
         ];
@@ -54,6 +55,35 @@ class ServiceRecordsController extends Controller implements HasMiddleware
 
         return redirect()->route('vehicles.show', $vehicle)
             ->with('success', 'Fiche de service créée avec succès.');
+    }
+
+    public function show(ServiceRecord $serviceRecord): Response
+    {
+        $serviceRecord->load('serviceTypes');
+        $vehicle = $serviceRecord->vehicle()->withTrashed()->firstOrFail();
+        $serviceRecord->setRelation('vehicle', $vehicle);
+
+        $user = auth()->user();
+
+        return Inertia::render('ServiceRecords/Show', [
+            'record' => [
+                'id'                 => $serviceRecord->id,
+                'serviced_at'        => $serviceRecord->serviced_at->translatedFormat('d/m/Y'),
+                'mileage_at_service' => $serviceRecord->mileage_at_service,
+                'notes'              => $serviceRecord->notes,
+                'service_types'      => $serviceRecord->serviceTypes->pluck('name')->values()->toArray(),
+                'vehicle'            => [
+                    'id'            => $vehicle->id,
+                    'make'          => $vehicle->make,
+                    'model'         => $vehicle->model,
+                    'license_plate' => $vehicle->license_plate,
+                ],
+            ],
+            'can' => [
+                'edit'   => $user->can('update', $serviceRecord),
+                'delete' => $user->can('delete', $serviceRecord),
+            ],
+        ]);
     }
 
     public function edit(ServiceRecord $serviceRecord): Response
