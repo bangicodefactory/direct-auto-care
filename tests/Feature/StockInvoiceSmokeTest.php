@@ -42,7 +42,7 @@ class StockInvoiceSmokeTest extends TestCase
         $product  = Product::factory()->create(['quantity_on_hand' => 10]);
         $user     = User::factory()->create();
         $customer = Customer::factory()->create();
-        $invoice  = Invoice::create(['customer_id' => $customer->id]);
+        $invoice  = Invoice::factory()->create(['customer_id' => $customer->id]);
 
         $movement = $this->service->recordMovement(
             product: $product,
@@ -73,7 +73,7 @@ class StockInvoiceSmokeTest extends TestCase
         $product  = Product::factory()->create(['name' => 'Filtre à huile', 'quantity_on_hand' => 2]);
         $user     = User::factory()->create();
         $customer = Customer::factory()->create();
-        $invoice  = Invoice::create(['customer_id' => $customer->id]);
+        $invoice  = Invoice::factory()->create(['customer_id' => $customer->id]);
 
         try {
             $this->service->recordMovement(

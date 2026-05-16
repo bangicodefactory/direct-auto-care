@@ -180,7 +180,7 @@ class StockServiceTest extends TestCase
         $product  = Product::factory()->create(['quantity_on_hand' => 10]);
         $user     = User::factory()->create();
         $customer = Customer::factory()->create();
-        $invoice  = Invoice::create(['customer_id' => $customer->id]);
+        $invoice  = Invoice::factory()->create(['customer_id' => $customer->id]);
 
         $movement = $this->service->recordMovement($product, StockMovementType::Out, 2, null, $invoice, $user);
 
