@@ -54,12 +54,12 @@ export default function Edit({ record, serviceTypes }) {
                                 <InputError message={errors.serviced_at} className="mt-2" />
                             </div>
 
-                            {/* Service types */}
                             <ServiceTypeMultiCheck
                                 serviceTypes={serviceTypes}
                                 selected={data.service_type_ids}
                                 onChange={(ids) => setData('service_type_ids', ids)}
                                 error={errors.service_type_ids}
+                                disabled={processing}
                             />
 
                             {/* Mileage */}
