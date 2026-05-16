@@ -219,10 +219,14 @@ export default function Show({ product, movements, can }) {
                     </p>
 
                     <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="adj-quantity"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             Quantité <span className="text-red-500">*</span>
                         </label>
                         <TextInput
+                            id="adj-quantity"
                             type="number"
                             className="mt-1 w-full"
                             value={data.quantity}
@@ -235,10 +239,14 @@ export default function Show({ product, movements, can }) {
                     </div>
 
                     <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="adj-reason"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             Motif (optionnel)
                         </label>
                         <TextInput
+                            id="adj-reason"
                             type="text"
                             className="mt-1 w-full"
                             placeholder="Ex. : Inventaire physique, casse…"

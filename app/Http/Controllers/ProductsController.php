@@ -128,13 +128,13 @@ class ProductsController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function adjustStock(StoreStockAdjustmentRequest $request, Product $product): RedirectResponse
+    public function adjustStock(StoreStockAdjustmentRequest $request, Product $product, StockService $stock): RedirectResponse
     {
-        app(StockService::class)->recordMovement(
+        $stock->recordMovement(
             product: $product,
             type: StockMovementType::Adjustment,
             quantity: $request->integer('quantity'),
-            reason: $request->string('reason')->value() ?: null,
+            reason: $request->string('reason')->trim()->value() ?: null,
             invoice: null,
             user: $request->user(),
         );

@@ -350,6 +350,32 @@ class ProductsControllerTest extends TestCase
             );
     }
 
+    public function test_show_can_adjust_true_for_admin(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create();
+
+        $this->actingAs($admin)
+            ->get(route('products.show', $product))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('can.adjust', true)
+            );
+    }
+
+    public function test_show_can_adjust_false_for_employee(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $product  = Product::factory()->create();
+
+        $this->actingAs($employee)
+            ->get(route('products.show', $product))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('can.adjust', false)
+            );
+    }
+
     // -------------------------------------------------------------------------
     // adjustStock — happy path + guards
     // -------------------------------------------------------------------------
@@ -384,6 +410,11 @@ class ProductsControllerTest extends TestCase
             ->assertRedirect(route('products.show', $product));
 
         $this->assertDatabaseHas('products', ['id' => $product->id, 'quantity_on_hand' => 7]);
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $product->id,
+            'type'       => 'adjustment',
+            'quantity'   => -3,
+        ]);
     }
 
     public function test_employee_cannot_adjust_stock(): void
