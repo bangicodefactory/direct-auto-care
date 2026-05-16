@@ -309,11 +309,7 @@ export default function Show({ vehicle, can }) {
             </Modal>
 
             {/* Service record delete modal */}
-            <Modal
-                show={!!deletingRecord}
-                maxWidth="sm"
-                onClose={() => setDeletingRecord(null)}
-            >
+            <Modal show={!!deletingRecord} maxWidth="sm" onClose={() => setDeletingRecord(null)}>
                 <div className="p-6">
                     <h2 className="text-lg font-medium text-gray-900">
                         Supprimer ce compte rendu ?
