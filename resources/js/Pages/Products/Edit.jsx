@@ -45,7 +45,7 @@ export default function Edit({ product, categories }) {
                             >
                                 {categories.map((c) => (
                                     <option key={c.value} value={c.value}>
-                                        {c.name}
+                                        {c.label}
                                     </option>
                                 ))}
                             </select>

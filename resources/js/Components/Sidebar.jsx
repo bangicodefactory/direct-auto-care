@@ -25,6 +25,10 @@ export default function Sidebar({ role }) {
                     Tableau de bord
                 </SidebarLink>
 
+                <SidebarLink href={route('products.index')} active={route().current('products.*')}>
+                    Produits
+                </SidebarLink>
+
                 {isAdmin && (
                     <SidebarLink href={route('users.index')} active={route().current('users.*')}>
                         Utilisateurs

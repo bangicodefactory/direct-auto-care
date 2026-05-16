@@ -111,7 +111,7 @@ export default function Index({ products, filters, categories, can }) {
                                 <option value="">Toutes catégories</option>
                                 {categories.map((c) => (
                                     <option key={c.value} value={c.value}>
-                                        {c.name}
+                                        {c.label}
                                     </option>
                                 ))}
                             </select>
