@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\StockMovementType;
 use App\Exceptions\InsufficientStockException;
+use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\User;
@@ -167,6 +169,46 @@ class StockServiceTest extends TestCase
         }
 
         $this->assertEquals(0, $product->fresh()->quantity_on_hand);
+    }
+
+    // -------------------------------------------------------------------------
+    // Invoice link
+    // -------------------------------------------------------------------------
+
+    public function test_movement_records_invoice_id_when_invoice_provided(): void
+    {
+        $product  = Product::factory()->create(['quantity_on_hand' => 10]);
+        $user     = User::factory()->create();
+        $customer = Customer::factory()->create();
+        $invoice  = Invoice::create(['customer_id' => $customer->id]);
+
+        $movement = $this->service->recordMovement($product, StockMovementType::Out, 2, null, $invoice, $user);
+
+        $this->assertEquals($invoice->id, $movement->invoice_id);
+    }
+
+    public function test_movement_invoice_id_is_null_when_no_invoice(): void
+    {
+        $product  = Product::factory()->create(['quantity_on_hand' => 10]);
+        $user     = User::factory()->create();
+
+        $movement = $this->service->recordMovement($product, StockMovementType::Out, 1, null, null, $user);
+
+        $this->assertNull($movement->invoice_id);
+    }
+
+    // -------------------------------------------------------------------------
+    // Zero-quantity guard
+    // -------------------------------------------------------------------------
+
+    public function test_zero_quantity_throws_invalid_argument_exception(): void
+    {
+        $product = Product::factory()->create(['quantity_on_hand' => 10]);
+        $user    = User::factory()->create();
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->service->recordMovement($product, StockMovementType::Out, 0, null, null, $user);
     }
 
     // -------------------------------------------------------------------------

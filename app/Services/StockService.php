@@ -20,6 +20,10 @@ class StockService
         ?Invoice $invoice,
         User $user,
     ): StockMovement {
+        if ($quantity === 0) {
+            throw new \InvalidArgumentException('La quantité doit être différente de zéro.');
+        }
+
         return DB::transaction(function () use ($product, $type, $quantity, $reason, $invoice, $user) {
             $locked = Product::lockForUpdate()->findOrFail($product->id);
 

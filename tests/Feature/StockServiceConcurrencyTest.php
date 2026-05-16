@@ -76,13 +76,17 @@ class StockServiceConcurrencyTest extends TestCase
             proc_close($handle);
         }
 
-        unlink($workerFile);
+        try {
+            $successes    = count(array_filter($results, fn ($r) => $r === 'ok'));
+            $insufficient = count(array_filter($results, fn ($r) => $r === 'insufficient'));
+            $debug        = implode(', ', $results);
 
-        $successes    = count(array_filter($results, fn ($r) => $r === 'ok'));
-        $insufficient = count(array_filter($results, fn ($r) => $r === 'insufficient'));
-
-        $this->assertEquals(3, $successes, "Expected exactly 3 successes, got: {$successes}. Results: " . implode(', ', $results));
-        $this->assertEquals(2, $insufficient);
-        $this->assertEquals(0, $product->fresh()->quantity_on_hand);
+            $this->assertCount(5, $results, "Expected 5 worker outputs, got unexpected crashes. Results: {$debug}");
+            $this->assertEquals(3, $successes, "Expected exactly 3 successes. Results: {$debug}");
+            $this->assertEquals(2, $insufficient);
+            $this->assertEquals(0, $product->fresh()->quantity_on_hand);
+        } finally {
+            @unlink($workerFile);
+        }
     }
 }
