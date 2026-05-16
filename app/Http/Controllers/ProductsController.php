@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProductCategory;
 use App\Enums\StockMovementType;
+use App\Exceptions\InsufficientStockException;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\StoreStockAdjustmentRequest;
 use App\Http\Requests\UpdateProductRequest;
@@ -62,7 +63,7 @@ class ProductsController extends Controller implements HasMiddleware
         return Inertia::render('Products/Index', [
             'products'   => $products,
             'filters'    => $request->only(['category', 'low_stock', 'search']),
-            'categories' => ProductCategory::cases(),
+            'categories' => collect(ProductCategory::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()]),
             'can'        => [
                 'create' => $request->user()->can('create', Product::class),
                 'edit'   => $request->user()->hasRole('admin'),
@@ -76,7 +77,7 @@ class ProductsController extends Controller implements HasMiddleware
         $this->authorize('create', Product::class);
 
         return Inertia::render('Products/Create', [
-            'categories' => ProductCategory::cases(),
+            'categories' => collect(ProductCategory::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()]),
         ]);
     }
 
@@ -130,14 +131,22 @@ class ProductsController extends Controller implements HasMiddleware
 
     public function adjustStock(StoreStockAdjustmentRequest $request, Product $product, StockService $stock): RedirectResponse
     {
-        $stock->recordMovement(
-            product: $product,
-            type: StockMovementType::Adjustment,
-            quantity: $request->integer('quantity'),
-            reason: $request->string('reason')->trim()->value() ?: null,
-            invoice: null,
-            user: $request->user(),
-        );
+        try {
+            $stock->recordMovement(
+                product: $product,
+                type: StockMovementType::Adjustment,
+                quantity: $request->integer('quantity'),
+                reason: $request->string('reason')->trim()->value() ?: null,
+                invoice: null,
+                user: $request->user(),
+            );
+        } catch (InsufficientStockException $e) {
+            if ($request->header('X-Inertia')) {
+                return back()->withErrors(['quantity' => $e->getMessage()]);
+            }
+
+            throw $e; // Non-Inertia: let bootstrap/app.php return 422 JSON
+        }
 
         return redirect()->route('products.show', $product)
             ->with('success', 'Ajustement de stock enregistré.');
@@ -157,7 +166,7 @@ class ProductsController extends Controller implements HasMiddleware
                 'quantity_on_hand'    => $product->quantity_on_hand,
                 'low_stock_threshold' => $product->low_stock_threshold,
             ],
-            'categories' => ProductCategory::cases(),
+            'categories' => collect(ProductCategory::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()]),
         ]);
     }
 

@@ -46,7 +46,7 @@ export default function Create({ categories }) {
                                 <option value="">— Choisir —</option>
                                 {categories.map((c) => (
                                     <option key={c.value} value={c.value}>
-                                        {c.name}
+                                        {c.label}
                                     </option>
                                 ))}
                             </select>
