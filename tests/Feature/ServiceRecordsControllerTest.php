@@ -218,7 +218,15 @@ class ServiceRecordsControllerTest extends TestCase
         $this->actingAs($this->employee)
             ->get(route('service-records.show', $record))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->component('ServiceRecords/Show'));
+            ->assertInertia(
+                fn ($page) => $page
+                ->component('ServiceRecords/Show')
+                ->has('record.serviced_at')
+                ->has('record.mileage_at_service')
+                ->has('record.service_types')
+                ->where('can.edit', true)
+                ->where('can.delete', false)
+            );
     }
 
     // -------------------------------------------------------------------------

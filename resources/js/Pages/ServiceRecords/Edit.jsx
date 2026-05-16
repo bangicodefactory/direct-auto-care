@@ -8,6 +8,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Edit({ record, serviceTypes }) {
     const today = new Date().toISOString().split('T')[0];
+    const { make, model, license_plate, id: vehicleId } = record.vehicle;
 
     const { data, setData, patch, processing, errors } = useForm({
         service_type_ids: record.service_type_ids,
@@ -36,8 +37,7 @@ export default function Edit({ record, serviceTypes }) {
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
                     Modifier le compte rendu —{' '}
                     <span className="font-normal text-gray-500">
-                        {record.vehicle.make} {record.vehicle.model} ({record.vehicle.license_plate}
-                        )
+                        {make} {model} ({license_plate})
                     </span>
                 </h2>
             }
@@ -120,7 +120,7 @@ export default function Edit({ record, serviceTypes }) {
 
                             <div className="flex items-center justify-end gap-4">
                                 <Link
-                                    href={route('vehicles.show', record.vehicle.id)}
+                                    href={route('vehicles.show', vehicleId)}
                                     className="text-sm text-gray-600 hover:text-gray-900"
                                 >
                                     Annuler

@@ -1,7 +1,24 @@
+import DangerButton from '@/Components/DangerButton';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function Show({ record, can }) {
+    const [confirmingDeletion, setConfirmingDeletion] = useState(false);
+    const [processing, setProcessing] = useState(false);
+
+    function destroy() {
+        setProcessing(true);
+        router.delete(route('service-records.destroy', record.id), {
+            onFinish: () => {
+                setProcessing(false);
+                setConfirmingDeletion(false);
+            },
+        });
+    }
+
     return (
         <AuthenticatedLayout
             header={
@@ -17,6 +34,15 @@ export default function Show({ record, can }) {
                             >
                                 Modifier
                             </Link>
+                        )}
+                        {can.delete && (
+                            <button
+                                type="button"
+                                onClick={() => setConfirmingDeletion(true)}
+                                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                            >
+                                Supprimer
+                            </button>
                         )}
                     </div>
                 </div>
@@ -101,6 +127,30 @@ export default function Show({ record, can }) {
                     </Link>
                 </div>
             </div>
+
+            <Modal
+                show={confirmingDeletion}
+                maxWidth="sm"
+                onClose={() => setConfirmingDeletion(false)}
+            >
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Supprimer ce compte rendu ?
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-600">
+                        Le compte rendu du <span className="font-medium">{record.serviced_at}</span>{' '}
+                        sera supprimé définitivement.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <SecondaryButton onClick={() => setConfirmingDeletion(false)}>
+                            Annuler
+                        </SecondaryButton>
+                        <DangerButton onClick={destroy} disabled={processing}>
+                            Supprimer définitivement
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }
