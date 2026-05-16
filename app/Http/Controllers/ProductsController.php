@@ -34,6 +34,13 @@ class ProductsController extends Controller implements HasMiddleware
                 fn ($q) => $q->where('category', $request->category)
             )
             ->when($request->boolean('low_stock'), fn ($q) => $q->lowStock())
+            ->when(
+                $request->string('search')->trim()->value(),
+                fn ($q, $search) => $q->where(function ($inner) use ($search) {
+                    $inner->where('name', 'LIKE', "%{$search}%")
+                          ->orWhere('sku', 'LIKE', "%{$search}%");
+                })
+            )
             ->orderBy('name')
             ->paginate(20)
             ->withQueryString()
@@ -51,9 +58,12 @@ class ProductsController extends Controller implements HasMiddleware
 
         return Inertia::render('Products/Index', [
             'products'   => $products,
-            'filters'    => $request->only(['category', 'low_stock']),
+            'filters'    => $request->only(['category', 'low_stock', 'search']),
             'categories' => ProductCategory::cases(),
-            'can'        => ['create' => $request->user()->can('create', Product::class)],
+            'can'        => [
+                'create' => $request->user()->can('create', Product::class),
+                'delete' => $request->user()->hasRole('admin'),
+            ],
         ]);
     }
 
