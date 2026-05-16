@@ -20,6 +20,7 @@ return [
         'numeric' => 'Le champ :attribute doit être au moins :min.',
         'string'  => 'Le champ :attribute doit contenir au moins :min caractères.',
     ],
+    'numeric'          => 'Le champ :attribute doit être un nombre.',
     'regex'            => 'Le format du champ :attribute est invalide.',
     'required'         => 'Le champ :attribute est obligatoire.',
     'size'             => [
@@ -66,5 +67,13 @@ return [
         'serviced_at'           => 'date du service',
         'notes'                 => 'notes',
         'service_type_ids'      => 'types de service',
+        // Product
+        'category'              => 'catégorie',
+        'sku'                   => 'référence',
+        'unit'                  => 'unité',
+        'price_buy'             => "prix d'achat",
+        'price_sell'            => 'prix de vente',
+        'quantity_on_hand'      => 'quantité en stock',
+        'low_stock_threshold'   => "seuil d'alerte de stock",
     ],
 ];
