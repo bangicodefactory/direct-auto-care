@@ -75,5 +75,8 @@ return [
         'price_sell'            => 'prix de vente',
         'quantity_on_hand'      => 'quantité en stock',
         'low_stock_threshold'   => "seuil d'alerte de stock",
+        // Stock adjustment
+        'quantity'              => 'quantité',
+        'reason'                => 'motif',
     ],
 ];
