@@ -6,9 +6,9 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-const today = new Date().toISOString().split('T')[0];
-
 export default function Create({ vehicle, serviceTypes }) {
+    const today = new Date().toISOString().split('T')[0];
+
     const { data, setData, post, processing, errors } = useForm({
         service_type_ids: [],
         serviced_at: today,
@@ -55,6 +55,7 @@ export default function Create({ vehicle, serviceTypes }) {
                                     type="date"
                                     value={data.serviced_at}
                                     max={today}
+                                    isFocused
                                     className="mt-1 block w-full"
                                     onChange={(e) => setData('serviced_at', e.target.value)}
                                 />
@@ -100,7 +101,7 @@ export default function Create({ vehicle, serviceTypes }) {
                                     className="mt-1 block w-full"
                                     onChange={(e) => setData('mileage_at_service', e.target.value)}
                                 />
-                                {vehicle.mileage > 0 && (
+                                {vehicle.mileage != null && (
                                     <p className="mt-1 text-xs text-gray-500">
                                         Minimum&nbsp;: {vehicle.mileage.toLocaleString('fr-MA')} km
                                     </p>

@@ -6,6 +6,7 @@ use App\Enums\FuelType;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\ServiceRecord;
+use App\Models\ServiceType;
 use App\Models\User;
 use App\Models\Vehicle;
 use Database\Seeders\RoleSeeder;
@@ -419,6 +420,40 @@ class VehiclesControllerTest extends TestCase
             ->get(route('vehicles.show', $vehicle))
             ->assertInertia(
                 fn (Assert $page) => $page->where('can.delete', true)
+            );
+    }
+
+    public function test_show_service_records_include_enriched_fields(): void
+    {
+        $vehicle     = Vehicle::factory()->create(['mileage' => 5_000]);
+        $serviceType = ServiceType::create(['name' => 'Test']);
+        $record      = ServiceRecord::factory()->create([
+            'vehicle_id'         => $vehicle->id,
+            'mileage_at_service' => 6_000,
+            'notes'              => 'Test notes.',
+        ]);
+        $record->serviceTypes()->attach($serviceType);
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.show', $vehicle))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('vehicle.service_records.0.mileage_at_service', 6_000)
+                ->where('vehicle.service_records.0.notes', 'Test notes.')
+                ->where('vehicle.service_records.0.service_types.0', 'Test')
+                ->where('vehicle.service_records.0.can_edit', true)
+                ->where('vehicle.service_records.0.can_delete', false)
+            );
+    }
+
+    public function test_show_exposes_can_create_service_record_true_for_employee(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('vehicles.show', $vehicle))
+            ->assertInertia(
+                fn (Assert $page) => $page->where('can.create_service_record', true)
             );
     }
 

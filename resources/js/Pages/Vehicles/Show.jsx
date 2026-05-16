@@ -99,6 +99,7 @@ export default function Show({ vehicle, can }) {
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [deletingRecord, setDeletingRecord] = useState(null);
+    const [processingRecord, setProcessingRecord] = useState(false);
 
     function destroy() {
         setProcessing(true);
@@ -111,8 +112,12 @@ export default function Show({ vehicle, can }) {
     }
 
     function destroyRecord() {
+        setProcessingRecord(true);
         router.delete(route('service-records.destroy', deletingRecord.id), {
-            onFinish: () => setDeletingRecord(null),
+            onFinish: () => {
+                setProcessingRecord(false);
+                setDeletingRecord(null);
+            },
         });
     }
 
@@ -322,7 +327,9 @@ export default function Show({ vehicle, can }) {
                         <SecondaryButton onClick={() => setDeletingRecord(null)}>
                             Annuler
                         </SecondaryButton>
-                        <DangerButton onClick={destroyRecord}>Supprimer</DangerButton>
+                        <DangerButton onClick={destroyRecord} disabled={processingRecord}>
+                            Supprimer
+                        </DangerButton>
                     </div>
                 </div>
             </Modal>
