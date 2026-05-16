@@ -184,6 +184,16 @@ class ProductRequestTest extends TestCase
         $this->assertArrayHasKey('sku', $v->errors()->toArray());
     }
 
+    public function test_store_sku_of_soft_deleted_product_is_not_reusable(): void
+    {
+        $deleted = Product::factory()->create(['sku' => 'HU-5W30-1L']);
+        $deleted->delete();
+
+        $v = Validator::make($this->validPayload(), (new StoreProductRequest())->rules());
+
+        $this->assertArrayHasKey('sku', $v->errors()->toArray());
+    }
+
     // -------------------------------------------------------------------------
     // StoreProductRequest — non-negative quantities
     // -------------------------------------------------------------------------
@@ -329,5 +339,28 @@ class ProductRequestTest extends TestCase
         $v = Validator::make($payload, $rules);
 
         $this->assertArrayNotHasKey('quantity_on_hand', $v->errors()->toArray());
+    }
+
+    public function test_update_low_stock_threshold_rejects_zero(): void
+    {
+        $product = Product::factory()->create();
+        $rules   = $this->makeUpdateRequest($product)->rules();
+        $payload = array_merge($this->validPayload(), ['low_stock_threshold' => 0]);
+
+        $v = Validator::make($payload, $rules);
+
+        $this->assertArrayHasKey('low_stock_threshold', $v->errors()->toArray());
+    }
+
+    public function test_update_sku_allows_null_when_other_products_also_have_null_sku(): void
+    {
+        Product::factory()->create(['sku' => null]);
+        $product = Product::factory()->create(['sku' => 'MY-SKU']);
+        $rules   = $this->makeUpdateRequest($product)->rules();
+        $payload = array_merge($this->validPayload(), ['sku' => null]);
+
+        $v = Validator::make($payload, $rules);
+
+        $this->assertArrayNotHasKey('sku', $v->errors()->toArray());
     }
 }
