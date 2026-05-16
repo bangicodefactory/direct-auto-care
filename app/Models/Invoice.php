@@ -73,4 +73,15 @@ class Invoice extends Model
     {
         return $this->hasMany(ServiceRecord::class);
     }
+
+    public function recomputeTotals(): static
+    {
+        $subtotal = (float) $this->items->sum('line_total_ht');
+
+        $this->subtotal_ht = $subtotal;
+        $this->tva_amount  = round(($subtotal - (float) $this->discount) * (float) $this->tva_rate / 100, 2);
+        $this->total_ttc   = round($subtotal - (float) $this->discount + $this->tva_amount, 2);
+
+        return $this;
+    }
 }
