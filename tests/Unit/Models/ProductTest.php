@@ -45,14 +45,16 @@ class ProductTest extends TestCase
 
     public function test_scope_low_stock_returns_only_low_stock_products(): void
     {
+        Product::factory()->create(['quantity_on_hand' => 0, 'low_stock_threshold' => 5]);
         Product::factory()->create(['quantity_on_hand' => 2, 'low_stock_threshold' => 5]);
         Product::factory()->create(['quantity_on_hand' => 5, 'low_stock_threshold' => 5]);
         Product::factory()->create(['quantity_on_hand' => 10, 'low_stock_threshold' => 5]);
 
         $results = Product::lowStock()->get();
 
-        $this->assertCount(1, $results);
-        $this->assertEquals(2, $results->first()->quantity_on_hand);
+        $this->assertCount(2, $results);
+        $this->assertTrue($results->contains('quantity_on_hand', 0));
+        $this->assertTrue($results->contains('quantity_on_hand', 2));
     }
 
     public function test_category_is_cast_to_product_category_enum(): void
@@ -72,6 +74,9 @@ class ProductTest extends TestCase
             'product_id' => $product->id,
             'user_id'    => $user->id,
         ]);
+
+        // Movements belonging to another product must not bleed in
+        Product::factory()->has(StockMovement::factory()->count(2))->create();
 
         $this->assertCount(3, $product->stockMovements);
     }

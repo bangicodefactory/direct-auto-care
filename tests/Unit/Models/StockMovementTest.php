@@ -21,6 +21,15 @@ class StockMovementTest extends TestCase
         $this->assertEquals(StockMovementType::In, $movement->type);
     }
 
+    public function test_out_and_adjustment_types_are_cast_correctly(): void
+    {
+        $out = StockMovement::factory()->create(['type' => StockMovementType::Out->value]);
+        $adj = StockMovement::factory()->create(['type' => StockMovementType::Adjustment->value]);
+
+        $this->assertEquals(StockMovementType::Out, $out->type);
+        $this->assertEquals(StockMovementType::Adjustment, $adj->type);
+    }
+
     public function test_product_relationship_loads_soft_deleted_product(): void
     {
         $product  = Product::factory()->create();
