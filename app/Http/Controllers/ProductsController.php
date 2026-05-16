@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProductCategory;
+use App\Enums\StockMovementType;
 use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\StoreStockAdjustmentRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
+use App\Services\StockService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -19,7 +22,7 @@ class ProductsController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('can:create,' . Product::class, only: ['create', 'store']),
-            new Middleware('can:update,product', only: ['edit', 'update']),
+            new Middleware('can:update,product', only: ['edit', 'update', 'adjustStock']),
             new Middleware('can:delete,product', only: ['destroy']),
         ];
     }
@@ -89,6 +92,20 @@ class ProductsController extends Controller implements HasMiddleware
     {
         $this->authorize('view', $product);
 
+        $movements = $product->stockMovements()
+            ->with('user:id,name')
+            ->latest()
+            ->limit(50)
+            ->get()
+            ->map(fn ($m) => [
+                'id'         => $m->id,
+                'type'       => $m->type->value,
+                'quantity'   => $m->quantity,
+                'reason'     => $m->reason,
+                'user'       => $m->user?->name,
+                'created_at' => $m->created_at->format('d/m/Y H:i'),
+            ]);
+
         return Inertia::render('Products/Show', [
             'product' => [
                 'id'                  => $product->id,
@@ -102,11 +119,28 @@ class ProductsController extends Controller implements HasMiddleware
                 'low_stock_threshold' => $product->low_stock_threshold,
                 'is_low_stock'        => $product->is_low_stock,
             ],
-            'can' => [
+            'movements' => $movements,
+            'can'       => [
                 'edit'   => auth()->user()->can('update', $product),
                 'delete' => auth()->user()->can('delete', $product),
+                'adjust' => auth()->user()->can('update', $product),
             ],
         ]);
+    }
+
+    public function adjustStock(StoreStockAdjustmentRequest $request, Product $product): RedirectResponse
+    {
+        app(StockService::class)->recordMovement(
+            product: $product,
+            type: StockMovementType::Adjustment,
+            quantity: $request->integer('quantity'),
+            reason: $request->string('reason')->value() ?: null,
+            invoice: null,
+            user: $request->user(),
+        );
+
+        return redirect()->route('products.show', $product)
+            ->with('success', 'Ajustement de stock enregistré.');
     }
 
     public function edit(Product $product): Response

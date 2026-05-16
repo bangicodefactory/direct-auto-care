@@ -30,6 +30,10 @@ Route::get('/dashboard', function () {
 Route::resource('products', ProductsController::class)
     ->middleware(['auth', 'verified']);
 
+Route::post('products/{product}/adjust-stock', [ProductsController::class, 'adjustStock'])
+    ->middleware(['auth', 'verified'])
+    ->name('products.adjust-stock');
+
 Route::resource('customers', CustomersController::class)
     ->middleware(['auth', 'verified']);
 

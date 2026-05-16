@@ -322,4 +322,97 @@ class ProductsControllerTest extends TestCase
                 ->where('products.data.0.name', $match->name)
             );
     }
+
+    // -------------------------------------------------------------------------
+    // Show — movements log
+    // -------------------------------------------------------------------------
+
+    public function test_show_includes_movements(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['quantity_on_hand' => 20]);
+        $product->stockMovements()->create([
+            'type'     => 'in',
+            'quantity' => 5,
+            'reason'   => 'Réception commande',
+            'user_id'  => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('products.show', $product))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->component('Products/Show')
+                ->has('movements', 1)
+                ->where('movements.0.type', 'in')
+                ->where('movements.0.quantity', 5)
+                ->where('movements.0.reason', 'Réception commande')
+            );
+    }
+
+    // -------------------------------------------------------------------------
+    // adjustStock — happy path + guards
+    // -------------------------------------------------------------------------
+
+    public function test_admin_can_adjust_stock_upward(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['quantity_on_hand' => 10]);
+
+        $this->actingAs($admin)
+            ->post(route('products.adjust-stock', $product), [
+                'quantity' => 5,
+                'reason'   => 'Inventaire physique',
+            ])
+            ->assertRedirect(route('products.show', $product));
+
+        $this->assertDatabaseHas('products', ['id' => $product->id, 'quantity_on_hand' => 15]);
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $product->id,
+            'type'       => 'adjustment',
+            'quantity'   => 5,
+        ]);
+    }
+
+    public function test_admin_can_adjust_stock_downward(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['quantity_on_hand' => 10]);
+
+        $this->actingAs($admin)
+            ->post(route('products.adjust-stock', $product), ['quantity' => -3])
+            ->assertRedirect(route('products.show', $product));
+
+        $this->assertDatabaseHas('products', ['id' => $product->id, 'quantity_on_hand' => 7]);
+    }
+
+    public function test_employee_cannot_adjust_stock(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $product  = Product::factory()->create();
+
+        $this->actingAs($employee)
+            ->post(route('products.adjust-stock', $product), ['quantity' => 1])
+            ->assertForbidden();
+    }
+
+    public function test_adjust_stock_rejects_zero_quantity(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create();
+
+        $this->actingAs($admin)
+            ->post(route('products.adjust-stock', $product), ['quantity' => 0])
+            ->assertSessionHasErrors('quantity');
+    }
+
+    public function test_adjust_stock_rejects_insufficient_stock(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['quantity_on_hand' => 3]);
+
+        $this->actingAs($admin)
+            ->post(route('products.adjust-stock', $product), ['quantity' => -10])
+            ->assertStatus(422);
+    }
 }
