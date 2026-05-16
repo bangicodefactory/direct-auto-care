@@ -25,7 +25,7 @@ class InvoiceFactory extends Factory
 
         return [
             'type'                   => $type->value,
-            'number'                 => $prefix . '-' . $fiscalYear . '-' . fake()->unique()->numerify('####'),
+            'number'                 => $prefix . '-' . $fiscalYear . '-' . fake()->unique()->numerify('########'),
             'customer_id'            => Customer::factory(),
             'vehicle_id'             => null,
             'issue_date'             => $issueDate->format('Y-m-d'),

@@ -131,7 +131,7 @@ class InvoiceSeeder extends Seeder
                 $convertedFromId = $created[$data['converted_from']]?->id ?? null;
             }
 
-            $invoice = Invoice::create(array_merge($data['invoice'], [
+            $invoice = Invoice::firstOrCreate(['number' => $data['invoice']['number']], array_merge($data['invoice'], [
                 'customer_id'             => $customer->id,
                 'vehicle_id'              => $vehicle->id,
                 'subtotal_ht'             => $subtotalHt,
@@ -143,18 +143,20 @@ class InvoiceSeeder extends Seeder
                 'converted_from_quote_id' => $convertedFromId,
             ]));
 
-            foreach ($items as $item) {
-                $product   = $item['sku'] ? $products->get($item['sku']) : null;
-                $lineTotal = round($item['qty'] * $item['unit_price'], 2);
+            if ($invoice->wasRecentlyCreated) {
+                foreach ($items as $item) {
+                    $product   = $item['sku'] ? $products->get($item['sku']) : null;
+                    $lineTotal = round($item['qty'] * $item['unit_price'], 2);
 
-                InvoiceItem::create([
-                    'invoice_id'    => $invoice->id,
-                    'product_id'    => $product?->id,
-                    'description'   => $item['description'],
-                    'quantity'      => $item['qty'],
-                    'unit_price_ht' => $item['unit_price'],
-                    'line_total_ht' => $lineTotal,
-                ]);
+                    InvoiceItem::create([
+                        'invoice_id'    => $invoice->id,
+                        'product_id'    => $product?->id,
+                        'description'   => $item['description'],
+                        'quantity'      => $item['qty'],
+                        'unit_price_ht' => $item['unit_price'],
+                        'line_total_ht' => $lineTotal,
+                    ]);
+                }
             }
 
             $created[$invoice->number] = $invoice;
