@@ -113,6 +113,27 @@ class InvoiceNumberingServiceTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // Two consecutive calls starting from an empty table
+    // -------------------------------------------------------------------------
+
+    public function test_two_consecutive_calls_increment_monotonically(): void
+    {
+        $first = $this->next(InvoiceType::Invoice);
+
+        // Simulate the caller inserting the row before the second call.
+        Invoice::factory()->create([
+            'type'        => InvoiceType::Invoice->value,
+            'fiscal_year' => 2026,
+            'number'      => $first,
+        ]);
+
+        $second = $this->next(InvoiceType::Invoice);
+
+        $this->assertSame('FAC-2026-00001', $first);
+        $this->assertSame('FAC-2026-00002', $second);
+    }
+
+    // -------------------------------------------------------------------------
     // Format contract
     // -------------------------------------------------------------------------
 

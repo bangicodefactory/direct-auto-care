@@ -60,7 +60,7 @@ class InvoiceNumberingServiceConcurrencyTest extends TestCase
         $fiscalYear = (int) now()->format('Y');
         $projectRoot = base_path();
 
-        $scriptPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'inv_numbering_worker.php';
+        $scriptPath = tempnam(sys_get_temp_dir(), 'inv_worker_') . '.php';
         file_put_contents($scriptPath, self::WORKER);
 
         try {
