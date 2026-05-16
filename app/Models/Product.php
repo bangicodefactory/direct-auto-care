@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ProductCategory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -32,6 +33,11 @@ class Product extends Model
             'price_buy' => 'decimal:2',
             'price_sell' => 'decimal:2',
         ];
+    }
+
+    protected function isLowStock(): Attribute
+    {
+        return Attribute::make(get: fn () => $this->quantity_on_hand < $this->low_stock_threshold);
     }
 
     public function scopeLowStock(Builder $query): void
