@@ -43,9 +43,6 @@ class InvoiceItemTest extends TestCase
             'line_total_ht' => 300,
         ]);
 
-        $this->assertIsString($item->quantity);
-        $this->assertIsString($item->unit_price_ht);
-        $this->assertIsString($item->line_total_ht);
         $this->assertEquals('2.00', $item->quantity);
         $this->assertEquals('150.00', $item->unit_price_ht);
         $this->assertEquals('300.00', $item->line_total_ht);

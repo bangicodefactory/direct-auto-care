@@ -37,10 +37,15 @@ class Invoice extends Model
     protected function casts(): array
     {
         return [
-            'type'       => InvoiceType::class,
-            'status'     => InvoiceStatus::class,
-            'issue_date' => 'date',
-            'due_date'   => 'date',
+            'type'         => InvoiceType::class,
+            'status'       => InvoiceStatus::class,
+            'issue_date'   => 'date',
+            'due_date'     => 'date',
+            'subtotal_ht'  => 'decimal:2',
+            'discount'     => 'decimal:2',
+            'tva_rate'     => 'decimal:2',
+            'tva_amount'   => 'decimal:2',
+            'total_ttc'    => 'decimal:2',
         ];
     }
 
@@ -76,6 +81,8 @@ class Invoice extends Model
 
     public function recomputeTotals(): static
     {
+        $this->loadMissing('items');
+
         $subtotal = (float) $this->items->sum('line_total_ht');
 
         $this->subtotal_ht = $subtotal;

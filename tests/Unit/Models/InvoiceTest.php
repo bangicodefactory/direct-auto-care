@@ -110,7 +110,7 @@ class InvoiceTest extends TestCase
         InvoiceItem::factory()->create(['invoice_id' => $invoice->id, 'line_total_ht' => 100.00]);
         InvoiceItem::factory()->create(['invoice_id' => $invoice->id, 'line_total_ht' => 250.00]);
 
-        $invoice->load('items')->recomputeTotals();
+        $invoice->recomputeTotals();
 
         $this->assertEquals(350.00, (float) $invoice->subtotal_ht);
     }
@@ -120,7 +120,7 @@ class InvoiceTest extends TestCase
         $invoice = Invoice::factory()->create(['discount' => 0, 'tva_rate' => 20]);
         InvoiceItem::factory()->create(['invoice_id' => $invoice->id, 'line_total_ht' => 500.00]);
 
-        $invoice->load('items')->recomputeTotals();
+        $invoice->recomputeTotals();
 
         $this->assertEquals(100.00, (float) $invoice->tva_amount);
     }
@@ -130,7 +130,7 @@ class InvoiceTest extends TestCase
         $invoice = Invoice::factory()->create(['discount' => 0, 'tva_rate' => 20]);
         InvoiceItem::factory()->create(['invoice_id' => $invoice->id, 'line_total_ht' => 500.00]);
 
-        $invoice->load('items')->recomputeTotals();
+        $invoice->recomputeTotals();
 
         $this->assertEquals(600.00, (float) $invoice->total_ttc);
     }
@@ -140,7 +140,7 @@ class InvoiceTest extends TestCase
         $invoice = Invoice::factory()->create(['discount' => 50.00, 'tva_rate' => 20]);
         InvoiceItem::factory()->create(['invoice_id' => $invoice->id, 'line_total_ht' => 500.00]);
 
-        $invoice->load('items')->recomputeTotals();
+        $invoice->recomputeTotals();
 
         // subtotal = 500, discount = 50, taxable = 450
         // tva = 450 * 20% = 90, total = 450 + 90 = 540
@@ -152,7 +152,7 @@ class InvoiceTest extends TestCase
     public function test_recompute_totals_with_no_items_zeros_amounts(): void
     {
         $invoice = Invoice::factory()->create(['discount' => 0, 'tva_rate' => 20]);
-        $invoice->load('items')->recomputeTotals();
+        $invoice->recomputeTotals();
 
         $this->assertEquals(0.00, (float) $invoice->subtotal_ht);
         $this->assertEquals(0.00, (float) $invoice->tva_amount);
@@ -163,7 +163,7 @@ class InvoiceTest extends TestCase
     {
         $invoice = Invoice::factory()->create();
 
-        $this->assertSame($invoice, $invoice->load('items')->recomputeTotals());
+        $this->assertSame($invoice, $invoice->recomputeTotals());
     }
 
     public function test_recompute_totals_persists_when_saved(): void
@@ -171,7 +171,7 @@ class InvoiceTest extends TestCase
         $invoice = Invoice::factory()->create(['discount' => 0, 'tva_rate' => 20]);
         InvoiceItem::factory()->create(['invoice_id' => $invoice->id, 'line_total_ht' => 200.00]);
 
-        $invoice->load('items')->recomputeTotals()->save();
+        $invoice->recomputeTotals()->save();
 
         $fresh = $invoice->fresh();
         $this->assertEquals(200.00, (float) $fresh->subtotal_ht);
