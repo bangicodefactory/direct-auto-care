@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomersController;
+use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceRecordsController;
 use App\Http\Controllers\UsersController;
@@ -25,6 +26,9 @@ Route::get('/style-guide', function () {
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::resource('products', ProductsController::class)
+    ->middleware(['auth', 'verified']);
 
 Route::resource('customers', CustomersController::class)
     ->middleware(['auth', 'verified']);
