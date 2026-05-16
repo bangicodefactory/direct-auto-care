@@ -27,7 +27,11 @@ export default function Index({ products, filters, categories, can }) {
             const f = filtersRef.current;
             router.get(
                 route('products.index'),
-                { search: search || undefined, category: f?.category, low_stock: f?.low_stock },
+                {
+                    search: search.trim() || undefined,
+                    category: f?.category,
+                    low_stock: f?.low_stock,
+                },
                 { preserveState: true, replace: true },
             );
         }, 300);
@@ -38,7 +42,11 @@ export default function Index({ products, filters, categories, can }) {
         const f = filtersRef.current;
         router.get(
             route('products.index'),
-            { category: value || undefined, low_stock: f?.low_stock, search: search || undefined },
+            {
+                category: value || undefined,
+                low_stock: f?.low_stock,
+                search: search.trim() || undefined,
+            },
             { preserveState: true, replace: true },
         );
     }
@@ -50,7 +58,7 @@ export default function Index({ products, filters, categories, can }) {
             {
                 category: f?.category,
                 low_stock: f?.low_stock ? undefined : '1',
-                search: search || undefined,
+                search: search.trim() || undefined,
             },
             { preserveState: true, replace: true },
         );
@@ -120,6 +128,7 @@ export default function Index({ products, filters, categories, can }) {
                             </button>
                             {search && (
                                 <button
+                                    type="button"
                                     onClick={() => setSearch('')}
                                     className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                                 >
@@ -196,7 +205,7 @@ export default function Index({ products, filters, categories, can }) {
                                                     >
                                                         Voir
                                                     </Dropdown.Link>
-                                                    {can.delete && (
+                                                    {can.edit && (
                                                         <Dropdown.Link
                                                             href={route('products.edit', p.id)}
                                                         >

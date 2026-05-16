@@ -62,6 +62,7 @@ class ProductsController extends Controller implements HasMiddleware
             'categories' => ProductCategory::cases(),
             'can'        => [
                 'create' => $request->user()->can('create', Product::class),
+                'edit'   => $request->user()->hasRole('admin'),
                 'delete' => $request->user()->hasRole('admin'),
             ],
         ]);

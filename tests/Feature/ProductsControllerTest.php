@@ -273,4 +273,53 @@ class ProductsControllerTest extends TestCase
                 ->where('products.data.0.is_low_stock', true)
             );
     }
+
+    // -------------------------------------------------------------------------
+    // Index — search filter
+    // -------------------------------------------------------------------------
+
+    public function test_index_filters_by_name_search(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $match   = Product::factory()->create(['name' => 'Filtre huile moteur']);
+        Product::factory()->create(['name' => 'Bougie allumage']);
+
+        $this->actingAs($admin)
+            ->get(route('products.index', ['search' => 'huile']))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('products.total', 1)
+                ->where('products.data.0.name', $match->name)
+            );
+    }
+
+    public function test_index_filters_by_sku_search(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $match   = Product::factory()->create(['sku' => 'HUI-5W30']);
+        Product::factory()->create(['sku' => 'FIL-AIR']);
+
+        $this->actingAs($admin)
+            ->get(route('products.index', ['search' => 'HUI']))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('products.total', 1)
+                ->where('products.data.0.sku', $match->sku)
+            );
+    }
+
+    public function test_index_search_trims_whitespace(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+        $match = Product::factory()->create(['name' => 'Huile moteur']);
+        Product::factory()->create(['name' => 'Filtre air']);
+
+        $this->actingAs($admin)
+            ->get(route('products.index', ['search' => '  huile  ']))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('products.total', 1)
+                ->where('products.data.0.name', $match->name)
+            );
+    }
 }
