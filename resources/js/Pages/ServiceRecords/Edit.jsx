@@ -1,7 +1,7 @@
-import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
+import ServiceTypeMultiCheck from '@/Components/ServiceTypeMultiCheck';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -16,15 +16,6 @@ export default function Edit({ record, serviceTypes }) {
         mileage_at_service: record.mileage_at_service ?? '',
         notes: record.notes ?? '',
     });
-
-    function toggleType(id) {
-        setData(
-            'service_type_ids',
-            data.service_type_ids.includes(id)
-                ? data.service_type_ids.filter((t) => t !== id)
-                : [...data.service_type_ids, id],
-        );
-    }
 
     function submit(e) {
         e.preventDefault();
@@ -63,30 +54,13 @@ export default function Edit({ record, serviceTypes }) {
                                 <InputError message={errors.serviced_at} className="mt-2" />
                             </div>
 
-                            {/* Service types */}
-                            <fieldset>
-                                <legend className="text-sm font-medium text-gray-700">
-                                    Types de service{' '}
-                                    <span className="text-red-500" aria-hidden="true">
-                                        *
-                                    </span>
-                                </legend>
-                                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                                    {serviceTypes.map((type) => (
-                                        <label
-                                            key={type.id}
-                                            className="flex cursor-pointer items-center gap-2 text-sm text-gray-700"
-                                        >
-                                            <Checkbox
-                                                checked={data.service_type_ids.includes(type.id)}
-                                                onChange={() => toggleType(type.id)}
-                                            />
-                                            {type.name}
-                                        </label>
-                                    ))}
-                                </div>
-                                <InputError message={errors.service_type_ids} className="mt-2" />
-                            </fieldset>
+                            <ServiceTypeMultiCheck
+                                serviceTypes={serviceTypes}
+                                selected={data.service_type_ids}
+                                onChange={(ids) => setData('service_type_ids', ids)}
+                                error={errors.service_type_ids}
+                                disabled={processing}
+                            />
 
                             {/* Mileage */}
                             <div>
