@@ -13,17 +13,20 @@ class InvoiceNumberingService
      * MUST be called inside an open DB::transaction(). The caller is responsible
      * for inserting the Invoice row and committing before releasing control.
      *
-     * Sequencing is backed by the `invoice_sequences` table rather than scanning
-     * the `invoices` table. This guarantees a true exclusive row lock (X) rather
-     * than a gap lock, which is the only correct guard against concurrent duplicates.
+     * Sequencing is backed by the `invoice_sequences` table. The single statement:
      *
-     * InnoDB gap locks are COMPATIBLE between readers — multiple transactions can
-     * simultaneously hold gap locks on the same empty range and race to claim
-     * sequence 1. An X lock on an existing row is exclusive: only one transaction
-     * can hold it at a time, serialising concurrent callers without gaps.
+     *   INSERT … VALUES (1) ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1
      *
-     * insertOrIgnore() seeds the row on first use; subsequent calls lock the existing
-     * row and atomically increment last_sequence.
+     * atomically inserts (first use) or increments (subsequent use) the counter,
+     * and acquires an **exclusive X lock** on the row in both cases.
+     *
+     * Unlike INSERT IGNORE, which acquires a shared (S) lock on the conflicting row
+     * and causes a deadlock when multiple transactions race to upgrade S → X, the
+     * ON DUPLICATE KEY UPDATE path acquires X directly — no upgrade, no deadlock.
+     *
+     * The X lock is held for the duration of the transaction. No concurrent transaction
+     * can read or modify the row until this transaction commits, so the subsequent
+     * SELECT is safe without FOR UPDATE.
      *
      * Numbers are zero-padded to 5 digits (max 99,999 per type per fiscal year).
      *
@@ -38,29 +41,20 @@ class InvoiceNumberingService
             'InvoiceNumberingService::next() must be called inside a DB::transaction().',
         );
 
-        // Ensure the sequence row exists. When two transactions race here on an
-        // empty table, InnoDB lets one insert succeed and silently rejects the
-        // other's duplicate — both then proceed to lockForUpdate() below.
-        DB::table('invoice_sequences')->insertOrIgnore([
-            'type'          => $type->value,
-            'fiscal_year'   => $fiscalYear,
-            'last_sequence' => 0,
-        ]);
+        // INSERT acquires X on the new row; ON DUPLICATE KEY UPDATE acquires X on the
+        // existing row. Either way this transaction exclusively owns the row from here
+        // until commit — no S→X upgrade race, no deadlock.
+        DB::statement(
+            'INSERT INTO invoice_sequences (type, fiscal_year, last_sequence) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1',
+            [$type->value, $fiscalYear],
+        );
 
-        // Exclusively lock the sequence row. Only one transaction can hold this
-        // X lock at a time — all concurrent callers queue behind it.
-        $current = DB::table('invoice_sequences')
+        // The X lock is still held, so no concurrent transaction can have changed
+        // last_sequence between the statement above and this read.
+        $sequence = DB::table('invoice_sequences')
             ->where('type', $type->value)
             ->where('fiscal_year', $fiscalYear)
-            ->lockForUpdate()
             ->value('last_sequence');
-
-        $next = $current + 1;
-
-        DB::table('invoice_sequences')
-            ->where('type', $type->value)
-            ->where('fiscal_year', $fiscalYear)
-            ->update(['last_sequence' => $next]);
 
         return sprintf(
             '%s-%d-%05d',
@@ -69,7 +63,7 @@ class InvoiceNumberingService
                 InvoiceType::Quote   => 'DEV',
             },
             $fiscalYear,
-            $next,
+            $sequence,
         );
     }
 }
