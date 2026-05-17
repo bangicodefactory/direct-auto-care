@@ -13,6 +13,17 @@ class Reminder extends Model
     /** @use HasFactory<\Database\Factories\ReminderFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'vehicle_id',
+        'customer_id',
+        'type',
+        'scheduled_for',
+        'status',
+        'trigger_km',
+        'sent_at',
+        'notes',
+    ];
+
     protected function casts(): array
     {
         return [

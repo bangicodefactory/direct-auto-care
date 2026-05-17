@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Enums\ReminderStatus;
 use App\Enums\ReminderType;
-use App\Models\Customer;
 use App\Models\Vehicle;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -16,7 +15,7 @@ class ReminderFactory extends Factory
 
         return [
             'vehicle_id'   => Vehicle::factory(),
-            'customer_id'  => Customer::factory(),
+            'customer_id'  => fn (array $attrs) => Vehicle::find($attrs['vehicle_id'])?->customer_id,
             'type'         => $type,
             'scheduled_for' => fake()->dateTimeBetween('now', '+60 days')->format('Y-m-d'),
             'status'       => ReminderStatus::Pending,
@@ -46,6 +45,14 @@ class ReminderFactory extends Factory
     {
         return $this->state([
             'type'       => ReminderType::VisiteTechnique,
+            'trigger_km' => null,
+        ]);
+    }
+
+    public function entretienPeriodique(): static
+    {
+        return $this->state([
+            'type'       => ReminderType::EntretienPeriodique,
             'trigger_km' => null,
         ]);
     }

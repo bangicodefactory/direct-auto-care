@@ -17,13 +17,12 @@ return new class () extends Migration {
             $table->date('scheduled_for');
             $table->enum('status', array_column(ReminderStatus::cases(), 'value'))
                   ->default(ReminderStatus::Pending->value);
-            $table->unsignedInteger('trigger_km')->nullable();   // km threshold for vidange reminders
+            $table->unsignedInteger('trigger_km')->nullable();
             $table->timestamp('sent_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            // Dedup: one pending reminder per vehicle + type + date
-            $table->index(['vehicle_id', 'type', 'scheduled_for']);
+            $table->unique(['vehicle_id', 'type', 'scheduled_for']);
         });
     }
 
