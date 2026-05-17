@@ -32,10 +32,21 @@ class AppointmentFactory extends Factory
         return $this->state(['status' => AppointmentStatus::Confirmed]);
     }
 
+    public function completed(): static
+    {
+        return $this->state(['status' => AppointmentStatus::Completed]);
+    }
+
+    public function cancelled(): static
+    {
+        return $this->state(['status' => AppointmentStatus::Cancelled]);
+    }
+
     public function today(): static
     {
         return $this->state([
-            'scheduled_at' => today()->setTime(fake()->numberBetween(8, 17), fake()->randomElement([0, 30])),
+            // Cap at 16 so a 30-min slot never runs past 17:00 closing time.
+            'scheduled_at' => today()->setTime(fake()->numberBetween(8, 16), fake()->randomElement([0, 30])),
         ]);
     }
 }

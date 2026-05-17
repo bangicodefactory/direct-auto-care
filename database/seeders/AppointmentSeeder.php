@@ -13,7 +13,7 @@ class AppointmentSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin      = User::role('admin')->first();
+        $admin      = User::role('admin')->firstOrFail();
         $customers  = Customer::with('vehicles')->get();
         $serviceTypes = ServiceType::all();
 
@@ -65,7 +65,7 @@ class AppointmentSeeder extends Seeder
                 'customer_id'  => $customer->id,
                 'vehicle_id'   => $vehicle?->id,
                 'created_by'   => $admin->id,
-                'scheduled_at' => today()->addDays($slot['offset'])->setTime($slot['hour'], $slot['minute']),
+                'scheduled_at' => today()->addWeekdays($slot['offset'])->setTime($slot['hour'], $slot['minute']),
                 'duration'     => $slot['duration'],
                 'status'       => $slot['status'],
                 'notes'        => null,
