@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\AppointmentCancellationNotification;
 use App\Notifications\AppointmentConfirmationNotification;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 class AppointmentService
@@ -35,7 +36,7 @@ class AppointmentService
         $overlaps = Appointment::query()
             ->where('vehicle_id', $vehicleId)
             ->where('status', '!=', AppointmentStatus::Cancelled->value)
-            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
+            ->when($excludeId !== null, fn ($q) => $q->where('id', '!=', $excludeId))
             ->where('scheduled_at', '<', $endsAt)
             ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration MINUTE) > ?', [$scheduledAt])
             ->exists();
@@ -60,19 +61,23 @@ class AppointmentService
             $this->validateNoOverlap($vehicleId, $scheduledAt, (int) $data['duration']);
         }
 
-        $appointment = Appointment::create([
-            'customer_id'  => $data['customer_id'],
-            'vehicle_id'   => $vehicleId,
-            'created_by'   => $user->id,
-            'scheduled_at' => $scheduledAt,
-            'duration'     => (int) $data['duration'],
-            'status'       => AppointmentStatus::Confirmed,
-            'notes'        => $data['notes'] ?? null,
-        ]);
+        $appointment = DB::transaction(function () use ($data, $user, $vehicleId, $scheduledAt): Appointment {
+            $apt = Appointment::create([
+                'customer_id'  => $data['customer_id'],
+                'vehicle_id'   => $vehicleId,
+                'created_by'   => $user->id,
+                'scheduled_at' => $scheduledAt,
+                'duration'     => (int) $data['duration'],
+                'status'       => AppointmentStatus::Confirmed,
+                'notes'        => $data['notes'] ?? null,
+            ]);
 
-        if (! empty($data['service_type_ids'])) {
-            $appointment->serviceTypes()->attach($data['service_type_ids']);
-        }
+            if (! empty($data['service_type_ids'])) {
+                $apt->serviceTypes()->attach($data['service_type_ids']);
+            }
+
+            return $apt;
+        });
 
         $appointment->load('customer', 'vehicle');
         $this->notifyCustomer($appointment, new AppointmentConfirmationNotification($appointment));

@@ -251,6 +251,25 @@ class AppointmentServiceTest extends TestCase
         Notification::assertNothingSent();
     }
 
+    public function test_create_skips_notification_when_customer_has_no_email(): void
+    {
+        Notification::fake();
+
+        $customer = Customer::factory()->create([
+            'email'        => null,
+            'notify_email' => true,
+        ]);
+        $user = User::factory()->create();
+
+        $this->service->create([
+            'customer_id'  => $customer->id,
+            'scheduled_at' => '2026-07-01 10:00:00',
+            'duration'     => 60,
+        ], $user);
+
+        Notification::assertNothingSent();
+    }
+
     public function test_create_throws_on_vehicle_overlap(): void
     {
         Notification::fake();
