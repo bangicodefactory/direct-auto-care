@@ -3,7 +3,6 @@
 namespace Tests\Unit\Services;
 
 use App\Enums\InvoiceType;
-use App\Models\Invoice;
 use App\Services\InvoiceNumberingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +24,16 @@ class InvoiceNumberingServiceTest extends TestCase
     private function next(InvoiceType $type, int $fiscalYear = 2026): string
     {
         return DB::transaction(fn () => $this->service->next($type, $fiscalYear));
+    }
+
+    // Helper — seed the sequence table to simulate previous invoices.
+    private function seedSequence(InvoiceType $type, int $fiscalYear, int $lastSequence): void
+    {
+        DB::table('invoice_sequences')->insert([
+            'type'          => $type->value,
+            'fiscal_year'   => $fiscalYear,
+            'last_sequence' => $lastSequence,
+        ]);
     }
 
     // -------------------------------------------------------------------------
@@ -56,16 +65,12 @@ class InvoiceNumberingServiceTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Increment from existing max
+    // Increment from existing sequence
     // -------------------------------------------------------------------------
 
-    public function test_increments_from_existing_max(): void
+    public function test_increments_from_existing_sequence(): void
     {
-        Invoice::factory()->create([
-            'type'        => InvoiceType::Invoice->value,
-            'fiscal_year' => 2026,
-            'number'      => 'FAC-2026-00005',
-        ]);
+        $this->seedSequence(InvoiceType::Invoice, 2026, 5);
 
         $this->assertSame('FAC-2026-00006', $this->next(InvoiceType::Invoice));
     }
@@ -76,57 +81,25 @@ class InvoiceNumberingServiceTest extends TestCase
 
     public function test_invoice_and_quote_sequences_are_independent(): void
     {
-        Invoice::factory()->create([
-            'type'        => InvoiceType::Invoice->value,
-            'fiscal_year' => 2026,
-            'number'      => 'FAC-2026-00003',
-        ]);
+        $this->seedSequence(InvoiceType::Invoice, 2026, 3);
 
         $this->assertSame('DEV-2026-00001', $this->next(InvoiceType::Quote));
     }
 
     public function test_sequences_are_independent_by_fiscal_year(): void
     {
-        Invoice::factory()->create([
-            'type'        => InvoiceType::Invoice->value,
-            'fiscal_year' => 2025,
-            'number'      => 'FAC-2025-00010',
-        ]);
+        $this->seedSequence(InvoiceType::Invoice, 2025, 10);
 
         $this->assertSame('FAC-2026-00001', $this->next(InvoiceType::Invoice, 2026));
     }
 
     // -------------------------------------------------------------------------
-    // Soft-deleted rows must still count
-    // -------------------------------------------------------------------------
-
-    public function test_includes_soft_deleted_invoices_in_sequence(): void
-    {
-        $invoice = Invoice::factory()->create([
-            'type'        => InvoiceType::Invoice->value,
-            'fiscal_year' => 2026,
-            'number'      => 'FAC-2026-00007',
-        ]);
-        $invoice->delete();
-
-        $this->assertSame('FAC-2026-00008', $this->next(InvoiceType::Invoice));
-    }
-
-    // -------------------------------------------------------------------------
-    // Two consecutive calls starting from an empty table
+    // Two consecutive calls
     // -------------------------------------------------------------------------
 
     public function test_two_consecutive_calls_increment_monotonically(): void
     {
-        $first = $this->next(InvoiceType::Invoice);
-
-        // Simulate the caller inserting the row before the second call.
-        Invoice::factory()->create([
-            'type'        => InvoiceType::Invoice->value,
-            'fiscal_year' => 2026,
-            'number'      => $first,
-        ]);
-
+        $first  = $this->next(InvoiceType::Invoice);
         $second = $this->next(InvoiceType::Invoice);
 
         $this->assertSame('FAC-2026-00001', $first);
