@@ -123,6 +123,23 @@ class InvoicesControllerTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_employee_can_update_draft_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        $invoice  = Invoice::factory()->create([
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, ['notes' => 'Test employé']))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'notes' => 'Test employé']);
+    }
+
     // =========================================================================
     // Policy — edit blocked for non-draft invoices
     // =========================================================================
@@ -166,6 +183,27 @@ class InvoicesControllerTest extends TestCase
         $invoice  = Invoice::factory()->create(['status' => InvoiceStatus::Cancelled->value]);
 
         $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer))
+            ->assertForbidden();
+    }
+
+    public function test_admin_cannot_edit_non_draft_invoice(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Issued->value]);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.edit', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_admin_cannot_update_non_draft_invoice(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $invoice  = Invoice::factory()->create(['status' => InvoiceStatus::Issued->value]);
+
+        $this->actingAs($admin)
             ->put(route('invoices.update', $invoice), $this->updatePayload($customer))
             ->assertForbidden();
     }
@@ -289,6 +327,50 @@ class InvoicesControllerTest extends TestCase
         $this->actingAs($admin)
             ->post(route('invoices.store'), $this->storePayload($customer, ['type' => 'invalid']))
             ->assertSessionHasErrors('type');
+    }
+
+    public function test_store_rejects_soft_deleted_customer(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $customer->delete();
+
+        $this->actingAs($admin)
+            ->post(route('invoices.store'), $this->storePayload($customer))
+            ->assertSessionHasErrors('customer_id');
+    }
+
+    public function test_store_rejects_vehicle_belonging_to_different_customer(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $other    = Customer::factory()->create();
+        $vehicle  = \App\Models\Vehicle::factory()->create(['customer_id' => $other->id]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.store'), $this->storePayload($customer, ['vehicle_id' => $vehicle->id]))
+            ->assertSessionHasErrors('vehicle_id');
+    }
+
+    public function test_store_with_product_decrements_stock(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['quantity_on_hand' => 10]);
+
+        $payload          = $this->storePayload($customer);
+        $payload['items'] = [[
+            'product_id'    => $product->id,
+            'description'   => $product->name,
+            'quantity'      => 3,
+            'unit_price_ht' => 50,
+        ]];
+
+        $this->actingAs($admin)
+            ->post(route('invoices.store'), $payload)
+            ->assertRedirect();
+
+        $this->assertSame(7, $product->fresh()->quantity_on_hand);
     }
 
     // =========================================================================
