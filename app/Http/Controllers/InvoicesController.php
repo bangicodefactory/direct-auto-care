@@ -86,7 +86,7 @@ class InvoicesController extends Controller implements HasMiddleware
             'customers' => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
             'products'  => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
             'types'     => collect(InvoiceType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
-            'defaultType' => $request->string('type')->value() ?: InvoiceType::Invoice->value,
+            'defaultType' => InvoiceType::tryFrom($request->string('type')->value())?->value ?? InvoiceType::Invoice->value,
         ]);
     }
 
@@ -98,10 +98,12 @@ class InvoicesController extends Controller implements HasMiddleware
             return back()->withErrors(['items' => $e->getMessage()]);
         }
 
-        $label = $invoice->type === InvoiceType::Quote ? 'Devis' : 'Facture';
+        [$label, $past] = $invoice->type === InvoiceType::Quote
+            ? ['Devis', 'créé']
+            : ['Facture', 'créée'];
 
         return redirect()->route('invoices.show', $invoice)
-            ->with('success', "{$label} {$invoice->number} créé(e) avec succès.");
+            ->with('success', "{$label} {$invoice->number} {$past} avec succès.");
     }
 
     public function show(Invoice $invoice): Response
@@ -191,16 +193,16 @@ class InvoicesController extends Controller implements HasMiddleware
             return back()->withErrors(['items' => $e->getMessage()]);
         }
 
-        $label = $invoice->type === InvoiceType::Quote ? 'Devis' : 'Facture';
+        [$label, $past] = $invoice->type === InvoiceType::Quote
+            ? ['Devis', 'mis']
+            : ['Facture', 'mise'];
 
         return redirect()->route('invoices.show', $invoice)
-            ->with('success', "{$label} {$invoice->number} mis(e) à jour.");
+            ->with('success', "{$label} {$invoice->number} {$past} à jour.");
     }
 
     public function destroy(Invoice $invoice): RedirectResponse
     {
-        $this->authorize('delete', $invoice);
-
         $invoice->delete();
 
         return redirect()->route('invoices.index')
