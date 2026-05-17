@@ -237,7 +237,7 @@ class AppointmentsController extends Controller implements HasMiddleware
                 'service_type_ids' => $appointment->serviceTypes->pluck('id')->all(),
             ]);
 
-            return redirect('/vehicles/' . $appointment->vehicle_id . '/service-records/create?' . $query)
+            return redirect(route('vehicles.service-records.create', $appointment->vehicle_id) . '?' . $query)
                 ->with('success', 'Rendez-vous marqué comme terminé.');
         }
 

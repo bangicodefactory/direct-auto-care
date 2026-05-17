@@ -285,16 +285,22 @@ class AppointmentsControllerTest extends TestCase
         $customer    = Customer::factory()->create();
         $vehicle     = Vehicle::factory()->create(['customer_id' => $customer->id]);
         $appointment = Appointment::factory()->confirmed()->create([
-            'customer_id' => $customer->id,
-            'vehicle_id'  => $vehicle->id,
+            'customer_id'  => $customer->id,
+            'vehicle_id'   => $vehicle->id,
             'scheduled_at' => '2026-08-01 10:00:00',
         ]);
 
-        $this->actingAs($employee)
-            ->post(route('appointments.complete', $appointment))
-            ->assertRedirect();
+        $response = $this->actingAs($employee)
+            ->post(route('appointments.complete', $appointment));
 
         $this->assertSame(AppointmentStatus::Completed, $appointment->fresh()->status);
+
+        $response->assertRedirect();
+        $this->assertStringContainsString(
+            '/vehicles/' . $vehicle->id . '/service-records/create',
+            $response->headers->get('Location'),
+        );
+        $this->assertStringContainsString('serviced_at=2026-08-01', $response->headers->get('Location'));
     }
 
     public function test_employee_cannot_complete_already_completed_appointment(): void

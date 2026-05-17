@@ -29,7 +29,8 @@ function CancelButton({ appointmentId }) {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                disabled={processing}
+                className="rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
             >
                 Annuler le RDV
             </button>
@@ -74,7 +75,8 @@ function CompleteButton({ appointmentId }) {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="rounded-md border border-green-300 bg-white px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-50"
+                disabled={processing}
+                className="rounded-md border border-green-300 bg-white px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-50 disabled:opacity-50"
             >
                 Marquer comme terminé
             </button>
@@ -102,7 +104,7 @@ function CompleteButton({ appointmentId }) {
                             onClick={() => post(route('appointments.complete', appointmentId))}
                             className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
                         >
-                            {processing ? 'En cours…' : 'Confirmer'}
+                            {processing ? 'En cours…' : 'Terminer le rendez-vous'}
                         </button>
                     </div>
                 </div>
