@@ -39,6 +39,10 @@ Route::post('products/{product}/adjust-stock', [ProductsController::class, 'adju
 Route::resource('invoices', InvoicesController::class)
     ->middleware(['auth', 'verified']);
 
+Route::post('invoices/{invoice}/convert', [InvoicesController::class, 'convert'])
+    ->middleware(['auth', 'verified'])
+    ->name('invoices.convert');
+
 Route::get('invoices/{invoice}/pdf', [InvoicePdfController::class, 'pdf'])
     ->middleware(['auth', 'verified'])
     ->name('invoices.pdf');

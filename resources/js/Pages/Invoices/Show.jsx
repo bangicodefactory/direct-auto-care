@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 
 function Field({ label, value }) {
     if (!value) return null;
@@ -37,6 +37,7 @@ const STATUS_LABELS = {
 
 export default function Show({ invoice, can }) {
     const typeLabel = invoice.type === 'quote' ? 'Devis' : 'Facture';
+    const { post, processing } = useForm({});
 
     return (
         <AuthenticatedLayout
@@ -75,6 +76,16 @@ export default function Show({ invoice, can }) {
                         >
                             Télécharger PDF
                         </a>
+                        {can.convert && (
+                            <button
+                                type="button"
+                                disabled={processing}
+                                onClick={() => post(route('invoices.convert', invoice.id))}
+                                className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                            >
+                                Convertir en facture
+                            </button>
+                        )}
                         {can.edit && (
                             <Link
                                 href={route('invoices.edit', invoice.id)}
