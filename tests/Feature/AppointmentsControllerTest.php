@@ -424,6 +424,7 @@ class AppointmentsControllerTest extends TestCase
                 ->component('Appointments/Show')
                 ->where('appointment.customer.name', 'Karim Benali')
                 ->where('appointment.scheduled_at', '15/09/2026 10:30')
+                ->where('appointment.ends_at', '15/09/2026 11:30')
                 ->where('appointment.vehicle.plate', '12345-A-1'));
     }
 }
