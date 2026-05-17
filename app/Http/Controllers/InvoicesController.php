@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateInvoiceRequest;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\Vehicle;
 use App\Services\InvoiceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,8 @@ class InvoicesController extends Controller implements HasMiddleware
                               ->orWhere('last_name', 'LIKE', "%{$search}%"));
                 })
             )
+            ->when($request->string('date_from')->trim()->value(), fn ($q, $d) => $q->whereDate('issue_date', '>=', $d))
+            ->when($request->string('date_to')->trim()->value(), fn ($q, $d) => $q->whereDate('issue_date', '<=', $d))
             ->orderByDesc('issue_date')
             ->orderByDesc('id')
             ->paginate(20)
@@ -68,7 +71,7 @@ class InvoicesController extends Controller implements HasMiddleware
 
         return Inertia::render('Invoices/Index', [
             'invoices' => $invoices,
-            'filters'  => $request->only(['type', 'status', 'search']),
+            'filters'  => $request->only(['type', 'status', 'search', 'date_from', 'date_to']),
             'types'    => collect(InvoiceType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
             'statuses' => collect(InvoiceStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
             'can'      => [
@@ -83,9 +86,10 @@ class InvoicesController extends Controller implements HasMiddleware
         $this->authorize('create', Invoice::class);
 
         return Inertia::render('Invoices/Create', [
-            'customers' => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
-            'products'  => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
-            'types'     => collect(InvoiceType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
+            'customers'   => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'products'    => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
+            'vehicles'    => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
+            'types'       => collect(InvoiceType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
             'defaultType' => InvoiceType::tryFrom($request->string('type')->value())?->value ?? InvoiceType::Invoice->value,
         ]);
     }

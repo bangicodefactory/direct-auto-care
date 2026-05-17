@@ -416,6 +416,46 @@ class InvoicesControllerTest extends TestCase
                 ->where('invoices.data.0.number', $target->number));
     }
 
+    public function test_index_filters_by_date_from(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+        Invoice::factory()->create(['issue_date' => '2026-01-10']);
+        $recent = Invoice::factory()->create(['issue_date' => '2026-06-01']);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.index', ['date_from' => '2026-06-01']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('invoices.total', 1)
+                ->where('invoices.data.0.id', $recent->id));
+    }
+
+    public function test_index_filters_by_date_to(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+        $old = Invoice::factory()->create(['issue_date' => '2026-01-10']);
+        Invoice::factory()->create(['issue_date' => '2026-06-01']);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.index', ['date_to' => '2026-01-31']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('invoices.total', 1)
+                ->where('invoices.data.0.id', $old->id));
+    }
+
+    public function test_index_filters_by_date_range(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+        Invoice::factory()->create(['issue_date' => '2026-01-10']);
+        $target = Invoice::factory()->create(['issue_date' => '2026-03-15']);
+        Invoice::factory()->create(['issue_date' => '2026-06-01']);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.index', ['date_from' => '2026-03-01', 'date_to' => '2026-03-31']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('invoices.total', 1)
+                ->where('invoices.data.0.id', $target->id));
+    }
+
     // =========================================================================
     // InsufficientStock — surface as validation error, not 500
     // =========================================================================
