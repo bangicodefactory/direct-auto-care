@@ -52,6 +52,11 @@ class AppointmentsControllerTest extends TestCase
         $this->get(route('appointments.today'))->assertRedirect(route('login'));
     }
 
+    public function test_guest_is_redirected_from_today_page(): void
+    {
+        $this->get(route('appointments.today-page'))->assertRedirect(route('login'));
+    }
+
     // =========================================================================
     // Employee — full access except delete
     // =========================================================================
@@ -224,6 +229,38 @@ class AppointmentsControllerTest extends TestCase
             ->assertRedirect(route('appointments.index'));
 
         $this->assertSoftDeleted('appointments', ['id' => $appointment->id]);
+    }
+
+    // =========================================================================
+    // today page (Inertia)
+    // =========================================================================
+
+    public function test_employee_can_access_today_page(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+
+        $this->actingAs($employee)
+            ->get(route('appointments.today-page'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Appointments/Today')
+                ->has('todayList'));
+    }
+
+    public function test_today_page_shows_only_todays_appointments(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+
+        Appointment::factory()->create(['scheduled_at' => today()->setTime(10, 0)]);
+        Appointment::factory()->create(['scheduled_at' => today()->setTime(14, 0)]);
+        Appointment::factory()->create(['scheduled_at' => today()->addDay()->setTime(10, 0)]);
+
+        $this->actingAs($employee)
+            ->get(route('appointments.today-page'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Appointments/Today')
+                ->has('todayList', 2));
     }
 
     // =========================================================================

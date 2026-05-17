@@ -224,6 +224,39 @@ class AppointmentsController extends Controller implements HasMiddleware
             ->with('success', 'Rendez-vous annulé.');
     }
 
+    public function todayPage(): Response
+    {
+        $this->authorize('viewAny', Appointment::class);
+
+        return Inertia::render('Appointments/Today', [
+            'todayList' => fn () => Appointment::query()
+                ->with('customer:id,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name')
+                ->whereDate('scheduled_at', today())
+                ->orderBy('scheduled_at')
+                ->get()
+                ->map(fn ($apt) => [
+                    'id'           => $apt->id,
+                    'scheduled_at' => $apt->scheduled_at->format('H:i'),
+                    'ends_at'      => $apt->ends_at?->format('H:i'),
+                    'duration'     => $apt->duration,
+                    'status'       => $apt->status->value,
+                    'status_label' => $apt->status->label(),
+                    'notes'        => $apt->notes,
+                    'customer'     => [
+                        'id'   => $apt->customer->id,
+                        'name' => $apt->customer->first_name . ' ' . $apt->customer->last_name,
+                    ],
+                    'vehicle'      => $apt->vehicle ? [
+                        'id'    => $apt->vehicle->id,
+                        'plate' => $apt->vehicle->license_plate,
+                        'make'  => $apt->vehicle->make,
+                        'model' => $apt->vehicle->model,
+                    ] : null,
+                    'services'     => $apt->expectedServices,
+                ]),
+        ]);
+    }
+
     /**
      * Return today's appointments as JSON for calendar rendering.
      * Ordered by scheduled_at ascending.

@@ -52,6 +52,11 @@ Route::get('invoices/{invoice}/print', [InvoicePdfController::class, 'print'])
     ->middleware(['auth', 'verified'])
     ->name('invoices.print');
 
+// Must be registered before the resource route to take precedence over {appointment} binding.
+Route::get('appointments/today', [AppointmentsController::class, 'todayPage'])
+    ->middleware(['auth', 'verified'])
+    ->name('appointments.today-page');
+
 Route::resource('appointments', AppointmentsController::class)
     ->middleware(['auth', 'verified']);
 
