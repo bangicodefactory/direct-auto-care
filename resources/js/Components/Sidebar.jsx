@@ -25,7 +25,10 @@ export default function Sidebar({ role }) {
                     Tableau de bord
                 </SidebarLink>
 
-                <SidebarLink href={route('customers.index')} active={route().current('customers.*')}>
+                <SidebarLink
+                    href={route('customers.index')}
+                    active={route().current('customers.*')}
+                >
                     Clients
                 </SidebarLink>
 
