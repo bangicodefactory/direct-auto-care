@@ -16,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -136,6 +137,7 @@ class AppointmentsController extends Controller implements HasMiddleware
 
     public function edit(Appointment $appointment): Response
     {
+        $this->authorize('update', $appointment);
         $appointment->load('serviceTypes');
 
         return Inertia::render('Appointments/Edit', [
@@ -159,7 +161,7 @@ class AppointmentsController extends Controller implements HasMiddleware
     public function update(UpdateAppointmentRequest $request, Appointment $appointment, AppointmentService $service): RedirectResponse
     {
         $data        = $request->validated();
-        $scheduledAt = \Illuminate\Support\Carbon::parse($data['scheduled_at']);
+        $scheduledAt = Carbon::parse($data['scheduled_at']);
         $vehicleId   = isset($data['vehicle_id']) ? (int) $data['vehicle_id'] : null;
 
         try {
@@ -187,13 +189,14 @@ class AppointmentsController extends Controller implements HasMiddleware
 
     public function destroy(Appointment $appointment): RedirectResponse
     {
+        $this->authorize('delete', $appointment);
         $appointment->delete();
 
         return redirect()->route('appointments.index')
             ->with('success', 'Rendez-vous supprimé.');
     }
 
-    public function cancel(Request $request, Appointment $appointment, AppointmentService $service): RedirectResponse
+    public function cancel(Appointment $appointment, AppointmentService $service): RedirectResponse
     {
         $service->cancel($appointment);
 
