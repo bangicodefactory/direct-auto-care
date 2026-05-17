@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomersController;
+use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
@@ -37,6 +38,14 @@ Route::post('products/{product}/adjust-stock', [ProductsController::class, 'adju
 
 Route::resource('invoices', InvoicesController::class)
     ->middleware(['auth', 'verified']);
+
+Route::get('invoices/{invoice}/pdf', [InvoicePdfController::class, 'pdf'])
+    ->middleware(['auth', 'verified'])
+    ->name('invoices.pdf');
+
+Route::get('invoices/{invoice}/print', [InvoicePdfController::class, 'print'])
+    ->middleware(['auth', 'verified'])
+    ->name('invoices.print');
 
 Route::resource('customers', CustomersController::class)
     ->middleware(['auth', 'verified']);
