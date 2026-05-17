@@ -36,36 +36,52 @@ class AppointmentsController extends Controller implements HasMiddleware
     {
         $this->authorize('viewAny', Appointment::class);
 
-        $appointments = Appointment::query()
-            ->with('customer:id,first_name,last_name', 'vehicle:id,license_plate')
+        $start = $request->string('start')->trim()->value()
+            ? Carbon::parse($request->string('start')->value())->startOfDay()
+            : now()->startOfMonth()->startOfDay();
+        $end = $request->string('end')->trim()->value()
+            ? Carbon::parse($request->string('end')->value())->endOfDay()
+            : now()->endOfMonth()->endOfDay();
+
+        $events = Appointment::query()
+            ->with('customer:id,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name')
             ->when(
                 AppointmentStatus::tryFrom($request->string('status')->value()),
                 fn ($q, $status) => $q->where('status', $status->value)
             )
-            ->when($request->string('date_from')->trim()->value(), fn ($q, $d) => $q->whereDate('scheduled_at', '>=', $d))
-            ->when($request->string('date_to')->trim()->value(), fn ($q, $d) => $q->whereDate('scheduled_at', '<=', $d))
+            ->where('scheduled_at', '>=', $start)
+            ->where('scheduled_at', '<=', $end)
             ->orderBy('scheduled_at')
-            ->paginate(20)
-            ->withQueryString()
-            ->through(fn ($apt) => [
-                'id'           => $apt->id,
-                'scheduled_at' => $apt->scheduled_at->format('d/m/Y H:i'),
-                'duration'     => $apt->duration,
-                'status'       => $apt->status->value,
-                'status_label' => $apt->status->label(),
-                'customer'     => [
+            ->get()
+            ->map(fn ($apt) => [
+                'id'               => $apt->id,
+                'title'            => $apt->customer->first_name . ' ' . $apt->customer->last_name
+                    . ($apt->vehicle ? ' — ' . $apt->vehicle->license_plate : ''),
+                'start'            => $apt->scheduled_at->toIso8601String(),
+                'end'              => $apt->scheduled_at->copy()->addMinutes($apt->duration)->toIso8601String(),
+                'duration'         => $apt->duration,
+                'status'           => $apt->status->value,
+                'status_label'     => $apt->status->label(),
+                'notes'            => $apt->notes,
+                'customer'         => [
                     'id'   => $apt->customer->id,
                     'name' => $apt->customer->first_name . ' ' . $apt->customer->last_name,
                 ],
-                'vehicle'      => $apt->vehicle
-                    ? ['id' => $apt->vehicle->id, 'plate' => $apt->vehicle->license_plate]
-                    : null,
+                'vehicle_id'       => $apt->vehicle_id,
+                'vehicle'          => $apt->vehicle ? [
+                    'id'    => $apt->vehicle->id,
+                    'plate' => $apt->vehicle->license_plate,
+                ] : null,
+                'service_type_ids' => $apt->serviceTypes->pluck('id')->values()->all(),
             ]);
 
         return Inertia::render('Appointments/Index', [
-            'appointments' => $appointments,
-            'filters'      => $request->only(['status', 'date_from', 'date_to']),
+            'events'       => $events,
+            'filters'      => $request->only(['status', 'start', 'end']),
             'statuses'     => collect(AppointmentStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
+            'customers'    => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'vehicles'     => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
+            'serviceTypes' => ServiceType::orderBy('name')->get(['id', 'name']),
             'can'          => [
                 'create' => $request->user()->can('create', Appointment::class),
                 'delete' => $request->user()->hasRole('admin'),
