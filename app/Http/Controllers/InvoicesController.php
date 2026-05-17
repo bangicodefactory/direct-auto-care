@@ -27,6 +27,7 @@ class InvoicesController extends Controller implements HasMiddleware
             new Middleware('can:create,' . Invoice::class, only: ['create', 'store']),
             new Middleware('can:update,invoice', only: ['edit', 'update']),
             new Middleware('can:delete,invoice', only: ['destroy']),
+            new Middleware('can:convert,invoice', only: ['convert']),
         ];
     }
 
@@ -153,8 +154,9 @@ class InvoicesController extends Controller implements HasMiddleware
                 'created_by'  => $invoice->creator?->name,
             ],
             'can' => [
-                'edit'   => $request->user()->can('update', $invoice),
-                'delete' => $request->user()->can('delete', $invoice),
+                'edit'    => $request->user()->can('update', $invoice),
+                'delete'  => $request->user()->can('delete', $invoice),
+                'convert' => $request->user()->can('convert', $invoice),
             ],
         ]);
     }
@@ -186,6 +188,7 @@ class InvoicesController extends Controller implements HasMiddleware
             ],
             'customers' => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
             'products'  => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
+            'vehicles'  => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
         ]);
     }
 
@@ -203,6 +206,36 @@ class InvoicesController extends Controller implements HasMiddleware
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', "{$label} {$invoice->number} {$past} à jour.");
+    }
+
+    public function convert(Request $request, Invoice $invoice, InvoiceService $service): RedirectResponse
+    {
+        $invoice->load('items');
+
+        try {
+            $newInvoice = $service->create([
+                'type'                    => InvoiceType::Invoice->value,
+                'customer_id'             => $invoice->customer_id,
+                'vehicle_id'              => $invoice->vehicle_id,
+                'issue_date'              => now()->toDateString(),
+                'due_date'                => $invoice->due_date?->toDateString(),
+                'discount'                => $invoice->discount,
+                'tva_rate'                => $invoice->tva_rate,
+                'notes'                   => $invoice->notes,
+                'converted_from_quote_id' => $invoice->id,
+                'items'                   => $invoice->items->map(fn ($item) => [
+                    'product_id'    => $item->product_id,
+                    'description'   => $item->description,
+                    'quantity'      => $item->quantity,
+                    'unit_price_ht' => $item->unit_price_ht,
+                ])->all(),
+            ], $request->user());
+        } catch (InsufficientStockException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('invoices.show', $newInvoice)
+            ->with('success', "Facture {$newInvoice->number} créée depuis le devis {$invoice->number}.");
     }
 
     public function destroy(Invoice $invoice): RedirectResponse

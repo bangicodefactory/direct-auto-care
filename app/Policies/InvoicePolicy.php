@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
 use App\Models\Invoice;
 use App\Models\User;
 
@@ -27,6 +28,12 @@ class InvoicePolicy
     {
         return $user->hasAnyRole(['admin', 'employee'])
             && $invoice->status === InvoiceStatus::Draft;
+    }
+
+    public function convert(User $user, Invoice $invoice): bool
+    {
+        return $user->hasAnyRole(['admin', 'employee'])
+            && $invoice->type === InvoiceType::Quote;
     }
 
     public function delete(User $user, Invoice $invoice): bool

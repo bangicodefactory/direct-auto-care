@@ -457,6 +457,114 @@ class InvoicesControllerTest extends TestCase
     }
 
     // =========================================================================
+    // Convert quote → invoice
+    // =========================================================================
+
+    public function test_employee_can_convert_quote_to_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        $response = $this->actingAs($employee)
+            ->post(route('invoices.convert', $quote));
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('invoices', [
+            'type'                    => InvoiceType::Invoice->value,
+            'converted_from_quote_id' => $quote->id,
+            'customer_id'             => $customer->id,
+        ]);
+    }
+
+    public function test_convert_sets_converted_from_quote_id(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.convert', $quote));
+
+        $invoice = Invoice::where('converted_from_quote_id', $quote->id)->first();
+        $this->assertNotNull($invoice);
+        $this->assertSame(InvoiceType::Invoice, $invoice->type);
+    }
+
+    public function test_employee_cannot_convert_an_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create(['type' => InvoiceType::Invoice->value]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.convert', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_guest_cannot_convert_quote(): void
+    {
+        $quote = Invoice::factory()->create(['type' => InvoiceType::Quote->value]);
+
+        $this->post(route('invoices.convert', $quote))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_roleless_user_cannot_convert_quote(): void
+    {
+        $user  = User::factory()->create();
+        $quote = Invoice::factory()->create(['type' => InvoiceType::Quote->value]);
+
+        $this->actingAs($user)
+            ->post(route('invoices.convert', $quote))
+            ->assertForbidden();
+    }
+
+    public function test_convert_copies_all_line_items(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['quantity_on_hand' => 10]);
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'customer_id' => $customer->id,
+        ]);
+        $quote->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Vidange moteur',
+            'quantity'      => 2,
+            'unit_price_ht' => 150,
+            'line_total_ht' => 300,
+        ]);
+        $quote->items()->create([
+            'product_id'    => null,
+            'description'   => "Main d'œuvre",
+            'quantity'      => 1,
+            'unit_price_ht' => 200,
+            'line_total_ht' => 200,
+        ]);
+
+        $this->actingAs($admin)->post(route('invoices.convert', $quote));
+
+        $invoice = Invoice::where('converted_from_quote_id', $quote->id)->first();
+        $this->assertNotNull($invoice);
+        $this->assertCount(2, $invoice->items);
+
+        $first = $invoice->items->firstWhere('description', 'Vidange moteur');
+        $this->assertNotNull($first);
+        $this->assertSame($product->id, $first->product_id);
+        $this->assertEquals(2, (float) $first->quantity);
+        $this->assertEquals(150, (float) $first->unit_price_ht);
+    }
+
+    // =========================================================================
     // InsufficientStock — surface as validation error, not 500
     // =========================================================================
 
