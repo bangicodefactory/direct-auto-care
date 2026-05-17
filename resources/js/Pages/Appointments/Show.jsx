@@ -173,8 +173,8 @@ export default function AppointmentsShow({ appointment, can }) {
                                 </h3>
                             </div>
                             <ul className="divide-y divide-gray-100">
-                                {appointment.services.map((name, i) => (
-                                    <li key={i} className="px-6 py-3 text-sm text-gray-700">
+                                {appointment.services.map((name) => (
+                                    <li key={name} className="px-6 py-3 text-sm text-gray-700">
                                         {name}
                                     </li>
                                 ))}

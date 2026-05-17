@@ -36,12 +36,16 @@ class AppointmentsController extends Controller implements HasMiddleware
     {
         $this->authorize('viewAny', Appointment::class);
 
-        $start = $request->string('start')->trim()->value()
-            ? Carbon::parse($request->string('start')->value())->startOfDay()
-            : now()->startOfMonth()->startOfDay();
-        $end = $request->string('end')->trim()->value()
-            ? Carbon::parse($request->string('end')->value())->endOfDay()
-            : now()->endOfMonth()->endOfDay();
+        $start = rescue(
+            fn () => Carbon::parse($request->string('start')->value())->startOfDay(),
+            fn () => now()->startOfMonth()->startOfDay(),
+            false,
+        );
+        $end = rescue(
+            fn () => Carbon::parse($request->string('end')->value())->endOfDay(),
+            fn () => now()->endOfMonth()->endOfDay(),
+            false,
+        );
 
         $events = Appointment::query()
             ->with('customer:id,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name')
@@ -79,9 +83,9 @@ class AppointmentsController extends Controller implements HasMiddleware
             'events'       => $events,
             'filters'      => $request->only(['status', 'start', 'end']),
             'statuses'     => collect(AppointmentStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
-            'customers'    => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
-            'vehicles'     => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
-            'serviceTypes' => ServiceType::orderBy('name')->get(['id', 'name']),
+            'customers'    => Inertia::defer(fn () => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']), 'modal'),
+            'vehicles'     => Inertia::defer(fn () => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']), 'modal'),
+            'serviceTypes' => Inertia::defer(fn () => ServiceType::orderBy('name')->get(['id', 'name']), 'modal'),
             'can'          => [
                 'create' => $request->user()->can('create', Appointment::class),
                 'delete' => $request->user()->hasRole('admin'),

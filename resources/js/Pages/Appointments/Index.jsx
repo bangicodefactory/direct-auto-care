@@ -7,7 +7,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import ServiceTypeMultiCheck from '@/Components/ServiceTypeMultiCheck';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Deferred, Head, Link, router, useForm } from '@inertiajs/react';
 import { format, getDay, parse, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -55,9 +55,17 @@ function toDate(iso) {
     return new Date(iso);
 }
 
-function formatDatetimeLocal(date) {
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+function buildReschedulePayload(event, start, end, fallbackDuration = false) {
+    const durationMin = Math.round((end - start) / 60000);
+    return {
+        customer_id: event.customer.id,
+        vehicle_id: event.vehicle_id ?? null,
+        scheduled_at: format(start, "yyyy-MM-dd'T'HH:mm"),
+        duration: Math.max(15, Math.min(480, durationMin || (fallbackDuration ? event.duration : durationMin))),
+        status: event.status,
+        notes: event.notes ?? null,
+        service_type_ids: event.service_type_ids ?? [],
+    };
 }
 
 export default function AppointmentsIndex({ events, statuses, customers, vehicles, serviceTypes, can }) {
@@ -102,7 +110,7 @@ export default function AppointmentsIndex({ events, statuses, customers, vehicle
     const onSelectSlot = useCallback(
         ({ start }) => {
             if (!can.create) return;
-            setCreateModal({ scheduled_at: formatDatetimeLocal(start) });
+            setCreateModal({ scheduled_at: format(start, "yyyy-MM-dd'T'HH:mm") });
         },
         [can.create],
     );
@@ -112,37 +120,15 @@ export default function AppointmentsIndex({ events, statuses, customers, vehicle
     }, []);
 
     const onEventDrop = useCallback(({ event, start, end }) => {
-        const durationMin = Math.round((end - start) / 60000);
-        router.put(
-            route('appointments.update', event.id),
-            {
-                customer_id: event.customer.id,
-                vehicle_id: event.vehicle_id ?? null,
-                scheduled_at: format(start, "yyyy-MM-dd'T'HH:mm"),
-                duration: Math.max(15, Math.min(480, durationMin || event.duration)),
-                status: event.status,
-                notes: event.notes ?? null,
-                service_type_ids: event.service_type_ids ?? [],
-            },
-            { preserveState: false },
-        );
+        router.put(route('appointments.update', event.id), buildReschedulePayload(event, start, end, true), {
+            preserveState: false,
+        });
     }, []);
 
     const onEventResize = useCallback(({ event, start, end }) => {
-        const durationMin = Math.round((end - start) / 60000);
-        router.put(
-            route('appointments.update', event.id),
-            {
-                customer_id: event.customer.id,
-                vehicle_id: event.vehicle_id ?? null,
-                scheduled_at: format(start, "yyyy-MM-dd'T'HH:mm"),
-                duration: Math.max(15, Math.min(480, durationMin)),
-                status: event.status,
-                notes: event.notes ?? null,
-                service_type_ids: event.service_type_ids ?? [],
-            },
-            { preserveState: false },
-        );
+        router.put(route('appointments.update', event.id), buildReschedulePayload(event, start, end), {
+            preserveState: false,
+        });
     }, []);
 
     return (
@@ -218,14 +204,16 @@ export default function AppointmentsIndex({ events, statuses, customers, vehicle
             </div>
 
             {can.create && (
-                <CreateModal
-                    show={createModal !== null}
-                    initialData={createModal}
-                    customers={customers}
-                    vehicles={vehicles}
-                    serviceTypes={serviceTypes}
-                    onClose={() => setCreateModal(null)}
-                />
+                <Deferred data={['customers', 'vehicles', 'serviceTypes']} fallback={null}>
+                    <CreateModal
+                        show={createModal !== null}
+                        initialData={createModal}
+                        customers={customers}
+                        vehicles={vehicles}
+                        serviceTypes={serviceTypes}
+                        onClose={() => setCreateModal(null)}
+                    />
+                </Deferred>
             )}
         </AuthenticatedLayout>
     );
