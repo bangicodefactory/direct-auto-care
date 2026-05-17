@@ -39,8 +39,8 @@ class InvoicesController extends Controller implements HasMiddleware
             ->with('customer:id,first_name,last_name')
             ->when($type, fn ($q) => $q->where('type', $type->value))
             ->when(
-                $request->filled('status') && InvoiceStatus::tryFrom($request->status),
-                fn ($q) => $q->where('status', $request->status)
+                InvoiceStatus::tryFrom($request->string('status')->value()),
+                fn ($q, $status) => $q->where('status', $status->value)
             )
             ->when(
                 $request->string('search')->trim()->value(),
@@ -106,7 +106,7 @@ class InvoicesController extends Controller implements HasMiddleware
             ->with('success', "{$label} {$invoice->number} {$past} avec succès.");
     }
 
-    public function show(Invoice $invoice): Response
+    public function show(Request $request, Invoice $invoice): Response
     {
         $this->authorize('view', $invoice);
 
@@ -149,8 +149,8 @@ class InvoicesController extends Controller implements HasMiddleware
                 'created_by'  => $invoice->creator?->name,
             ],
             'can' => [
-                'edit'   => auth()->user()->can('update', $invoice),
-                'delete' => auth()->user()->can('delete', $invoice),
+                'edit'   => $request->user()->can('update', $invoice),
+                'delete' => $request->user()->can('delete', $invoice),
             ],
         ]);
     }
