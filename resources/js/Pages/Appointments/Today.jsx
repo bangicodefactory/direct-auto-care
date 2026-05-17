@@ -83,8 +83,12 @@ export default function AppointmentsToday({ todayList }) {
 }
 
 function AppointmentRow({ apt, now }) {
-    const isActive = apt.status !== 'cancelled' && apt.scheduled_at <= now && apt.ends_at > now;
-    const isPast = apt.ends_at <= now;
+    const isActive =
+        apt.status !== 'cancelled' &&
+        apt.scheduled_at <= now &&
+        apt.ends_at !== null &&
+        apt.ends_at > now;
+    const isPast = apt.ends_at !== null && apt.ends_at <= now;
     const dimmed = apt.status === 'cancelled' || (isPast && apt.status !== 'completed');
 
     return (
