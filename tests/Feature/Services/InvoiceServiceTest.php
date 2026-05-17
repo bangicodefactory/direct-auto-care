@@ -142,30 +142,20 @@ class InvoiceServiceTest extends TestCase
     // Rollback on insufficient stock
     // -------------------------------------------------------------------------
 
-    public function test_create_rolls_back_entirely_on_insufficient_stock(): void
-    {
-        $product = Product::factory()->create(['quantity_on_hand' => 1]);
-
-        $this->expectException(InsufficientStockException::class);
-
-        $this->service->create($this->invoiceData(items: [
-            $this->itemData(product: $product, quantity: 5, unitPrice: 100),
-        ]), $this->user);
-
-        // Assertions after the exception would not run — verified via side-effects.
-    }
-
     public function test_create_rollback_leaves_stock_and_invoice_table_unchanged(): void
     {
         $product = Product::factory()->create(['quantity_on_hand' => 1]);
+        $thrown  = false;
 
         try {
             $this->service->create($this->invoiceData(items: [
                 $this->itemData(product: $product, quantity: 5, unitPrice: 100),
             ]), $this->user);
         } catch (InsufficientStockException) {
+            $thrown = true;
         }
 
+        $this->assertTrue($thrown, 'Expected InsufficientStockException was not thrown.');
         $this->assertSame(1, $product->fresh()->quantity_on_hand);
         $this->assertDatabaseCount('invoices', 0);
         $this->assertDatabaseCount('invoice_items', 0);
@@ -268,6 +258,27 @@ class InvoiceServiceTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // Quote update must not touch stock
+    // -------------------------------------------------------------------------
+
+    public function test_update_quote_does_not_reverse_or_apply_stock(): void
+    {
+        $product = Product::factory()->create(['quantity_on_hand' => 5]);
+        $quote   = $this->service->create($this->invoiceData(
+            overrides: ['type' => 'quote'],
+            items: [$this->itemData(product: $product, quantity: 2, unitPrice: 100)],
+        ), $this->user);
+
+        $this->service->update($quote, $this->invoiceData(
+            overrides: ['type' => 'quote'],
+            items: [$this->itemData(product: $product, quantity: 3, unitPrice: 100)],
+        ), $this->user);
+
+        $this->assertSame(5, $product->fresh()->quantity_on_hand);
+        $this->assertDatabaseCount('stock_movements', 0);
+    }
+
+    // -------------------------------------------------------------------------
     // Rollback on update with insufficient stock
     // -------------------------------------------------------------------------
 
@@ -307,7 +318,7 @@ class InvoiceServiceTest extends TestCase
         return array_merge([
             'type'        => 'invoice',
             'customer_id' => $this->customer->id,
-            'issue_date'  => '2026-05-17',
+            'issue_date'  => now()->toDateString(),
             'discount'    => 0,
             'tva_rate'    => 20,
             'items'       => $items,

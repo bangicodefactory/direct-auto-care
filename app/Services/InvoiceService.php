@@ -8,8 +8,10 @@ use App\Enums\StockMovementType;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class InvoiceService
 {
@@ -24,10 +26,11 @@ class InvoiceService
      *
      * Expected $data keys:
      *   type, customer_id, issue_date, [vehicle_id, due_date, discount, tva_rate,
-     *   notes, converted_from_quote_id, status], items[]
+     *   notes, converted_from_quote_id], items[]
      *
      * Each item: {description, quantity, unit_price_ht, [product_id]}
      * line_total_ht is computed here; callers must not pass it.
+     * New invoices are always created as Draft; status transitions are managed elsewhere.
      */
     public function create(array $data, User $user): Invoice
     {
@@ -47,7 +50,8 @@ class InvoiceService
                 'discount'                => $data['discount'] ?? 0,
                 'tva_rate'                => $data['tva_rate'] ?? 20,
                 'notes'                   => $data['notes'] ?? null,
-                'status'                  => $data['status'] ?? InvoiceStatus::Draft->value,
+                // Always Draft on creation — status transitions are managed separately.
+                'status'                  => InvoiceStatus::Draft->value,
                 'created_by'              => $user->id,
                 'converted_from_quote_id' => $data['converted_from_quote_id'] ?? null,
                 // Placeholders — overwritten by recomputeTotals() below.
@@ -101,6 +105,10 @@ class InvoiceService
 
     private function insertItems(Invoice $invoice, array $items, User $user): void
     {
+        // Pre-load all referenced products in one query to avoid N+1.
+        $productIds = collect($items)->pluck('product_id')->filter()->unique()->values()->all();
+        $products   = Product::findMany($productIds)->keyBy('id');
+
         foreach ($items as $item) {
             $quantity  = (float) $item['quantity'];
             $unitPrice = (float) $item['unit_price_ht'];
@@ -115,8 +123,13 @@ class InvoiceService
 
             // Only invoices (not quotes) decrement stock.
             if (! empty($item['product_id']) && $invoice->type === InvoiceType::Invoice) {
+                $productId = (int) $item['product_id'];
+                $product   = $products->get($productId)
+                    ?? throw new ModelNotFoundException("Product [{$productId}] not found.");
+
+                // stock_movements.quantity is int — fractional item quantities are rounded.
                 $this->stock->recordMovement(
-                    product: Product::findOrFail((int) $item['product_id']),
+                    product: $product,
                     type: StockMovementType::Out,
                     quantity: (int) round($quantity),
                     reason: null,
@@ -136,18 +149,28 @@ class InvoiceService
 
         $invoice->loadMissing('items');
 
+        // Pre-load active products in one query to avoid N+1.
+        $productIds = $invoice->items->pluck('product_id')->filter()->unique()->all();
+        $products   = Product::findMany($productIds)->keyBy('id');
+
         foreach ($invoice->items as $item) {
             if ($item->product_id === null) {
                 continue;
             }
 
-            // Product may have been soft-deleted since the invoice was created.
-            $product = Product::find($item->product_id);
+            $product = $products->get((int) $item->product_id);
 
             if ($product === null) {
+                // Product was soft-deleted after the invoice was created.
+                // The original Out movement can no longer be reversed — flag for admin review.
+                Log::warning('Stock reversal skipped: product soft-deleted after invoicing.', [
+                    'invoice_id' => $invoice->id,
+                    'product_id' => $item->product_id,
+                ]);
                 continue;
             }
 
+            // stock_movements.quantity is int — fractional item quantities are rounded.
             $this->stock->recordMovement(
                 product: $product,
                 type: StockMovementType::In,
