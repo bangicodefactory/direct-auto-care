@@ -103,6 +103,12 @@ class InvoiceLifecycleSmokeTest extends TestCase
         // Converting an invoice with product items decrements stock
         $this->assertEquals(8, $product->fresh()->quantity_on_hand);
 
+        // recomputeTotals() ran correctly: 2×75 + 1×200 = 350 HT, 20% TVA → 70, TTC = 420
+        $invoice->refresh();
+        $this->assertEquals(350, (float) $invoice->subtotal_ht);
+        $this->assertEquals(70, (float) $invoice->tva_amount);
+        $this->assertEquals(420, (float) $invoice->total_ttc);
+
         // Stock movement is linked to the new invoice, not the original quote
         $this->assertDatabaseHas('stock_movements', [
             'invoice_id' => $invoice->id,

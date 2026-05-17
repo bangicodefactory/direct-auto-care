@@ -61,7 +61,8 @@ class InvoiceNumberingConcurrencyTest extends TestCase
         echo \$invoice->number;
         PHP;
 
-        $workerFile = tempnam(sys_get_temp_dir(), 'inv_numbering_worker_') . '.php';
+        // Avoid tempnam() because it creates an extension-less file that leaks on cleanup.
+        $workerFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'inv_numbering_worker_' . uniqid() . '.php';
         file_put_contents($workerFile, $workerScript);
 
         $handles = [];
@@ -69,10 +70,10 @@ class InvoiceNumberingConcurrencyTest extends TestCase
         $phpBin  = PHP_BINARY;
         $workers = 8;
 
-        // Spawn all workers simultaneously
+        // Spawn all workers simultaneously; quote paths to handle spaces in directory names.
         for ($i = 0; $i < $workers; $i++) {
             $handles[$i] = proc_open(
-                "{$phpBin} {$workerFile} {$customer->id} {$user->id}",
+                "\"{$phpBin}\" \"{$workerFile}\" {$customer->id} {$user->id}",
                 [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
                 $pipes[$i]
             );
