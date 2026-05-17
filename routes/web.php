@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppointmentsController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\InvoicesController;
@@ -50,6 +51,17 @@ Route::get('invoices/{invoice}/pdf', [InvoicePdfController::class, 'pdf'])
 Route::get('invoices/{invoice}/print', [InvoicePdfController::class, 'print'])
     ->middleware(['auth', 'verified'])
     ->name('invoices.print');
+
+Route::resource('appointments', AppointmentsController::class)
+    ->middleware(['auth', 'verified']);
+
+Route::post('appointments/{appointment}/cancel', [AppointmentsController::class, 'cancel'])
+    ->middleware(['auth', 'verified'])
+    ->name('appointments.cancel');
+
+Route::get('appointments-today', [AppointmentsController::class, 'today'])
+    ->middleware(['auth', 'verified'])
+    ->name('appointments.today');
 
 Route::resource('customers', CustomersController::class)
     ->middleware(['auth', 'verified']);
