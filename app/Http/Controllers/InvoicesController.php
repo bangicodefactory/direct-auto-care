@@ -88,7 +88,7 @@ class InvoicesController extends Controller implements HasMiddleware
         return Inertia::render('Invoices/Create', [
             'customers'   => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
             'products'    => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
-            'vehicles'    => Vehicle::whereNull('deleted_at')->orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
+            'vehicles'    => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
             'types'       => collect(InvoiceType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
             'defaultType' => InvoiceType::tryFrom($request->string('type')->value())?->value ?? InvoiceType::Invoice->value,
         ]);

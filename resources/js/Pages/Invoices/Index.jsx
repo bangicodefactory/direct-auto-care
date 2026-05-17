@@ -182,6 +182,7 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                                 filters?.date_from ||
                                 filters?.date_to) && (
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         setSearch('');
                                         navigate({});

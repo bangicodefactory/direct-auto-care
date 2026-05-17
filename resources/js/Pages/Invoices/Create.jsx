@@ -7,8 +7,9 @@ import { useMemo } from 'react';
 
 const today = new Date().toISOString().slice(0, 10);
 
+let _nextKey = 0;
 function newItem() {
-    return { product_id: '', description: '', quantity: 1, unit_price_ht: '' };
+    return { _key: _nextKey++, product_id: '', description: '', quantity: 1, unit_price_ht: '' };
 }
 
 export default function Create({ customers, products, vehicles, types, defaultType }) {
@@ -244,7 +245,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                     (parseFloat(item.quantity) || 0) *
                                                     (parseFloat(item.unit_price_ht) || 0);
                                                 return (
-                                                    <tr key={index}>
+                                                    <tr key={item._key}>
                                                         <td className="py-2 pr-3">
                                                             <select
                                                                 className="w-40 rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -458,10 +459,17 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                     <span>TVA ({tvaRate} %)</span>
                                                     <span>{tvaAmount.toFixed(2)} DH</span>
                                                 </div>
-                                                <div className="mt-2 flex justify-between border-t pt-2 text-base font-bold text-gray-900">
+                                                <div
+                                                    className={`mt-2 flex justify-between border-t pt-2 text-base font-bold ${totalTtc < 0 ? 'text-red-600' : 'text-gray-900'}`}
+                                                >
                                                     <span>Total TTC</span>
                                                     <span>{totalTtc.toFixed(2)} DH</span>
                                                 </div>
+                                                {totalTtc < 0 && (
+                                                    <p className="mt-1 text-xs text-red-600">
+                                                        La remise dépasse le sous-total.
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
