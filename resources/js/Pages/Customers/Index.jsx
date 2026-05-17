@@ -85,14 +85,18 @@ export default function Index({ customers, filters, can }) {
                         {/* TOOLBAR */}
                         <div className="flex flex-wrap items-center gap-3 border-b p-4">
                             <TextInput
+                                id="search"
+                                name="search"
                                 className="flex-1"
                                 placeholder="Rechercher par nom, téléphone ou e-mail…"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                             <select
+                                id="sort"
+                                name="sort"
                                 className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                value={filters?.sort ?? 'last_name'}
+                                value={filters?.sort || 'last_name'}
                                 onChange={handleSortSelect}
                             >
                                 <option value="last_name">Trier par : Nom</option>

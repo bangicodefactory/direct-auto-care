@@ -25,6 +25,14 @@ export default function Sidebar({ role }) {
                     Tableau de bord
                 </SidebarLink>
 
+                <SidebarLink href={route('customers.index')} active={route().current('customers.*')}>
+                    Clients
+                </SidebarLink>
+
+                <SidebarLink href={route('invoices.index')} active={route().current('invoices.*')}>
+                    Factures & Devis
+                </SidebarLink>
+
                 <SidebarLink href={route('products.index')} active={route().current('products.*')}>
                     Produits
                 </SidebarLink>
