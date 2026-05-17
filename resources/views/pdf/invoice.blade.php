@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $invoice->number }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: DejaVu Sans, Arial, sans-serif;
+            font-size: 13px;
+            color: #1a1a1a;
+            background: #fff;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 794px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* ── Header ── */
+        .header {
+            width: 100%;
+            margin-bottom: 32px;
+        }
+        .header table { width: 100%; }
+        .header td { vertical-align: top; }
+        .header .logo-cell { width: 50%; }
+        .header .meta-cell { width: 50%; text-align: right; }
+
+        .logo-img { max-height: 64px; max-width: 180px; }
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0d3d93;
+        }
+
+        .doc-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #0d3d93;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .doc-number { font-size: 14px; font-weight: bold; margin-top: 4px; }
+        .doc-meta { font-size: 12px; color: #555; margin-top: 2px; }
+
+        /* ── Divider ── */
+        .divider {
+            border: none;
+            border-top: 2px solid #0d3d93;
+            margin: 20px 0;
+        }
+        .divider-light {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 16px 0;
+        }
+
+        /* ── Party section ── */
+        .parties { width: 100%; margin-bottom: 24px; }
+        .parties td { vertical-align: top; width: 50%; }
+        .party-label {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #0d3d93;
+            margin-bottom: 6px;
+        }
+        .party-name { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
+        .party-detail { font-size: 12px; color: #444; line-height: 1.6; }
+
+        /* ── Line items table ── */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .items-table thead tr {
+            background-color: #0d3d93;
+            color: #fff;
+        }
+        .items-table thead th {
+            padding: 8px 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+        }
+        .items-table tbody tr { border-bottom: 1px solid #e8e8e8; }
+        .items-table tbody tr:last-child { border-bottom: none; }
+        .items-table tbody td { padding: 8px 10px; font-size: 12px; vertical-align: top; }
+        .items-table tbody tr:nth-child(even) td { background-color: #f7f9fc; }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .col-desc { width: 45%; }
+        .col-qty  { width: 10%; }
+        .col-unit { width: 20%; }
+        .col-total{ width: 25%; }
+
+        /* ── Totals ── */
+        .totals-wrap { width: 100%; }
+        .totals-wrap td { vertical-align: top; }
+        .totals-notes { width: 50%; padding-right: 20px; }
+        .totals-table-wrap { width: 50%; }
+
+        .totals-table { width: 100%; border-collapse: collapse; }
+        .totals-table td { padding: 5px 8px; font-size: 12px; }
+        .totals-table td:last-child { text-align: right; }
+        .totals-table .row-total {
+            background-color: #0d3d93;
+            color: #fff;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .totals-table .row-subtotal td { border-top: 1px solid #e0e0e0; }
+
+        /* ── Notes ── */
+        .notes-label {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #0d3d93;
+            margin-bottom: 6px;
+        }
+        .notes-body { font-size: 12px; color: #444; line-height: 1.6; }
+
+        /* ── Footer ── */
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 12px;
+            font-size: 10px;
+            color: #888;
+            text-align: center;
+        }
+
+        /* ── Print mode ── */
+        @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+
+        @if(!empty($printMode))
+        .print-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: #f3f4f6;
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            border-bottom: 1px solid #d1d5db;
+            z-index: 100;
+        }
+        .print-bar button {
+            background: #0d3d93;
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .print-bar button:hover { background: #0b2f70; }
+        @media print { .print-bar { display: none; } body { padding-top: 0; } }
+        body { padding-top: 52px; }
+        @endif
+    </style>
+</head>
+<body>
+
+@if(!empty($printMode))
+<div class="print-bar">
+    <button onclick="window.print()">Imprimer</button>
+    <button onclick="window.close()">Fermer</button>
+</div>
+@endif
+
+<div class="page">
+
+    {{-- ── HEADER ── --}}
+    <div class="header">
+        <table>
+            <tr>
+                <td class="logo-cell">
+                    @if(!empty($company['logo']) && file_exists(public_path($company['logo'])))
+                        <img class="logo-img" src="{{ public_path($company['logo']) }}" alt="Logo">
+                    @else
+                        <div class="company-name">{{ $company['name'] }}</div>
+                    @endif
+                    <div class="party-detail" style="margin-top:8px;">
+                        {{ $company['address'] }}<br>
+                        @if($company['phone']) Tél : {{ $company['phone'] }}<br>@endif
+                        @if($company['email']) {{ $company['email'] }}<br>@endif
+                        @if($company['ice']) ICE : {{ $company['ice'] }}<br>@endif
+                        @if($company['if'])  IF  : {{ $company['if'] }}<br>@endif
+                        @if($company['rc'])  RC  : {{ $company['rc'] }}<br>@endif
+                    </div>
+                </td>
+                <td class="meta-cell">
+                    <div class="doc-title">
+                        {{ $invoice->type->value === 'quote' ? 'Devis' : 'Facture' }}
+                    </div>
+                    <div class="doc-number">N° {{ $invoice->number }}</div>
+                    <div class="doc-meta">
+                        Date : {{ $invoice->issue_date->format('d/m/Y') }}<br>
+                        @if($invoice->due_date)
+                            Échéance : {{ $invoice->due_date->format('d/m/Y') }}<br>
+                        @endif
+                        Statut : {{ $invoice->status->label() }}
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <hr class="divider">
+
+    {{-- ── PARTIES ── --}}
+    <table class="parties">
+        <tr>
+            <td>
+                <div class="party-label">De</div>
+                <div class="party-name">{{ $company['name'] }}</div>
+                <div class="party-detail">{{ $company['address'] }}</div>
+            </td>
+            <td>
+                <div class="party-label">Facturé à</div>
+                @if($invoice->customer)
+                    <div class="party-name">
+                        {{ $invoice->customer->first_name }} {{ $invoice->customer->last_name }}
+                    </div>
+                    <div class="party-detail">
+                        @if($invoice->customer->phone) {{ $invoice->customer->phone }}<br>@endif
+                        @if($invoice->customer->email) {{ $invoice->customer->email }}<br>@endif
+                        @if($invoice->customer->address) {{ $invoice->customer->address }}<br>@endif
+                    </div>
+                @else
+                    <div class="party-detail">—</div>
+                @endif
+                @if($invoice->vehicle)
+                    <div class="party-detail" style="margin-top:6px;">
+                        Véhicule : {{ $invoice->vehicle->plate }}
+                        ({{ $invoice->vehicle->make }} {{ $invoice->vehicle->model }})
+                    </div>
+                @endif
+            </td>
+        </tr>
+    </table>
+
+    {{-- ── LINE ITEMS ── --}}
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th class="col-desc text-left">Description</th>
+                <th class="col-qty text-center">Qté</th>
+                <th class="col-unit text-right">P.U. HT (DH)</th>
+                <th class="col-total text-right">Total HT (DH)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($invoice->items as $item)
+            <tr>
+                <td class="col-desc">{{ $item->description }}</td>
+                <td class="col-qty text-center">{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
+                <td class="col-unit text-right">{{ number_format((float)$item->unit_price_ht, 2, ',', ' ') }}</td>
+                <td class="col-total text-right">{{ number_format((float)$item->line_total_ht, 2, ',', ' ') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    {{-- ── TOTALS + NOTES ── --}}
+    <table class="totals-wrap">
+        <tr>
+            <td class="totals-notes">
+                @if($invoice->notes)
+                    <div class="notes-label">Notes</div>
+                    <div class="notes-body">{{ $invoice->notes }}</div>
+                @endif
+            </td>
+            <td class="totals-table-wrap">
+                <table class="totals-table">
+                    <tr>
+                        <td>Sous-total HT</td>
+                        <td>{{ number_format((float)$invoice->subtotal_ht, 2, ',', ' ') }} DH</td>
+                    </tr>
+                    @if((float)$invoice->discount > 0)
+                    <tr>
+                        <td>Remise</td>
+                        <td>− {{ number_format((float)$invoice->discount, 2, ',', ' ') }} DH</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td>TVA ({{ number_format((float)$invoice->tva_rate, 0) }} %)</td>
+                        <td>{{ number_format((float)$invoice->tva_amount, 2, ',', ' ') }} DH</td>
+                    </tr>
+                    <tr class="row-total">
+                        <td><strong>Total TTC</strong></td>
+                        <td><strong>{{ number_format((float)$invoice->total_ttc, 2, ',', ' ') }} DH</strong></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ── FOOTER ── --}}
+    <div class="footer">
+        {{ $company['name'] }}
+        @if($company['ice']) — ICE : {{ $company['ice'] }}@endif
+        @if($company['if'])  — IF : {{ $company['if'] }}@endif
+        @if($company['rc'])  — RC : {{ $company['rc'] }}@endif
+    </div>
+
+</div>
+
+</body>
+</html>
