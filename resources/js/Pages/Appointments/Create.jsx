@@ -88,15 +88,23 @@ export default function AppointmentsCreate({ customers, vehicles, serviceTypes }
 
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
-                                        <InputLabel htmlFor="scheduled_at" value="Date et heure *" />
+                                        <InputLabel
+                                            htmlFor="scheduled_at"
+                                            value="Date et heure *"
+                                        />
                                         <TextInput
                                             id="scheduled_at"
                                             type="datetime-local"
                                             value={data.scheduled_at}
-                                            onChange={(e) => setData('scheduled_at', e.target.value)}
+                                            onChange={(e) =>
+                                                setData('scheduled_at', e.target.value)
+                                            }
                                             className="mt-1 block w-full"
                                         />
-                                        <InputError message={errors.scheduled_at} className="mt-1" />
+                                        <InputError
+                                            message={errors.scheduled_at}
+                                            className="mt-1"
+                                        />
                                     </div>
 
                                     <div>

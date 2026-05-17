@@ -61,14 +61,24 @@ function buildReschedulePayload(event, start, end, fallbackDuration = false) {
         customer_id: event.customer.id,
         vehicle_id: event.vehicle_id ?? null,
         scheduled_at: format(start, "yyyy-MM-dd'T'HH:mm"),
-        duration: Math.max(15, Math.min(480, durationMin || (fallbackDuration ? event.duration : durationMin))),
+        duration: Math.max(
+            15,
+            Math.min(480, durationMin || (fallbackDuration ? event.duration : durationMin)),
+        ),
         status: event.status,
         notes: event.notes ?? null,
         service_type_ids: event.service_type_ids ?? [],
     };
 }
 
-export default function AppointmentsIndex({ events, statuses, customers, vehicles, serviceTypes, can }) {
+export default function AppointmentsIndex({
+    events,
+    statuses,
+    customers,
+    vehicles,
+    serviceTypes,
+    can,
+}) {
     const [view, setView] = useState(Views.MONTH);
     const [date, setDate] = useState(new Date());
     const [createModal, setCreateModal] = useState(null);
@@ -120,15 +130,23 @@ export default function AppointmentsIndex({ events, statuses, customers, vehicle
     }, []);
 
     const onEventDrop = useCallback(({ event, start, end }) => {
-        router.put(route('appointments.update', event.id), buildReschedulePayload(event, start, end, true), {
-            preserveState: false,
-        });
+        router.put(
+            route('appointments.update', event.id),
+            buildReschedulePayload(event, start, end, true),
+            {
+                preserveState: false,
+            },
+        );
     }, []);
 
     const onEventResize = useCallback(({ event, start, end }) => {
-        router.put(route('appointments.update', event.id), buildReschedulePayload(event, start, end), {
-            preserveState: false,
-        });
+        router.put(
+            route('appointments.update', event.id),
+            buildReschedulePayload(event, start, end),
+            {
+                preserveState: false,
+            },
+        );
     }, []);
 
     return (

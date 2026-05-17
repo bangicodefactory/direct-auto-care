@@ -8,7 +8,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
 
-export default function AppointmentsEdit({ appointment, customers, vehicles, serviceTypes, statuses }) {
+export default function AppointmentsEdit({
+    appointment,
+    customers,
+    vehicles,
+    serviceTypes,
+    statuses,
+}) {
     const { data, setData, put, processing, errors } = useForm({
         customer_id: appointment.customer_id ?? '',
         vehicle_id: appointment.vehicle_id ?? '',
@@ -89,15 +95,23 @@ export default function AppointmentsEdit({ appointment, customers, vehicles, ser
 
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
-                                        <InputLabel htmlFor="scheduled_at" value="Date et heure *" />
+                                        <InputLabel
+                                            htmlFor="scheduled_at"
+                                            value="Date et heure *"
+                                        />
                                         <TextInput
                                             id="scheduled_at"
                                             type="datetime-local"
                                             value={data.scheduled_at}
-                                            onChange={(e) => setData('scheduled_at', e.target.value)}
+                                            onChange={(e) =>
+                                                setData('scheduled_at', e.target.value)
+                                            }
                                             className="mt-1 block w-full"
                                         />
-                                        <InputError message={errors.scheduled_at} className="mt-1" />
+                                        <InputError
+                                            message={errors.scheduled_at}
+                                            className="mt-1"
+                                        />
                                     </div>
 
                                     <div>
@@ -162,7 +176,9 @@ export default function AppointmentsEdit({ appointment, customers, vehicles, ser
                                     Annuler
                                 </Link>
                                 <PrimaryButton disabled={processing}>
-                                    {processing ? 'Enregistrement…' : 'Enregistrer les modifications'}
+                                    {processing
+                                        ? 'Enregistrement…'
+                                        : 'Enregistrer les modifications'}
                                 </PrimaryButton>
                             </div>
                         </form>
