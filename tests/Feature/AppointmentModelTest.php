@@ -130,4 +130,68 @@ class AppointmentModelTest extends TestCase
         $this->assertNull(Appointment::find($appointment->id));
         $this->assertNotNull(Appointment::withTrashed()->find($appointment->id));
     }
+
+    // =========================================================================
+    // IST-59 — ends_at accessor + expectedServices
+    // =========================================================================
+
+    public function test_ends_at_is_scheduled_at_plus_duration(): void
+    {
+        $appointment = Appointment::factory()->create([
+            'scheduled_at' => '2026-06-15 09:00:00',
+            'duration'     => 90,
+        ]);
+
+        $endsAt = $appointment->fresh()->ends_at;
+
+        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $endsAt);
+        $this->assertEquals('2026-06-15 10:30:00', $endsAt->toDateTimeString());
+    }
+
+    public function test_ends_at_is_included_in_array_serialization(): void
+    {
+        $appointment = Appointment::factory()->create([
+            'scheduled_at' => '2026-06-15 09:00:00',
+            'duration'     => 60,
+        ]);
+
+        $array = $appointment->fresh()->toArray();
+
+        $this->assertArrayHasKey('ends_at', $array);
+    }
+
+    public function test_ends_at_returns_null_when_scheduled_at_is_null(): void
+    {
+        // Force null scheduled_at without the cast rejecting it.
+        $appointment        = Appointment::factory()->make(['scheduled_at' => null]);
+        $appointment->exists = false;
+
+        $this->assertNull($appointment->ends_at);
+    }
+
+    public function test_expected_services_returns_service_type_names_as_array(): void
+    {
+        $appointment  = Appointment::factory()->create();
+        $serviceType1 = ServiceType::create(['name' => 'Climatisation']);
+        $serviceType2 = ServiceType::create(['name' => 'Pneus']);
+
+        $appointment->serviceTypes()->attach([$serviceType1->id, $serviceType2->id]);
+
+        $names = $appointment->load('serviceTypes')->expectedServices;
+
+        $this->assertIsArray($names);
+        $this->assertCount(2, $names);
+        $this->assertContains('Climatisation', $names);
+        $this->assertContains('Pneus', $names);
+    }
+
+    public function test_expected_services_is_empty_array_when_no_service_types_attached(): void
+    {
+        $appointment = Appointment::factory()->create();
+
+        $names = $appointment->load('serviceTypes')->expectedServices;
+
+        $this->assertIsArray($names);
+        $this->assertEmpty($names);
+    }
 }
