@@ -527,6 +527,43 @@ class InvoicesControllerTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_convert_copies_all_line_items(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['quantity_on_hand' => 10]);
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'customer_id' => $customer->id,
+        ]);
+        $quote->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Vidange moteur',
+            'quantity'      => 2,
+            'unit_price_ht' => 150,
+            'line_total_ht' => 300,
+        ]);
+        $quote->items()->create([
+            'product_id'    => null,
+            'description'   => "Main d'œuvre",
+            'quantity'      => 1,
+            'unit_price_ht' => 200,
+            'line_total_ht' => 200,
+        ]);
+
+        $this->actingAs($admin)->post(route('invoices.convert', $quote));
+
+        $invoice = Invoice::where('converted_from_quote_id', $quote->id)->first();
+        $this->assertNotNull($invoice);
+        $this->assertCount(2, $invoice->items);
+
+        $first = $invoice->items->firstWhere('description', 'Vidange moteur');
+        $this->assertNotNull($first);
+        $this->assertSame($product->id, $first->product_id);
+        $this->assertEquals(2, (float) $first->quantity);
+        $this->assertEquals(150, (float) $first->unit_price_ht);
+    }
+
     // =========================================================================
     // InsufficientStock — surface as validation error, not 500
     // =========================================================================

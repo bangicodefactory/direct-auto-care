@@ -114,9 +114,14 @@ export default function AuthenticatedLayout({ header, children }) {
 
                 {/* Page content */}
                 <div className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col md:ml-64">
-                    {flash && (
+                    {flash?.success && (
                         <div className="border-l-4 border-green-400 bg-green-50 p-4">
-                            <p className="text-sm text-green-700">{flash}</p>
+                            <p className="text-sm text-green-700">{flash.success}</p>
+                        </div>
+                    )}
+                    {flash?.error && (
+                        <div className="border-l-4 border-red-400 bg-red-50 p-4">
+                            <p className="text-sm text-red-700">{flash.error}</p>
                         </div>
                     )}
 

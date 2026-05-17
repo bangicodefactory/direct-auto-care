@@ -231,7 +231,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 ])->all(),
             ], $request->user());
         } catch (InsufficientStockException $e) {
-            return back()->withErrors(['items' => $e->getMessage()]);
+            return back()->with('error', $e->getMessage());
         }
 
         return redirect()->route('invoices.show', $newInvoice)
