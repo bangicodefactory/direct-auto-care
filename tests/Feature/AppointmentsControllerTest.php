@@ -369,4 +369,62 @@ class AppointmentsControllerTest extends TestCase
             ->assertJsonFragment(['id' => $appointment->id])
             ->assertJsonStructure([['id', 'start', 'end', 'duration', 'status', 'status_label', 'customer', 'vehicle', 'services']]);
     }
+
+    // =========================================================================
+    // IST-65 — Smoke: overlap French error + show confirmation content
+    // =========================================================================
+
+    public function test_overlap_error_message_is_in_french(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        $vehicle  = Vehicle::factory()->create(['customer_id' => $customer->id]);
+
+        Appointment::factory()->create([
+            'vehicle_id'   => $vehicle->id,
+            'scheduled_at' => '2026-09-01 09:00:00',
+            'duration'     => 60,
+            'status'       => AppointmentStatus::Confirmed,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('appointments.store'), [
+                'customer_id'  => $customer->id,
+                'vehicle_id'   => $vehicle->id,
+                'scheduled_at' => '2026-09-01 09:30:00',
+                'duration'     => 60,
+            ])
+            ->assertSessionHasErrors([
+                'scheduled_at' => 'Ce véhicule a déjà un rendez-vous sur ce créneau.',
+            ]);
+    }
+
+    public function test_show_page_displays_customer_name_scheduled_at_and_vehicle_plate(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create([
+            'first_name' => 'Karim',
+            'last_name'  => 'Benali',
+        ]);
+        $vehicle     = Vehicle::factory()->create([
+            'customer_id'   => $customer->id,
+            'license_plate' => '12345-A-1',
+        ]);
+        $appointment = Appointment::factory()->confirmed()->create([
+            'customer_id'  => $customer->id,
+            'vehicle_id'   => $vehicle->id,
+            'scheduled_at' => '2026-09-15 10:30:00',
+            'duration'     => 60,
+        ]);
+
+        $this->actingAs($employee)
+            ->get(route('appointments.show', $appointment))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Appointments/Show')
+                ->where('appointment.customer.name', 'Karim Benali')
+                ->where('appointment.scheduled_at', '15/09/2026 10:30')
+                ->where('appointment.ends_at', '15/09/2026 11:30')
+                ->where('appointment.vehicle.plate', '12345-A-1'));
+    }
 }
