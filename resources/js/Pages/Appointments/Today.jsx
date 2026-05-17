@@ -1,0 +1,129 @@
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, Link, router } from '@inertiajs/react';
+import { useEffect } from 'react';
+
+const REFRESH_MS = 5 * 60 * 1000;
+
+const STATUS_STYLES = {
+    pending: 'bg-yellow-100 text-yellow-800',
+    confirmed: 'bg-blue-100 text-blue-800',
+    completed: 'bg-green-100 text-green-800',
+    cancelled: 'bg-red-100 text-red-800',
+};
+
+function todayLabel() {
+    return new Date().toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    });
+}
+
+function currentHHMM() {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
+
+export default function AppointmentsToday({ todayList }) {
+    useEffect(() => {
+        function refresh() {
+            router.reload({ only: ['todayList'] });
+        }
+
+        const timer = window.setInterval(refresh, REFRESH_MS);
+        window.addEventListener('focus', refresh);
+
+        return () => {
+            window.clearInterval(timer);
+            window.removeEventListener('focus', refresh);
+        };
+    }, []);
+
+    const now = currentHHMM();
+
+    return (
+        <AuthenticatedLayout
+            header={
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                            Rendez-vous du jour
+                        </h2>
+                        <p className="mt-0.5 text-sm capitalize text-gray-500">{todayLabel()}</p>
+                    </div>
+                    <Link
+                        href={route('appointments.index')}
+                        className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                        ← Calendrier
+                    </Link>
+                </div>
+            }
+        >
+            <Head title="Rendez-vous du jour" />
+
+            <div className="py-8">
+                <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+                    {todayList.length === 0 ? (
+                        <div className="rounded-lg bg-white p-12 text-center shadow-sm">
+                            <p className="text-gray-500">Aucun rendez-vous aujourd'hui.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {todayList.map((apt) => (
+                                <AppointmentRow key={apt.id} apt={apt} now={now} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}
+
+function AppointmentRow({ apt, now }) {
+    const isActive =
+        apt.status !== 'cancelled' &&
+        apt.scheduled_at <= now &&
+        apt.ends_at !== null &&
+        apt.ends_at > now;
+    const isPast = apt.ends_at !== null && apt.ends_at <= now;
+    const dimmed = apt.status === 'cancelled' || (isPast && apt.status !== 'completed');
+
+    return (
+        <Link
+            href={route('appointments.show', apt.id)}
+            className={`flex items-start gap-4 rounded-lg bg-white p-4 shadow-sm transition hover:shadow-md ${dimmed ? 'opacity-60' : ''}`}
+        >
+            <div className="w-14 flex-shrink-0 text-center">
+                <p className="text-sm font-semibold text-gray-900">{apt.scheduled_at}</p>
+                {apt.ends_at && <p className="text-xs text-gray-400">{apt.ends_at}</p>}
+            </div>
+
+            <div
+                className={`mt-1 h-10 w-1 flex-shrink-0 rounded-full ${isActive ? 'bg-primary' : 'bg-gray-200'}`}
+            />
+
+            <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-medium text-gray-900">{apt.customer.name}</span>
+                    {apt.vehicle && (
+                        <span className="text-xs text-gray-500">{apt.vehicle.plate}</span>
+                    )}
+                    <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[apt.status] ?? 'bg-gray-100 text-gray-700'}`}
+                    >
+                        {apt.status_label}
+                    </span>
+                </div>
+                {apt.services.length > 0 && (
+                    <p className="mt-0.5 text-xs text-gray-500">{apt.services.join(' · ')}</p>
+                )}
+                {apt.notes && <p className="mt-0.5 truncate text-xs text-gray-400">{apt.notes}</p>}
+            </div>
+
+            <div className="flex-shrink-0 text-xs text-gray-400">{apt.duration} min</div>
+        </Link>
+    );
+}

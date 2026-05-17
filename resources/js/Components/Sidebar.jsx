@@ -40,6 +40,23 @@ export default function Sidebar({ role }) {
                     Produits
                 </SidebarLink>
 
+                <SidebarLink
+                    href={route('appointments.index')}
+                    active={
+                        !route().current('appointments.today-page') &&
+                        route().current('appointments.*')
+                    }
+                >
+                    Rendez-vous
+                </SidebarLink>
+
+                <SidebarLink
+                    href={route('appointments.today-page')}
+                    active={route().current('appointments.today-page')}
+                >
+                    Aujourd'hui
+                </SidebarLink>
+
                 {isAdmin && (
                     <SidebarLink href={route('users.index')} active={route().current('users.*')}>
                         Utilisateurs
