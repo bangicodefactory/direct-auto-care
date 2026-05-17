@@ -5,8 +5,8 @@ function Field({ label, value }) {
     if (!value) return null;
     return (
         <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</dt>
-            <dd className="mt-1 text-sm text-gray-900">{value}</dd>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
+            <p className="mt-1 text-sm text-gray-900">{value}</p>
         </div>
     );
 }
@@ -53,6 +53,12 @@ export default function Show({ invoice, can }) {
                         </Badge>
                     </div>
                     <div className="flex items-center gap-2">
+                        <Link
+                            href={route('invoices.index')}
+                            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                            ← Retour
+                        </Link>
                         <a
                             href={route('invoices.print', invoice.id)}
                             target="_blank"

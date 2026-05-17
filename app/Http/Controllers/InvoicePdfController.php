@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class InvoicePdfController extends Controller
 {
-    public function pdf(Request $request, Invoice $invoice): Response
+    public function pdf(Invoice $invoice): Response
     {
         $this->authorize('view', $invoice);
 
@@ -24,7 +23,7 @@ class InvoicePdfController extends Controller
         return $pdf->stream($invoice->number . '.pdf');
     }
 
-    public function print(Request $request, Invoice $invoice): View
+    public function print(Invoice $invoice): View
     {
         $this->authorize('view', $invoice);
 

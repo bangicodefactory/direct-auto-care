@@ -54,12 +54,6 @@
             border-top: 2px solid #0d3d93;
             margin: 20px 0;
         }
-        .divider-light {
-            border: none;
-            border-top: 1px solid #e0e0e0;
-            margin: 16px 0;
-        }
-
         /* ── Party section ── */
         .parties { width: 100%; margin-bottom: 24px; }
         .parties td { vertical-align: top; width: 50%; }
@@ -190,7 +184,11 @@
             <tr>
                 <td class="logo-cell">
                     @if(!empty($company['logo']) && file_exists(public_path($company['logo'])))
-                        <img class="logo-img" src="{{ public_path($company['logo']) }}" alt="Logo">
+                        @if(!empty($printMode))
+                            <img class="logo-img" src="{{ asset($company['logo']) }}" alt="Logo">
+                        @else
+                            <img class="logo-img" src="{{ public_path($company['logo']) }}" alt="Logo">
+                        @endif
                     @else
                         <div class="company-name">{{ $company['name'] }}</div>
                     @endif
