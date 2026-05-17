@@ -64,6 +64,10 @@ Route::post('appointments/{appointment}/cancel', [AppointmentsController::class,
     ->middleware(['auth', 'verified'])
     ->name('appointments.cancel');
 
+Route::post('appointments/{appointment}/complete', [AppointmentsController::class, 'complete'])
+    ->middleware(['auth', 'verified'])
+    ->name('appointments.complete');
+
 Route::get('appointments-today', [AppointmentsController::class, 'today'])
     ->middleware(['auth', 'verified'])
     ->name('appointments.today');

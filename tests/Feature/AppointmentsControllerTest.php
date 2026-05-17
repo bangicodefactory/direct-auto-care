@@ -264,6 +264,73 @@ class AppointmentsControllerTest extends TestCase
     }
 
     // =========================================================================
+    // complete action
+    // =========================================================================
+
+    public function test_employee_can_complete_confirmed_appointment_without_vehicle(): void
+    {
+        $employee    = User::factory()->create()->assignRole('employee');
+        $appointment = Appointment::factory()->confirmed()->create(['vehicle_id' => null]);
+
+        $this->actingAs($employee)
+            ->post(route('appointments.complete', $appointment))
+            ->assertRedirect(route('appointments.show', $appointment));
+
+        $this->assertSame(AppointmentStatus::Completed, $appointment->fresh()->status);
+    }
+
+    public function test_employee_can_complete_appointment_with_vehicle_and_is_redirected_to_service_record_create(): void
+    {
+        $employee    = User::factory()->create()->assignRole('employee');
+        $customer    = Customer::factory()->create();
+        $vehicle     = Vehicle::factory()->create(['customer_id' => $customer->id]);
+        $appointment = Appointment::factory()->confirmed()->create([
+            'customer_id' => $customer->id,
+            'vehicle_id'  => $vehicle->id,
+            'scheduled_at' => '2026-08-01 10:00:00',
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('appointments.complete', $appointment))
+            ->assertRedirect();
+
+        $this->assertSame(AppointmentStatus::Completed, $appointment->fresh()->status);
+    }
+
+    public function test_employee_cannot_complete_already_completed_appointment(): void
+    {
+        $employee    = User::factory()->create()->assignRole('employee');
+        $appointment = Appointment::factory()->create(['status' => AppointmentStatus::Completed]);
+
+        $this->actingAs($employee)
+            ->post(route('appointments.complete', $appointment))
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_complete_cancelled_appointment(): void
+    {
+        $employee    = User::factory()->create()->assignRole('employee');
+        $appointment = Appointment::factory()->create(['status' => AppointmentStatus::Cancelled]);
+
+        $this->actingAs($employee)
+            ->post(route('appointments.complete', $appointment))
+            ->assertForbidden();
+    }
+
+    public function test_show_includes_can_complete_flag(): void
+    {
+        $employee    = User::factory()->create()->assignRole('employee');
+        $appointment = Appointment::factory()->confirmed()->create();
+
+        $this->actingAs($employee)
+            ->get(route('appointments.show', $appointment))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Appointments/Show')
+                ->where('can.complete', true));
+    }
+
+    // =========================================================================
     // today endpoint
     // =========================================================================
 

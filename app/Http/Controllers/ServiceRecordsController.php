@@ -8,6 +8,7 @@ use App\Models\ServiceRecord;
 use App\Models\ServiceType;
 use App\Models\Vehicle;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
@@ -26,11 +27,20 @@ class ServiceRecordsController extends Controller implements HasMiddleware
         ];
     }
 
-    public function create(Vehicle $vehicle): Response
+    public function create(Vehicle $vehicle, Request $request): Response
     {
+        $prefill = null;
+        if ($request->has('serviced_at')) {
+            $prefill = [
+                'serviced_at'      => $request->string('serviced_at')->value(),
+                'service_type_ids' => array_map('intval', $request->array('service_type_ids', [])),
+            ];
+        }
+
         return Inertia::render('ServiceRecords/Create', [
             'vehicle'      => $vehicle->only('id', 'make', 'model', 'license_plate', 'mileage'),
             'serviceTypes' => ServiceType::orderBy('name')->get(['id', 'name']),
+            'prefill'      => $prefill,
         ]);
     }
 

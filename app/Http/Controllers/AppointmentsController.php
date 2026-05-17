@@ -28,6 +28,7 @@ class AppointmentsController extends Controller implements HasMiddleware
             new Middleware('can:create,' . Appointment::class, only: ['create', 'store']),
             new Middleware('can:update,appointment', only: ['edit', 'update']),
             new Middleware('can:cancel,appointment', only: ['cancel']),
+            new Middleware('can:complete,appointment', only: ['complete']),
             new Middleware('can:delete,appointment', only: ['destroy']),
         ];
     }
@@ -148,9 +149,10 @@ class AppointmentsController extends Controller implements HasMiddleware
                 'created_by'   => $appointment->createdBy?->name,
             ],
             'can' => [
-                'edit'   => $request->user()->can('update', $appointment),
-                'cancel' => $request->user()->can('cancel', $appointment),
-                'delete' => $request->user()->can('delete', $appointment),
+                'edit'     => $request->user()->can('update', $appointment),
+                'cancel'   => $request->user()->can('cancel', $appointment),
+                'complete' => $request->user()->can('complete', $appointment),
+                'delete'   => $request->user()->can('delete', $appointment),
             ],
         ]);
     }
@@ -222,6 +224,25 @@ class AppointmentsController extends Controller implements HasMiddleware
 
         return redirect()->route('appointments.show', $appointment)
             ->with('success', 'Rendez-vous annulé.');
+    }
+
+    public function complete(Appointment $appointment): RedirectResponse
+    {
+        $appointment->load('serviceTypes');
+        $appointment->update(['status' => AppointmentStatus::Completed]);
+
+        if ($appointment->vehicle_id) {
+            $query = http_build_query([
+                'serviced_at'      => $appointment->scheduled_at->format('Y-m-d'),
+                'service_type_ids' => $appointment->serviceTypes->pluck('id')->all(),
+            ]);
+
+            return redirect('/vehicles/' . $appointment->vehicle_id . '/service-records/create?' . $query)
+                ->with('success', 'Rendez-vous marqué comme terminé.');
+        }
+
+        return redirect()->route('appointments.show', $appointment)
+            ->with('success', 'Rendez-vous marqué comme terminé.');
     }
 
     public function todayPage(): Response
