@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomersController;
+use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceRecordsController;
@@ -33,6 +34,9 @@ Route::resource('products', ProductsController::class)
 Route::post('products/{product}/adjust-stock', [ProductsController::class, 'adjustStock'])
     ->middleware(['auth', 'verified'])
     ->name('products.adjust-stock');
+
+Route::resource('invoices', InvoicesController::class)
+    ->middleware(['auth', 'verified']);
 
 Route::resource('customers', CustomersController::class)
     ->middleware(['auth', 'verified']);
