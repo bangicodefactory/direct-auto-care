@@ -32,6 +32,12 @@ class AppointmentPolicy
         return $user->hasAnyRole(['admin', 'employee']);
     }
 
+    public function complete(User $user, Appointment $appointment): bool
+    {
+        return $user->hasAnyRole(['admin', 'employee'])
+            && ! in_array($appointment->status->value, ['completed', 'cancelled']);
+    }
+
     public function delete(User $user, Appointment $appointment): bool
     {
         return $user->hasRole('admin');

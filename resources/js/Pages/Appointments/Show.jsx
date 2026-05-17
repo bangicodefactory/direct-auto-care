@@ -1,5 +1,7 @@
+import Modal from '@/Components/Modal';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 
 const STATUS_STYLES = {
     pending: 'bg-yellow-100 text-yellow-800',
@@ -20,21 +22,94 @@ function Field({ label, value }) {
 
 function CancelButton({ appointmentId }) {
     const { post, processing } = useForm({});
-
-    function handleCancel() {
-        if (!window.confirm("Confirmer l'annulation de ce rendez-vous ?")) return;
-        post(route('appointments.cancel', appointmentId));
-    }
+    const [open, setOpen] = useState(false);
 
     return (
-        <button
-            type="button"
-            onClick={handleCancel}
-            disabled={processing}
-            className="rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-        >
-            Annuler le RDV
-        </button>
+        <>
+            <button
+                type="button"
+                onClick={() => setOpen(true)}
+                disabled={processing}
+                className="rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+            >
+                Annuler le RDV
+            </button>
+
+            <Modal show={open} maxWidth="sm" onClose={() => setOpen(false)}>
+                <div className="p-6">
+                    <h3 className="text-base font-semibold text-gray-900">
+                        Confirmer l'annulation
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Cette action est irréversible. Le rendez-vous sera marqué comme annulé.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setOpen(false)}
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                            Retour
+                        </button>
+                        <button
+                            type="button"
+                            disabled={processing}
+                            onClick={() => post(route('appointments.cancel', appointmentId))}
+                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                        >
+                            {processing ? 'Annulation…' : "Confirmer l'annulation"}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+        </>
+    );
+}
+
+function CompleteButton({ appointmentId }) {
+    const { post, processing } = useForm({});
+    const [open, setOpen] = useState(false);
+
+    return (
+        <>
+            <button
+                type="button"
+                onClick={() => setOpen(true)}
+                disabled={processing}
+                className="rounded-md border border-green-300 bg-white px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-50 disabled:opacity-50"
+            >
+                Marquer comme terminé
+            </button>
+
+            <Modal show={open} maxWidth="sm" onClose={() => setOpen(false)}>
+                <div className="p-6">
+                    <h3 className="text-base font-semibold text-gray-900">
+                        Terminer le rendez-vous
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Le rendez-vous sera marqué comme terminé et vous serez redirigé vers la
+                        création d'une fiche de service.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setOpen(false)}
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                            Retour
+                        </button>
+                        <button
+                            type="button"
+                            disabled={processing}
+                            onClick={() => post(route('appointments.complete', appointmentId))}
+                            className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                        >
+                            {processing ? 'En cours…' : 'Terminer le rendez-vous'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+        </>
     );
 }
 
@@ -88,6 +163,7 @@ export default function AppointmentsShow({ appointment, can }) {
                                 Modifier
                             </Link>
                         )}
+                        {can.complete && <CompleteButton appointmentId={appointment.id} />}
                         {can.cancel && appointment.status !== 'cancelled' && (
                             <CancelButton appointmentId={appointment.id} />
                         )}

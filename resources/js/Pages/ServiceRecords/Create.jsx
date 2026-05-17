@@ -6,12 +6,12 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function Create({ vehicle, serviceTypes }) {
+export default function Create({ vehicle, serviceTypes, prefill }) {
     const today = new Date().toISOString().split('T')[0];
 
     const { data, setData, post, processing, errors } = useForm({
-        service_type_ids: [],
-        serviced_at: today,
+        service_type_ids: prefill?.service_type_ids ?? [],
+        serviced_at: prefill?.serviced_at ?? today,
         mileage_at_service: '',
         notes: '',
     });
