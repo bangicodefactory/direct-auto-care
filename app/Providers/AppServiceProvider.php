@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
                 accessToken: (string) config('services.meta_whatsapp.access_token'),
             ),
         );
+
     }
 
     public function boot(): void
