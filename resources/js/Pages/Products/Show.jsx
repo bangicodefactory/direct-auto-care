@@ -1,3 +1,4 @@
+import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
@@ -113,28 +114,6 @@ export default function Show({ product, movements, can }) {
                                 Supprimer
                             </button>
                         )}
-
-                        {confirmDelete && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-700">
-                                    Confirmer la suppression ?
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={handleDelete}
-                                    className="rounded bg-red-600 px-3 py-1 text-sm text-white"
-                                >
-                                    Oui
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setConfirmDelete(false)}
-                                    className="rounded border px-3 py-1 text-sm"
-                                >
-                                    Annuler
-                                </button>
-                            </div>
-                        )}
                     </div>
 
                     {/* Stock movements log */}
@@ -205,6 +184,24 @@ export default function Show({ product, movements, can }) {
                     </div>
                 </div>
             </div>
+
+            {/* Delete confirmation modal */}
+            <Modal show={confirmDelete} maxWidth="sm" onClose={() => setConfirmDelete(false)}>
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">Supprimer le produit</h2>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Êtes-vous sûr de vouloir supprimer{' '}
+                        <span className="font-semibold">{product.name}</span> ? Cette action est
+                        irréversible.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <SecondaryButton onClick={() => setConfirmDelete(false)}>
+                            Annuler
+                        </SecondaryButton>
+                        <DangerButton onClick={handleDelete}>Supprimer définitivement</DangerButton>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Adjust stock modal */}
             <Modal show={adjusting} maxWidth="sm" onClose={() => setAdjusting(false)}>
