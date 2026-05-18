@@ -19,8 +19,14 @@ class MetaWhatsAppChannel implements WhatsAppChannelContract
     {
         $reminder->loadMissing('customer');
 
-        $response = Http::withToken($this->accessToken)
-            ->post("https://graph.facebook.com/v19.0/{$this->phoneNumberId}/messages", [
+        $http = Http::withToken($this->accessToken);
+
+        // Windows local dev: cURL cannot verify the Meta CA chain without a configured bundle.
+        if (app()->isLocal()) {
+            $http = $http->withoutVerifying();
+        }
+
+        $response = $http->post("https://graph.facebook.com/v19.0/{$this->phoneNumberId}/messages", [
                 'messaging_product' => 'whatsapp',
                 'to'                => ltrim($reminder->customer->phone, '+'),
                 'type'              => 'template',
