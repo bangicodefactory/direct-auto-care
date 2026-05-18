@@ -3,7 +3,10 @@ import Dropdown from '@/Components/Dropdown';
 import NotificationBell from '@/Components/NotificationBell';
 import Sidebar from '@/Components/Sidebar';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+
+import { ChevronDown, Menu, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
 export default function AuthenticatedLayout({ header, children }) {
@@ -13,11 +16,17 @@ export default function AuthenticatedLayout({ header, children }) {
     const flash = usePage().props.flash;
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash?.success, flash?.error]);
+
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Top bar */}
             <nav className="fixed inset-x-0 top-0 z-30 border-b border-gray-200 bg-white">
                 <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
@@ -27,28 +36,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 sidebarOpen ? t('layout.close_menu') : t('layout.open_menu')
                             }
                         >
-                            <svg
-                                className="h-6 w-6"
-                                stroke="currentColor"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                {sidebarOpen ? (
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                ) : (
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                )}
-                            </svg>
+                            {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </button>
 
                         <Link href="/">
@@ -67,18 +55,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition hover:text-gray-700 focus:outline-none"
                                     >
                                         {user.name}
-                                        <svg
-                                            className="-me-0.5 ms-2 h-4 w-4"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
+                                        <ChevronDown className="-me-0.5 ms-2 h-4 w-4" />
                                     </button>
                                 </span>
                             </Dropdown.Trigger>
@@ -124,6 +101,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
 
                 <div className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col md:ml-64">
+
                     {flash?.success && (
                         <div className="border-l-4 border-green-400 bg-green-50 p-4">
                             <p className="text-sm text-green-700">{flash.success}</p>

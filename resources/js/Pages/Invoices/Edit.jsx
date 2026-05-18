@@ -3,6 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { X } from 'lucide-react';
 import { useMemo } from 'react';
 
 const TYPE_LABELS = { invoice: 'Facture', quote: 'Devis' };
@@ -336,7 +337,7 @@ export default function Edit({ invoice, customers, products, vehicles }) {
                                                                     className="text-red-500 hover:text-red-700"
                                                                     title="Supprimer la ligne"
                                                                 >
-                                                                    ✕
+                                                                    <X className="h-4 w-4" />
                                                                 </button>
                                                             )}
                                                         </td>

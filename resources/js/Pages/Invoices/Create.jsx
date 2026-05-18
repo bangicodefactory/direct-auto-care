@@ -3,6 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { X } from 'lucide-react';
 import { useMemo } from 'react';
 
 const today = new Date().toISOString().slice(0, 10);
@@ -348,7 +349,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                                     className="text-red-500 hover:text-red-700"
                                                                     title="Supprimer la ligne"
                                                                 >
-                                                                    ✕
+                                                                    <X className="h-4 w-4" />
                                                                 </button>
                                                             )}
                                                         </td>
