@@ -10,7 +10,9 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\User;
 use App\Services\StockService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class StockServiceTest extends TestCase
@@ -22,6 +24,8 @@ class StockServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed(RoleSeeder::class);
+        Notification::fake();
         $this->service = new StockService();
     }
 

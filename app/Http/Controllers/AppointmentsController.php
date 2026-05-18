@@ -9,8 +9,11 @@ use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\ServiceType;
+use App\Models\User;
 use App\Models\Vehicle;
+use App\Notifications\NewAppointmentNotification;
 use App\Services\AppointmentService;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -113,6 +116,9 @@ class AppointmentsController extends Controller implements HasMiddleware
         } catch (AppointmentOverlapException $e) {
             return back()->withErrors(['scheduled_at' => $e->getMessage()]);
         }
+
+        $admins = User::role('admin')->get();
+        Notification::send($admins, new NewAppointmentNotification($appointment));
 
         return redirect()->route('appointments.show', $appointment)
             ->with('success', 'Rendez-vous confirmé.');

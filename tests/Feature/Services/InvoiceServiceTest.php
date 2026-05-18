@@ -10,7 +10,9 @@ use App\Models\User;
 use App\Services\InvoiceNumberingService;
 use App\Services\InvoiceService;
 use App\Services\StockService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class InvoiceServiceTest extends TestCase
@@ -24,6 +26,8 @@ class InvoiceServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed(RoleSeeder::class);
+        Notification::fake();
 
         $this->service  = new InvoiceService(new InvoiceNumberingService(), new StockService());
         $this->user     = User::factory()->create();

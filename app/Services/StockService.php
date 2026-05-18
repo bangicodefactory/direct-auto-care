@@ -8,7 +8,9 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\User;
+use App\Notifications\LowStockNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class StockService
 {
@@ -24,7 +26,7 @@ class StockService
             throw new \InvalidArgumentException('La quantité doit être différente de zéro.');
         }
 
-        return DB::transaction(function () use ($product, $type, $quantity, $reason, $invoice, $user) {
+        $movement = DB::transaction(function () use ($product, $type, $quantity, $reason, $invoice, $user) {
             $locked = Product::lockForUpdate()->findOrFail($product->id);
 
             $delta       = $this->delta($type, $quantity);
@@ -47,6 +49,14 @@ class StockService
                 'user_id'    => $user->id,
             ]);
         });
+
+        $product->refresh();
+        if ($product->quantity_on_hand < $product->low_stock_threshold) {
+            $admins = User::role('admin')->get();
+            Notification::send($admins, new LowStockNotification($product));
+        }
+
+        return $movement;
     }
 
     private function delta(StockMovementType $type, int $quantity): int
