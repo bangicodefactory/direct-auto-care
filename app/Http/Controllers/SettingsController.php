@@ -23,9 +23,14 @@ class SettingsController extends Controller
         $settings = $this->settingsService->get();
 
         return Inertia::render('Settings/Index', [
-            'settings' => array_merge($settings->toArray(), [
-                'logo_url' => $settings->logoUrl(),
-            ]),
+            'settings' => array_merge(
+                $settings->only([
+                    'company_name', 'company_address', 'company_ice', 'company_if', 'company_rc',
+                    'tva_rate', 'color_primary', 'color_accent', 'color_bg', 'color_text_primary',
+                    'color_text_muted', 'color_success', 'color_warning', 'color_error',
+                ]),
+                ['logo_url' => $settings->logoUrl()]
+            ),
         ]);
     }
 
@@ -55,6 +60,9 @@ class SettingsController extends Controller
         }
         CSS;
 
-        return response($css, 200, ['Content-Type' => 'text/css; charset=utf-8']);
+        return response($css, 200, [
+            'Content-Type'  => 'text/css; charset=utf-8',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
     }
 }

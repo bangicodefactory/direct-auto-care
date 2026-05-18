@@ -4,7 +4,6 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
-import { useRef } from 'react';
 
 const COLOR_FIELDS = [
     { name: 'color_primary', label: 'Couleur principale' },
@@ -18,8 +17,6 @@ const COLOR_FIELDS = [
 ];
 
 export default function Index({ settings }) {
-    const logoRef = useRef(null);
-
     const { data, setData, post, processing, errors, progress } = useForm({
         company_name: settings.company_name ?? '',
         company_address: settings.company_address ?? '',
@@ -166,7 +163,6 @@ export default function Index({ settings }) {
                                 <div className="flex-1">
                                     <InputLabel htmlFor="logo" value="Nouveau logo" />
                                     <input
-                                        ref={logoRef}
                                         id="logo"
                                         type="file"
                                         accept=".jpg,.jpeg,.png,.svg,.webp"

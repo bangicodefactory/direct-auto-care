@@ -122,8 +122,10 @@ Route::post('reminders/{reminder}/cancel', [RemindersController::class, 'cancel'
     ->name('reminders.cancel');
 
 // Settings — admin only
-Route::get('/settings', [SettingsController::class, 'edit'])->middleware(['auth', 'verified'])->name('settings.edit');
-Route::post('/settings', [SettingsController::class, 'update'])->middleware(['auth', 'verified'])->name('settings.update');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
+    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+});
 
 // Dynamic branding CSS — public (cached by browser, no auth needed)
 Route::get('/branding.css', [SettingsController::class, 'brandingCss'])->name('settings.branding-css');

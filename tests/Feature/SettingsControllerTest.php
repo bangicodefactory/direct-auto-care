@@ -6,6 +6,7 @@ use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -19,6 +20,8 @@ class SettingsControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Cache::forget('settings');
 
         $this->seed(\Database\Seeders\RoleSeeder::class);
 
@@ -162,6 +165,19 @@ class SettingsControllerTest extends TestCase
         Storage::disk('public')->assertExists($settings->logo_path);
     }
 
+    public function test_logo_url_uses_public_disk(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin)->post(route('settings.update'), [
+            'tva_rate' => 20,
+            'logo'     => UploadedFile::fake()->image('logo.png', 100, 100),
+        ]);
+
+        $url = Settings::first()->logoUrl();
+        $this->assertStringStartsWith('/storage/', $url);
+    }
+
     public function test_old_logo_is_deleted_on_new_upload(): void
     {
         Storage::fake('public');
@@ -212,7 +228,8 @@ class SettingsControllerTest extends TestCase
     {
         $this->get(route('settings.branding-css'))
             ->assertOk()
-            ->assertHeader('Content-Type', 'text/css; charset=utf-8');
+            ->assertHeader('Content-Type', 'text/css; charset=utf-8')
+            ->assertHeader('Cache-Control', 'max-age=86400, public');
     }
 
     public function test_branding_css_contains_default_colors(): void

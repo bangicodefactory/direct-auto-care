@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Models\Settings;
 use App\Models\User;
 
 class SettingsPolicy
@@ -12,8 +11,5 @@ class SettingsPolicy
         return $user->hasRole('admin');
     }
 
-    public function update(User $user, Settings $settings): bool
-    {
-        return $user->hasRole('admin');
-    }
+
 }

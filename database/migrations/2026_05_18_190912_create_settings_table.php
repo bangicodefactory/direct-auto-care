@@ -34,6 +34,10 @@ return new class () extends Migration {
             $table->string('color_warning', 7)->default('#F59E0B');
             $table->string('color_error', 7)->default('#EF4444');
 
+            // Enforce single-row at the DB level
+            $table->tinyInteger('singleton')->unsigned()->default(1);
+            $table->unique('singleton');
+
             $table->timestamps();
         });
     }

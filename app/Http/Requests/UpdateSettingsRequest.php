@@ -44,7 +44,7 @@ class UpdateSettingsRequest extends FormRequest
             'tva_rate.between'   => 'Le taux de TVA doit être entre 0 et 100.',
             'logo.mimes'         => 'Le logo doit être un fichier JPG, PNG, SVG ou WebP.',
             'logo.max'           => 'Le logo ne doit pas dépasser 2 Mo.',
-            '*.regex'            => 'La couleur doit être au format hexadécimal (#RRGGBB).',
+            'regex'              => 'La couleur doit être au format hexadécimal (#RRGGBB).',
         ];
     }
 }
