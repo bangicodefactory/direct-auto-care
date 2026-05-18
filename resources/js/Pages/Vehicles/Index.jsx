@@ -6,6 +6,7 @@ import TextInput from '@/Components/TextInput';
 import { FUEL_LABELS } from '@/constants/fuelTypes';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { MoreVertical } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 function SortIcon({ column, currentSort, currentDirection }) {
@@ -182,13 +183,7 @@ export default function Index({ vehicles, filters, can }) {
                                                         type="button"
                                                         className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none"
                                                     >
-                                                        <svg
-                                                            className="h-5 w-5"
-                                                            fill="currentColor"
-                                                            viewBox="0 0 20 20"
-                                                        >
-                                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                                        </svg>
+                                                        <MoreVertical className="h-5 w-5" />
                                                     </button>
                                                 </Dropdown.Trigger>
                                                 <Dropdown.Content align="right" width="48">

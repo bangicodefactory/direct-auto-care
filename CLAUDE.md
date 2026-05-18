@@ -20,6 +20,7 @@ Full spec: `~/Documents/Claude/Projects/SiyanaPlus/SiyanaPlus.md` on Ahmed's mac
 | Authz | Laravel Policies + Spatie Laravel-Permission |
 | PDF | barryvdh/laravel-dompdf |
 | Notifications | Laravel Notifications + Mail + Twilio (per ADR-001) |
+| Toasts | sonner (approved — use everywhere, never `alert()`) |
 | Queue | Laravel Queues + database/redis |
 | Charts | Recharts (per ADR-003) |
 | Calendar | react-big-calendar (per ADR-002) |
