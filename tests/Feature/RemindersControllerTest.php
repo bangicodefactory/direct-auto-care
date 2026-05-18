@@ -73,19 +73,8 @@ class RemindersControllerTest extends TestCase
 
     public function test_index_filters_by_type(): void
     {
-        $customer = Customer::factory()->create(['notify_whatsapp' => false, 'notify_email' => false]);
-        $vehicle  = Vehicle::factory()->create(['customer_id' => $customer->id]);
-
-        Reminder::factory()->create([
-            'vehicle_id'  => $vehicle->id,
-            'customer_id' => $customer->id,
-            'type'        => ReminderType::Vidange,
-        ]);
-        Reminder::factory()->create([
-            'vehicle_id'  => $vehicle->id,
-            'customer_id' => $customer->id,
-            'type'        => ReminderType::VisiteTechnique,
-        ]);
+        $this->makeReminder(['type' => ReminderType::Vidange]);
+        $this->makeReminder(['type' => ReminderType::VisiteTechnique]);
 
         $this->actingAs($this->admin)
             ->get(route('reminders.index', ['type' => 'visite_technique']))

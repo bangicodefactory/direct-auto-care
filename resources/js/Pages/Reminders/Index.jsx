@@ -1,7 +1,8 @@
+import DangerButton from '@/Components/DangerButton';
 import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
 import PrimaryButton from '@/Components/PrimaryButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -19,37 +20,47 @@ export default function Index({ reminders, filters, statuses, types }) {
     const [processing, setProcessing] = useState(false);
 
     function applyFilters(changes) {
-        router.get(route('reminders.index'), { ...filters, ...changes }, {
-            preserveState: true,
-            replace: true,
-        });
+        router.get(
+            route('reminders.index'),
+            { ...filters, ...changes },
+            {
+                preserveState: true,
+                replace: true,
+            },
+        );
     }
 
     function handleTrigger() {
         setProcessing(true);
-        router.post(route('reminders.trigger', triggeringReminder.id), {}, {
-            onFinish: () => {
-                setProcessing(false);
-                setTriggeringReminder(null);
+        router.post(
+            route('reminders.trigger', triggeringReminder.id),
+            {},
+            {
+                onFinish: () => {
+                    setProcessing(false);
+                    setTriggeringReminder(null);
+                },
             },
-        });
+        );
     }
 
     function handleCancel() {
         setProcessing(true);
-        router.post(route('reminders.cancel', cancellingReminder.id), {}, {
-            onFinish: () => {
-                setProcessing(false);
-                setCancellingReminder(null);
+        router.post(
+            route('reminders.cancel', cancellingReminder.id),
+            {},
+            {
+                onFinish: () => {
+                    setProcessing(false);
+                    setCancellingReminder(null);
+                },
             },
-        });
+        );
     }
 
     return (
         <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">Rappels</h2>
-            }
+            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Rappels</h2>}
         >
             <Head title="Rappels" />
 
@@ -63,7 +74,12 @@ export default function Index({ reminders, filters, statuses, types }) {
                                 <select
                                     className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.status ?? ''}
-                                    onChange={(e) => applyFilters({ status: e.target.value || undefined, page: undefined })}
+                                    onChange={(e) =>
+                                        applyFilters({
+                                            status: e.target.value || undefined,
+                                            page: undefined,
+                                        })
+                                    }
                                 >
                                     <option value="">Tous les statuts</option>
                                     {statuses.map((s) => (
@@ -79,7 +95,12 @@ export default function Index({ reminders, filters, statuses, types }) {
                                 <select
                                     className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.type ?? ''}
-                                    onChange={(e) => applyFilters({ type: e.target.value || undefined, page: undefined })}
+                                    onChange={(e) =>
+                                        applyFilters({
+                                            type: e.target.value || undefined,
+                                            page: undefined,
+                                        })
+                                    }
                                 >
                                     <option value="">Tous les types</option>
                                     {types.map((t) => (
@@ -96,7 +117,12 @@ export default function Index({ reminders, filters, statuses, types }) {
                                     type="date"
                                     className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.date_from ?? ''}
-                                    onChange={(e) => applyFilters({ date_from: e.target.value || undefined, page: undefined })}
+                                    onChange={(e) =>
+                                        applyFilters({
+                                            date_from: e.target.value || undefined,
+                                            page: undefined,
+                                        })
+                                    }
                                 />
                             </div>
 
@@ -106,13 +132,29 @@ export default function Index({ reminders, filters, statuses, types }) {
                                     type="date"
                                     className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.date_to ?? ''}
-                                    onChange={(e) => applyFilters({ date_to: e.target.value || undefined, page: undefined })}
+                                    onChange={(e) =>
+                                        applyFilters({
+                                            date_to: e.target.value || undefined,
+                                            page: undefined,
+                                        })
+                                    }
                                 />
                             </div>
 
-                            {(filters?.status || filters?.type || filters?.date_from || filters?.date_to) && (
+                            {(filters?.status ||
+                                filters?.type ||
+                                filters?.date_from ||
+                                filters?.date_to) && (
                                 <button
-                                    onClick={() => applyFilters({ status: undefined, type: undefined, date_from: undefined, date_to: undefined, page: undefined })}
+                                    onClick={() =>
+                                        applyFilters({
+                                            status: undefined,
+                                            type: undefined,
+                                            date_from: undefined,
+                                            date_to: undefined,
+                                            page: undefined,
+                                        })
+                                    }
                                     className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                                 >
                                     Effacer
@@ -175,7 +217,10 @@ export default function Index({ reminders, filters, statuses, types }) {
                                                     {r.status.label}
                                                 </span>
                                                 {r.error_message && (
-                                                    <p className="mt-1 text-xs text-red-600" title={r.error_message}>
+                                                    <p
+                                                        className="mt-1 text-xs text-red-600"
+                                                        title={r.error_message}
+                                                    >
                                                         Erreur
                                                     </p>
                                                 )}
@@ -204,7 +249,9 @@ export default function Index({ reminders, filters, statuses, types }) {
                                                             {r.can.trigger && (
                                                                 <button
                                                                     className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none"
-                                                                    onClick={() => setTriggeringReminder(r)}
+                                                                    onClick={() =>
+                                                                        setTriggeringReminder(r)
+                                                                    }
                                                                 >
                                                                     Envoyer maintenant
                                                                 </button>
@@ -212,7 +259,9 @@ export default function Index({ reminders, filters, statuses, types }) {
                                                             {r.can.cancel && (
                                                                 <button
                                                                     className="block w-full px-4 py-2 text-start text-sm leading-5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none"
-                                                                    onClick={() => setCancellingReminder(r)}
+                                                                    onClick={() =>
+                                                                        setCancellingReminder(r)
+                                                                    }
                                                                 >
                                                                     Annuler
                                                                 </button>
@@ -269,12 +318,17 @@ export default function Index({ reminders, filters, statuses, types }) {
                 onClose={() => setTriggeringReminder(null)}
             >
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">Envoyer ce rappel maintenant ?</h2>
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Envoyer ce rappel maintenant ?
+                    </h2>
                     <p className="mt-1 text-sm text-gray-600">
                         Le rappel sera envoyé immédiatement à{' '}
-                        <span className="font-medium">{triggeringReminder?.customer?.name}</span> pour le
-                        véhicule{' '}
-                        <span className="font-medium">{triggeringReminder?.vehicle?.license_plate}</span>.
+                        <span className="font-medium">{triggeringReminder?.customer?.name}</span>{' '}
+                        pour le véhicule{' '}
+                        <span className="font-medium">
+                            {triggeringReminder?.vehicle?.license_plate}
+                        </span>
+                        .
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
                         <SecondaryButton onClick={() => setTriggeringReminder(null)}>
@@ -298,20 +352,16 @@ export default function Index({ reminders, filters, statuses, types }) {
                     <p className="mt-1 text-sm text-gray-600">
                         Le rappel de{' '}
                         <span className="font-medium">{cancellingReminder?.customer?.name}</span> (
-                        {cancellingReminder?.vehicle?.license_plate}) sera annulé. Il ne sera plus envoyé
-                        automatiquement.
+                        {cancellingReminder?.vehicle?.license_plate}) sera annulé. Il ne sera plus
+                        envoyé automatiquement.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
                         <SecondaryButton onClick={() => setCancellingReminder(null)}>
                             Fermer
                         </SecondaryButton>
-                        <button
-                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-                            onClick={handleCancel}
-                            disabled={processing}
-                        >
+                        <DangerButton onClick={handleCancel} disabled={processing}>
                             Annuler le rappel
-                        </button>
+                        </DangerButton>
                     </div>
                 </div>
             </Modal>

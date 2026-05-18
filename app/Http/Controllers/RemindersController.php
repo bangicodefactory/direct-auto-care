@@ -6,7 +6,6 @@ use App\Enums\ReminderStatus;
 use App\Enums\ReminderType;
 use App\Jobs\SendReminderJob;
 use App\Models\Reminder;
-use App\Services\ReminderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -74,7 +73,7 @@ class RemindersController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function trigger(Reminder $reminder, ReminderService $service): RedirectResponse
+    public function trigger(Reminder $reminder): RedirectResponse
     {
         dispatch_sync(new SendReminderJob($reminder));
 
