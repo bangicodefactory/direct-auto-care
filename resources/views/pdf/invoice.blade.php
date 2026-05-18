@@ -14,12 +14,20 @@
             background: #fff;
         }
 
+        @page {
+            margin: 40px;
+        }
+
         .page {
             width: 100%;
-            max-width: 794px;
-            margin: 0 auto;
+        }
+
+        @if(!empty($printMode))
+        /* Screen display padding for the browser print-preview mode */
+        .page {
             padding: 40px;
         }
+        @endif
 
         /* ── Header ── */
         .header {
