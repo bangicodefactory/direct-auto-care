@@ -24,8 +24,16 @@ export default function Dashboard({ kpis, isAdmin }) {
                             sub={<Delta value={kpis.customers_delta} />}
                         />
                         <KpiCard label="Véhicules actifs" value={kpis.active_vehicles} />
-                        <KpiCard label="Rappels en attente" value={kpis.pending_reminders} />
-                        <KpiCard label="RDV aujourd'hui" value={kpis.appointments_today.length} />
+                        <KpiCard
+                            label="Rappels en attente"
+                            value={kpis.pending_reminders}
+                            href={route('reminders.index')}
+                        />
+                        <KpiCard
+                            label="RDV aujourd'hui"
+                            value={kpis.appointments_today.length}
+                            href={route('appointments.today-page')}
+                        />
                         {isAdmin && (
                             <>
                                 <KpiCard label="CA ce mois (DH)" value={fmt(kpis.revenue_month)} />
@@ -43,7 +51,7 @@ export default function Dashboard({ kpis, isAdmin }) {
 
                     {/* ── Lists — 1 col mobile, 2 col desktop ── */}
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                        <Section title="RDV du jour">
+                        <Section title="RDV du jour" href={route('appointments.today-page')}>
                             {kpis.appointments_today.length === 0 ? (
                                 <p className="text-sm text-gray-500">
                                     Aucun rendez-vous aujourd'hui.
@@ -75,7 +83,7 @@ export default function Dashboard({ kpis, isAdmin }) {
                             )}
                         </Section>
 
-                        <Section title="Stock bas">
+                        <Section title="Stock bas" href={route('products.index')}>
                             {kpis.low_stock.length === 0 ? (
                                 <p className="text-sm text-gray-500">Aucun produit en stock bas.</p>
                             ) : (
@@ -145,22 +153,42 @@ function Delta({ value }) {
     );
 }
 
-function KpiCard({ label, value, sub }) {
-    return (
-        <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">
+function KpiCard({ label, value, sub, href }) {
+    const inner = (
+        <>
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
             <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
             {sub && <div className="mt-1">{sub}</div>}
-        </div>
+        </>
     );
+
+    if (href) {
+        return (
+            <Link
+                href={href}
+                className="block rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200 transition-shadow hover:shadow-md"
+            >
+                {inner}
+            </Link>
+        );
+    }
+
+    return <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">{inner}</div>;
 }
 
-function Section({ title, children }) {
+function Section({ title, href, children }) {
     return (
         <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-                {title}
-            </h3>
+            <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                    {title}
+                </h3>
+                {href && (
+                    <Link href={href} className="text-xs font-medium text-primary hover:underline">
+                        Voir tout →
+                    </Link>
+                )}
+            </div>
             {children}
         </div>
     );
