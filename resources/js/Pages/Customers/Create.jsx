@@ -10,6 +10,8 @@ export default function Create() {
         email: '',
         address: '',
         notes: '',
+        notify_whatsapp: true,
+        notify_email: true,
     });
 
     function submit(e) {

@@ -1,3 +1,4 @@
+import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -104,6 +105,28 @@ export default function CustomerForm({
                 />
                 <InputError message={errors.notes} className="mt-2" />
             </div>
+
+            <fieldset>
+                <legend className="text-sm font-medium text-gray-700">Notifications</legend>
+                <div className="mt-2 space-y-2">
+                    <label className="flex items-center gap-2">
+                        <Checkbox
+                            id="notify_whatsapp"
+                            checked={data.notify_whatsapp}
+                            onChange={(e) => setData('notify_whatsapp', e.target.checked)}
+                        />
+                        <span className="text-sm text-gray-700">Rappels WhatsApp</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                        <Checkbox
+                            id="notify_email"
+                            checked={data.notify_email}
+                            onChange={(e) => setData('notify_email', e.target.checked)}
+                        />
+                        <span className="text-sm text-gray-700">Rappels par e-mail</span>
+                    </label>
+                </div>
+            </fieldset>
 
             <div className="flex items-center justify-end gap-4">
                 <Link href={cancelHref} className="text-sm text-gray-600 hover:text-gray-900">
