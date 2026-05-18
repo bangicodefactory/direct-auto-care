@@ -158,7 +158,7 @@ class DashboardService
                 'vehicle'      => $a->vehicle->license_plate . ' (' . $a->vehicle->make . ' ' . $a->vehicle->model . ')',
                 'scheduled_at' => $a->scheduled_at->format('H:i'),
                 'status'       => $a->status->value,
-                'services'     => $a->serviceTypes->pluck('name'),
+                'services'     => $a->serviceTypes->pluck('name')->all(),
             ])
             ->toArray();
     }
