@@ -10,6 +10,8 @@ export default function Edit({ customer }) {
         email: customer.email ?? '',
         address: customer.address ?? '',
         notes: customer.notes ?? '',
+        notify_whatsapp: customer.notify_whatsapp,
+        notify_email: customer.notify_email,
     });
 
     function submit(e) {

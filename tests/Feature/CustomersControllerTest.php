@@ -297,6 +297,43 @@ class CustomersControllerTest extends TestCase
             ->assertSessionHasErrors(['first_name', 'last_name', 'phone']);
     }
 
+    public function test_store_saves_notify_whatsapp_opt_out(): void
+    {
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name'      => 'Karim',
+                'last_name'       => 'Tahiri',
+                'phone'           => '0611111111',
+                'notify_whatsapp' => false,
+                'notify_email'    => true,
+            ]);
+
+        $this->assertDatabaseHas('customers', [
+            'last_name'       => 'Tahiri',
+            'notify_whatsapp' => false,
+            'notify_email'    => true,
+        ]);
+    }
+
+    public function test_store_saves_notify_email_opt_out(): void
+    {
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name'      => 'Nadia',
+                'last_name'       => 'Chraibi',
+                'phone'           => '0622222222',
+                'email'           => 'nadia@example.com',
+                'notify_whatsapp' => true,
+                'notify_email'    => false,
+            ]);
+
+        $this->assertDatabaseHas('customers', [
+            'last_name'       => 'Chraibi',
+            'notify_whatsapp' => true,
+            'notify_email'    => false,
+        ]);
+    }
+
     // -------------------------------------------------------------------------
     // edit / update
     // -------------------------------------------------------------------------
@@ -341,6 +378,29 @@ class CustomersControllerTest extends TestCase
         $this->actingAs($this->employee)
             ->put(route('customers.update', $customer), [])
             ->assertSessionHasErrors(['first_name', 'last_name', 'phone']);
+    }
+
+    public function test_update_saves_notify_toggles(): void
+    {
+        $customer = Customer::factory()->create([
+            'notify_whatsapp' => true,
+            'notify_email'    => true,
+        ]);
+
+        $this->actingAs($this->employee)
+            ->put(route('customers.update', $customer), [
+                'first_name'      => $customer->first_name,
+                'last_name'       => $customer->last_name,
+                'phone'           => $customer->phone,
+                'notify_whatsapp' => false,
+                'notify_email'    => false,
+            ]);
+
+        $this->assertDatabaseHas('customers', [
+            'id'              => $customer->id,
+            'notify_whatsapp' => false,
+            'notify_email'    => false,
+        ]);
     }
 
     // -------------------------------------------------------------------------
