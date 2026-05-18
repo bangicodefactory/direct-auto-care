@@ -24,28 +24,19 @@ class RemindersSmokeTest extends TestCase
         $this->seed(RoleSeeder::class);
     }
 
-    private function makeReminder(array $overrides = []): Reminder
+    private function makeReminder(array $overrides = [], array $customerOverrides = []): Reminder
     {
-        $customer = Customer::factory()->create(['notify_whatsapp' => false, 'notify_email' => false]);
-        $vehicle  = Vehicle::factory()->create(['customer_id' => $customer->id]);
+        $customer = Customer::factory()->create(array_merge(
+            ['notify_whatsapp' => false, 'notify_email' => false],
+            $customerOverrides
+        ));
+        $vehicle = Vehicle::factory()->create(['customer_id' => $customer->id]);
 
         return Reminder::factory()->create(array_merge([
-            'vehicle_id'   => $vehicle->id,
-            'customer_id'  => $customer->id,
+            'vehicle_id'    => $vehicle->id,
+            'customer_id'   => $customer->id,
             'scheduled_for' => today()->toDateString(),
         ], $overrides));
-    }
-
-    private function makeWhatsAppReminder(): Reminder
-    {
-        $customer = Customer::factory()->create(['notify_whatsapp' => true, 'notify_email' => false]);
-        $vehicle  = Vehicle::factory()->create(['customer_id' => $customer->id]);
-
-        return Reminder::factory()->create([
-            'vehicle_id'   => $vehicle->id,
-            'customer_id'  => $customer->id,
-            'scheduled_for' => today()->toDateString(),
-        ]);
     }
 
     // -------------------------------------------------------------------------
@@ -67,14 +58,14 @@ class RemindersSmokeTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Smoke 2: opt-out — WhatsApp channel is skipped when notify_whatsapp=false
+    // Smoke 2: opt-out — channels skipped when customer has opted out
     // -------------------------------------------------------------------------
 
     public function test_whatsapp_channel_skipped_when_customer_opted_out(): void
     {
         Http::fake();
 
-        $reminder = $this->makeReminder(['scheduled_for' => today()->toDateString()]);
+        $reminder = $this->makeReminder();
 
         dispatch_sync(new SendReminderJob($reminder));
 
@@ -86,7 +77,7 @@ class RemindersSmokeTest extends TestCase
     {
         Mail::fake();
 
-        $reminder = $this->makeReminder(['scheduled_for' => today()->toDateString()]);
+        $reminder = $this->makeReminder();
 
         dispatch_sync(new SendReminderJob($reminder));
 
@@ -102,7 +93,7 @@ class RemindersSmokeTest extends TestCase
     {
         Http::fake(['*' => Http::response(['error' => ['code' => 190, 'message' => 'Invalid token']], 401)]);
 
-        $reminder = $this->makeWhatsAppReminder();
+        $reminder = $this->makeReminder([], ['notify_whatsapp' => true]);
 
         dispatch_sync(new SendReminderJob($reminder));
 
@@ -119,12 +110,13 @@ class RemindersSmokeTest extends TestCase
     {
         Http::fake(['*' => Http::response(['error' => ['code' => 190]], 401)]);
 
-        $reminder = $this->makeWhatsAppReminder();
+        $reminder = $this->makeReminder([], ['notify_whatsapp' => true]);
 
         // Simulate a failed first attempt: channel fails, error stored, status stays pending
         dispatch_sync(new SendReminderJob($reminder));
-        $this->assertSame(ReminderStatus::Pending, $reminder->fresh()->status);
-        $this->assertNotNull($reminder->fresh()->error_message);
+        $fresh = $reminder->fresh();
+        $this->assertSame(ReminderStatus::Pending, $fresh->status);
+        $this->assertNotNull($fresh->error_message);
 
         // Next command run should re-queue the still-pending reminder
         Queue::fake();
