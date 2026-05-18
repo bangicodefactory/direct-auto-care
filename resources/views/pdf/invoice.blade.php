@@ -14,17 +14,22 @@
             background: #fff;
         }
 
-        @page {
-            margin: 40px;
-        }
-
-        .page {
-            width: 100%;
-        }
+        @if(empty($printMode))
+        /*
+         * PDF mode (dompdf): body margin is the reliable way to set page insets.
+         * @page margin support in dompdf is inconsistent regardless of unit.
+         * 2cm ≈ 57pt — standard A4 business invoice margin.
+         */
+        body { margin: 2cm; }
+        .page { width: 100%; }
+        @endif
 
         @if(!empty($printMode))
-        /* Screen display padding for the browser print-preview mode */
+        /* Screen print-preview: A4 width, centered, with visual margins */
         .page {
+            width: 100%;
+            max-width: 794px;
+            margin: 0 auto;
             padding: 40px;
         }
         @endif
@@ -252,7 +257,7 @@
                 @endif
                 @if($invoice->vehicle)
                     <div class="party-detail" style="margin-top:6px;">
-                        Véhicule : {{ $invoice->vehicle->plate }}
+                        Véhicule : {{ $invoice->vehicle->license_plate }}
                         ({{ $invoice->vehicle->make }} {{ $invoice->vehicle->model }})
                     </div>
                 @endif
