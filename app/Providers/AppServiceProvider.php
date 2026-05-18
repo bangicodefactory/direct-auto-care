@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Contracts\WhatsAppChannelContract;
 use App\Models\Customer;
 use App\Models\ServiceRecord;
 use App\Models\User;
 use App\Policies\CustomerPolicy;
 use App\Policies\ServiceRecordPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Notifications\MetaWhatsAppChannel;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Gate;
@@ -18,7 +20,13 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->bind(
+            WhatsAppChannelContract::class,
+            fn () => new MetaWhatsAppChannel(
+                phoneNumberId: (string) config('services.meta_whatsapp.phone_number_id'),
+                accessToken: (string) config('services.meta_whatsapp.access_token'),
+            ),
+        );
     }
 
     public function boot(): void

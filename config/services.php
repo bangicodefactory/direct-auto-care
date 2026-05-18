@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'meta_whatsapp' => [
+        'phone_number_id'     => env('META_WA_PHONE_NUMBER_ID'),
+        'access_token'        => env('META_WA_ACCESS_TOKEN'),
+        'business_account_id' => env('META_WA_BUSINESS_ACCOUNT_ID'),
+    ],
+
 ];

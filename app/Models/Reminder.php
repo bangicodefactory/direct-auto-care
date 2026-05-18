@@ -22,6 +22,7 @@ class Reminder extends Model
         'trigger_km',
         'sent_at',
         'notes',
+        'error_message',
     ];
 
     protected function casts(): array
