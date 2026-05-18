@@ -1,3 +1,5 @@
+import BarChartCard from '@/Components/Charts/BarChartCard';
+import LineChartCard from '@/Components/Charts/LineChartCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -14,7 +16,7 @@ export default function Dashboard({ kpis, isAdmin }) {
 
             <div className="py-8">
                 <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
-                    {/* ── KPI cards ── */}
+                    {/* ── KPI cards — 2 col mobile, 4 col desktop ── */}
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                         <KpiCard
                             label="Clients"
@@ -39,9 +41,8 @@ export default function Dashboard({ kpis, isAdmin }) {
                         )}
                     </div>
 
-                    {/* ── Two-column section ── */}
+                    {/* ── Lists — 1 col mobile, 2 col desktop ── */}
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                        {/* Today's appointments */}
                         <Section title="RDV du jour">
                             {kpis.appointments_today.length === 0 ? (
                                 <p className="text-sm text-gray-500">
@@ -74,7 +75,6 @@ export default function Dashboard({ kpis, isAdmin }) {
                             )}
                         </Section>
 
-                        {/* Low stock */}
                         <Section title="Stock bas">
                             {kpis.low_stock.length === 0 ? (
                                 <p className="text-sm text-gray-500">Aucun produit en stock bas.</p>
@@ -102,79 +102,21 @@ export default function Dashboard({ kpis, isAdmin }) {
                         </Section>
                     </div>
 
-                    {/* ── Admin-only: top services + monthly stats ── */}
+                    {/* ── Admin-only charts — 1 col mobile, 3 col desktop ── */}
                     {isAdmin && (
-                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                            {/* Top services */}
-                            <Section title="Top prestations">
-                                {kpis.top_services.length === 0 ? (
-                                    <p className="text-sm text-gray-500">Aucune donnée.</p>
-                                ) : (
-                                    <ul className="space-y-2">
-                                        {kpis.top_services.map((s) => (
-                                            <li
-                                                key={s.name}
-                                                className="flex items-center gap-3 text-sm"
-                                            >
-                                                <div className="flex-1">
-                                                    <div className="flex justify-between">
-                                                        <span className="font-medium text-gray-700">
-                                                            {s.name}
-                                                        </span>
-                                                        <span className="text-gray-500">
-                                                            {s.count}
-                                                        </span>
-                                                    </div>
-                                                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                                                        <div
-                                                            className="h-full rounded-full bg-blue-500"
-                                                            style={{
-                                                                width: `${Math.round((s.count / kpis.top_services[0].count) * 100)}%`,
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </Section>
-
-                            {/* Monthly stats */}
-                            <Section title="Évolution mensuelle (12 mois)">
-                                {kpis.monthly_stats.length === 0 ? (
-                                    <p className="text-sm text-gray-500">Aucune donnée.</p>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-right text-xs">
-                                            <thead>
-                                                <tr className="border-b text-gray-500">
-                                                    <th className="pb-1 text-left font-medium">
-                                                        Mois
-                                                    </th>
-                                                    <th className="pb-1 font-medium">CA (DH)</th>
-                                                    <th className="pb-1 font-medium">RDV</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-50">
-                                                {kpis.monthly_stats.map((m) => (
-                                                    <tr key={m.month}>
-                                                        <td className="py-1 text-left text-gray-600">
-                                                            {m.month}
-                                                        </td>
-                                                        <td className="py-1 text-gray-800">
-                                                            {fmt(m.revenue)}
-                                                        </td>
-                                                        <td className="py-1 text-gray-600">
-                                                            {m.appointments}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </Section>
+                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                            <BarChartCard
+                                title="Top prestations"
+                                data={kpis.top_services}
+                                dataKey="count"
+                                nameKey="name"
+                            />
+                            <div className="lg:col-span-2">
+                                <LineChartCard
+                                    title="Évolution mensuelle (12 mois)"
+                                    data={kpis.monthly_stats}
+                                />
+                            </div>
                         </div>
                     )}
                 </div>
