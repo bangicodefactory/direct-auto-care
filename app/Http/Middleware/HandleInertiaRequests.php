@@ -44,7 +44,9 @@ class HandleInertiaRequests extends Middleware
                     'created_at' => $n->created_at->diffForHumans(),
                 ])
                 : [],
-            'unreadCount' => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
+            'unreadCount'  => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
+            'locale'       => fn () => app()->getLocale(),
+            'translations' => fn () => ['ui' => trans('ui')],
         ];
     }
 }

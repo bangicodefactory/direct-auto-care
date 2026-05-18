@@ -10,12 +10,18 @@ import { toast } from 'sonner';
 export default function AuthenticatedLayout({ header, children }) {
     const { user, role } = usePage().props.auth;
     const flash = usePage().props.flash;
+    const locale = usePage().props.locale;
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         if (flash?.success) toast.success(flash.success);
         if (flash?.error) toast.error(flash.error);
     }, [flash?.success, flash?.error]);
+
+    useEffect(() => {
+        document.documentElement.lang = locale ?? 'fr';
+        document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+    }, [locale]);
 
     return (
         <div className="min-h-screen bg-gray-100">

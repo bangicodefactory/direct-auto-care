@@ -44,6 +44,7 @@ return [
         'password_confirmation' => 'confirmation du mot de passe',
         'name'                  => 'nom',
         'current_password'      => 'mot de passe actuel',
+        'locale'                => 'langue',
         // Customer
         'first_name'            => 'prénom',
         'last_name'             => 'nom de famille',
