@@ -23,7 +23,7 @@ class ReminderService
     {
         return Reminder::with(['customer', 'vehicle'])
             ->where('status', ReminderStatus::Pending)
-            ->whereDate('scheduled_for', '<=', today())
+            ->where('scheduled_for', '<=', today())
             ->get();
     }
 

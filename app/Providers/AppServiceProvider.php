@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Contracts\WhatsAppChannelContract;
 use App\Models\Customer;
-use App\Services\ReminderService;
 use App\Models\ServiceRecord;
 use App\Models\User;
 use App\Policies\CustomerPolicy;
@@ -29,12 +28,6 @@ class AppServiceProvider extends ServiceProvider
             ),
         );
 
-        $this->app->bind(
-            ReminderService::class,
-            fn (mixed $app) => new ReminderService(
-                whatsApp: $app->make(WhatsAppChannelContract::class),
-            ),
-        );
     }
 
     public function boot(): void

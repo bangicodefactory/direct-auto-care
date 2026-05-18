@@ -237,6 +237,44 @@ class ReminderServiceTest extends TestCase
         $this->assertNull($reminder->fresh()->error_message);
     }
 
+    public function test_dispatch_stores_error_message_and_stays_pending_when_email_throws(): void
+    {
+        Mail::fake();
+        Mail::shouldReceive('to')->andThrow(new \RuntimeException('SMTP connection failed'));
+
+        $reminder = $this->makeReminder([
+            'notify_email' => true,
+            'email'        => 'client@example.com',
+        ]);
+
+        $this->makeService()->dispatch($reminder);
+
+        $this->assertSame(ReminderStatus::Pending, $reminder->fresh()->status);
+        $this->assertNull($reminder->fresh()->sent_at);
+        $this->assertStringContainsString('email:', $reminder->fresh()->error_message);
+    }
+
+    public function test_dispatch_marks_sent_when_both_channels_succeed(): void
+    {
+        Mail::fake();
+
+        $whatsApp = $this->createMock(WhatsAppChannelContract::class);
+        $whatsApp->method('send')->willReturn('wamid.ok');
+
+        $reminder = $this->makeReminder([
+            'notify_whatsapp' => true,
+            'notify_email'    => true,
+            'email'           => 'client@example.com',
+        ]);
+
+        $this->makeService($whatsApp)->dispatch($reminder);
+
+        $this->assertSame(ReminderStatus::Sent, $reminder->fresh()->status);
+        $this->assertNotNull($reminder->fresh()->sent_at);
+        $this->assertNull($reminder->fresh()->error_message);
+        Mail::assertSent(ReminderMail::class);
+    }
+
     public function test_same_reminder_is_not_dispatched_twice(): void
     {
         $whatsApp = $this->createMock(WhatsAppChannelContract::class);
