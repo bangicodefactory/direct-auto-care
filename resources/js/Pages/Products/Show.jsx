@@ -18,6 +18,7 @@ export default function Show({ product, movements, can }) {
     });
 
     function handleDelete() {
+        setConfirmDelete(false);
         router.delete(route('products.destroy', product.id));
     }
 
