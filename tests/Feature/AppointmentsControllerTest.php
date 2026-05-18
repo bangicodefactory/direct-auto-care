@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Notifications\NewAppointmentNotification;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -122,6 +123,38 @@ class AppointmentsControllerTest extends TestCase
             'customer_id' => $customer->id,
             'status'      => AppointmentStatus::Confirmed->value,
         ]);
+    }
+
+    public function test_store_notifies_other_admins_not_creator(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($employee)
+            ->post(route('appointments.store'), [
+                'customer_id'  => $customer->id,
+                'scheduled_at' => '2026-08-02 09:00:00',
+                'duration'     => 60,
+            ]);
+
+        Notification::assertSentTo($admin, NewAppointmentNotification::class);
+        Notification::assertNotSentTo($employee, NewAppointmentNotification::class);
+    }
+
+    public function test_store_does_not_notify_admin_who_created_appointment(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($admin)
+            ->post(route('appointments.store'), [
+                'customer_id'  => $customer->id,
+                'scheduled_at' => '2026-08-03 09:00:00',
+                'duration'     => 60,
+            ]);
+
+        Notification::assertNotSentTo($admin, NewAppointmentNotification::class);
     }
 
     public function test_store_returns_overlap_error_when_vehicle_has_conflict(): void

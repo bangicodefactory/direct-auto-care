@@ -3,9 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Reminder;
+use App\Models\User;
+use App\Notifications\ReminderFailureNotification;
 use App\Services\ReminderService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Notification;
+use Throwable;
 
 class SendReminderJob implements ShouldQueue
 {
@@ -28,5 +32,11 @@ class SendReminderJob implements ShouldQueue
     public function backoff(): array
     {
         return [60, 300, 900];
+    }
+
+    public function failed(Throwable $e): void
+    {
+        $admins = User::role('admin')->get();
+        Notification::send($admins, new ReminderFailureNotification($this->reminder));
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentsController;
+use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CustomersController;
@@ -120,6 +121,12 @@ Route::post('reminders/{reminder}/trigger', [RemindersController::class, 'trigge
 Route::post('reminders/{reminder}/cancel', [RemindersController::class, 'cancel'])
     ->middleware(['auth', 'verified'])
     ->name('reminders.cancel');
+
+// Notifications
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
+});
 
 // Settings — admin only
 Route::middleware(['auth', 'verified'])->group(function () {

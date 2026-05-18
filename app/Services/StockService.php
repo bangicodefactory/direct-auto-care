@@ -8,7 +8,9 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\User;
+use App\Notifications\LowStockNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class StockService
 {
@@ -24,11 +26,12 @@ class StockService
             throw new \InvalidArgumentException('La quantité doit être différente de zéro.');
         }
 
-        return DB::transaction(function () use ($product, $type, $quantity, $reason, $invoice, $user) {
+        [$movement, $oldQuantity, $newQuantity] = DB::transaction(function () use ($product, $type, $quantity, $reason, $invoice, $user) {
             $locked = Product::lockForUpdate()->findOrFail($product->id);
 
             $delta       = $this->delta($type, $quantity);
-            $newQuantity = $locked->quantity_on_hand + $delta;
+            $oldQuantity = $locked->quantity_on_hand;
+            $newQuantity = $oldQuantity + $delta;
 
             if ($newQuantity < 0) {
                 throw new InsufficientStockException(
@@ -38,15 +41,26 @@ class StockService
 
             $locked->update(['quantity_on_hand' => $newQuantity]);
 
-            return StockMovement::create([
-                'product_id' => $locked->id,
-                'type'       => $type,
-                'quantity'   => $delta,
-                'reason'     => $reason,
-                'invoice_id' => $invoice?->id,
-                'user_id'    => $user->id,
-            ]);
+            return [
+                StockMovement::create([
+                    'product_id' => $locked->id,
+                    'type'       => $type,
+                    'quantity'   => $delta,
+                    'reason'     => $reason,
+                    'invoice_id' => $invoice?->id,
+                    'user_id'    => $user->id,
+                ]),
+                $oldQuantity,
+                $newQuantity,
+            ];
         });
+
+        if ($oldQuantity >= $product->low_stock_threshold && $newQuantity < $product->low_stock_threshold) {
+            $admins = User::role('admin')->get();
+            Notification::send($admins, new LowStockNotification($product));
+        }
+
+        return $movement;
     }
 
     private function delta(StockMovementType $type, int $quantity): int

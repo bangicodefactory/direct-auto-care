@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
@@ -20,6 +21,8 @@ class StockServiceConcurrencyTest extends TestCase
 
     public function test_concurrent_out_movements_never_leave_quantity_negative(): void
     {
+        $this->seed(RoleSeeder::class);
+
         $product = Product::factory()->create(['quantity_on_hand' => 3]);
         $user    = User::factory()->create();
 

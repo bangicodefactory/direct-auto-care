@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
+import NotificationBell from '@/Components/NotificationBell';
 import Sidebar from '@/Components/Sidebar';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
@@ -50,7 +51,8 @@ export default function AuthenticatedLayout({ header, children }) {
                         </Link>
                     </div>
 
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2">
+                        <NotificationBell />
                         <Dropdown>
                             <Dropdown.Trigger>
                                 <span className="inline-flex rounded-md">
