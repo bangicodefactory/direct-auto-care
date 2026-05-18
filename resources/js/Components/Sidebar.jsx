@@ -71,6 +71,15 @@ export default function Sidebar({ role }) {
                         Utilisateurs
                     </SidebarLink>
                 )}
+
+                {isAdmin && (
+                    <SidebarLink
+                        href={route('settings.edit')}
+                        active={route().current('settings.*')}
+                    >
+                        Paramètres
+                    </SidebarLink>
+                )}
             </nav>
         </aside>
     );
