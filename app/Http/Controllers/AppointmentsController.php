@@ -6,6 +6,7 @@ use App\Enums\AppointmentStatus;
 use App\Exceptions\AppointmentOverlapException;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
+use App\Notifications\AppointmentConfirmationNotification;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\ServiceType;
@@ -110,6 +111,10 @@ class AppointmentsController extends Controller implements HasMiddleware
     {
         try {
             $appointment = $service->create($request->validated(), $request->user());
+
+            $appointment->customer?->user?->notify(
+                new AppointmentConfirmationNotification($appointment)
+            );
         } catch (AppointmentOverlapException $e) {
             return back()->withErrors(['scheduled_at' => $e->getMessage()]);
         }

@@ -12,6 +12,7 @@ use App\Http\Controllers\RemindersController;
 use App\Http\Controllers\ServiceRecordsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiclesController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,6 +31,9 @@ Route::get('/style-guide', function () {
 })->name('style-guide');
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/notifications', [NotificationController::class, 'getNotifications']);
+Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
 Route::resource('products', ProductsController::class)
     ->middleware(['auth', 'verified']);

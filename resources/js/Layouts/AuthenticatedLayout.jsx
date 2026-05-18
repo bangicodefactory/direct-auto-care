@@ -3,6 +3,7 @@ import Dropdown from '@/Components/Dropdown';
 import Sidebar from '@/Components/Sidebar';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import NotificationsBell from '@/Components/NotificationsBell';
 
 export default function AuthenticatedLayout({ header, children }) {
     const { user, role } = usePage().props.auth;
@@ -50,7 +51,11 @@ export default function AuthenticatedLayout({ header, children }) {
                         </Link>
                     </div>
 
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-4">
+                        {/* 🔔 Notifications */}
+                        <NotificationsBell />
+
+                        {/* 👤 User dropdown */}
                         <Dropdown>
                             <Dropdown.Trigger>
                                 <span className="inline-flex rounded-md">
@@ -60,17 +65,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                     >
                                         {user.name}
                                         <svg
-                                            className="-me-0.5 ms-2 h-4 w-4"
                                             xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
+                                            viewBox="0 0 448 512"
+                                        ></svg>
                                     </button>
                                 </span>
                             </Dropdown.Trigger>

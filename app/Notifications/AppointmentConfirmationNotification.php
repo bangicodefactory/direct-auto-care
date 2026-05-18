@@ -14,7 +14,7 @@ class AppointmentConfirmationNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -35,5 +35,18 @@ class AppointmentConfirmationNotification extends Notification
         }
 
         return $mail->salutation("L'équipe Direct Auto Care");
+    }
+
+    public function toDatabase(object $notifiable): array
+    {
+        $appointment = $this->appointment;
+        $customer    = $appointment->customer;
+
+        return [
+            'type' => 'appointment_confirmed',
+            'message' => "Rendez-vous confirmé pour {$customer->first_name}",
+            'appointment_id' => $appointment->id,
+            'date' => $appointment->scheduled_at->format('d/m/Y H:i'),
+        ];
     }
 }
