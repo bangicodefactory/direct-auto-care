@@ -13,6 +13,8 @@ class SendReminderJob implements ShouldQueue
 
     public int $tries = 3;
 
+    public int $timeout = 30;
+
     public function __construct(public readonly Reminder $reminder)
     {
         $this->onQueue('reminders');

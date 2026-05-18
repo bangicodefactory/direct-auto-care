@@ -71,7 +71,7 @@ class SendReminderJobTest extends TestCase
         (new SendReminderJob($reminder))->handle($service);
     }
 
-    public function test_job_marks_reminder_sent_when_dispatched_synchronously(): void
+    public function test_job_marks_reminder_sent_synchronously_when_no_channels_configured(): void
     {
         $reminder = $this->makeReminder();
 
