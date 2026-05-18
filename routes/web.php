@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentsController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\InvoicePdfController;
@@ -119,6 +120,15 @@ Route::post('reminders/{reminder}/trigger', [RemindersController::class, 'trigge
 Route::post('reminders/{reminder}/cancel', [RemindersController::class, 'cancel'])
     ->middleware(['auth', 'verified'])
     ->name('reminders.cancel');
+
+// Settings — admin only
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
+    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+});
+
+// Dynamic branding CSS — public (cached by browser, no auth needed)
+Route::get('/branding.css', [SettingsController::class, 'brandingCss'])->name('settings.branding-css');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
