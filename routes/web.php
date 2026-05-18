@@ -6,6 +6,7 @@ use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RemindersController;
 use App\Http\Controllers\ServiceRecordsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiclesController;
@@ -107,6 +108,18 @@ Route::resource('vehicles.service-records', ServiceRecordsController::class)
     ->middleware(['auth', 'verified'])
     ->only(['create', 'store', 'show', 'edit', 'update', 'destroy'])
     ->shallow();
+
+Route::get('reminders', [RemindersController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('reminders.index');
+
+Route::post('reminders/{reminder}/trigger', [RemindersController::class, 'trigger'])
+    ->middleware(['auth', 'verified'])
+    ->name('reminders.trigger');
+
+Route::post('reminders/{reminder}/cancel', [RemindersController::class, 'cancel'])
+    ->middleware(['auth', 'verified'])
+    ->name('reminders.cancel');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

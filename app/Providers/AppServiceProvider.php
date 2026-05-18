@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Contracts\WhatsAppChannelContract;
 use App\Models\Customer;
+use App\Models\Reminder;
 use App\Models\ServiceRecord;
 use App\Models\User;
 use App\Policies\CustomerPolicy;
+use App\Policies\ReminderPolicy;
 use App\Policies\ServiceRecordPolicy;
 use App\Policies\UserPolicy;
 use App\Services\Notifications\MetaWhatsAppChannel;
@@ -36,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
+        Gate::policy(Reminder::class, ReminderPolicy::class);
         Gate::policy(ServiceRecord::class, ServiceRecordPolicy::class);
 
         ResetPassword::toMailUsing(function (mixed $notifiable, string $token) {
