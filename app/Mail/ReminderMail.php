@@ -32,8 +32,5 @@ class ReminderMail extends Mailable
         );
     }
 
-    public function attachments(): array
-    {
-        return [];
-    }
+
 }

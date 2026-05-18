@@ -65,7 +65,7 @@ class ReminderMailTest extends TestCase
         $this->assertEquals('mail.reminder', $mail->content()->markdown);
     }
 
-    public function test_mailable_can_be_queued_and_dispatched(): void
+    public function test_mailable_can_be_dispatched(): void
     {
         Mail::fake();
 

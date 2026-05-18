@@ -22,7 +22,7 @@ class MetaWhatsAppChannel implements WhatsAppChannelContract
         $response = Http::withToken($this->accessToken)
             ->post("https://graph.facebook.com/v19.0/{$this->phoneNumberId}/messages", [
                 'messaging_product' => 'whatsapp',
-                'to'                => $reminder->customer->phone,
+                'to'                => ltrim($reminder->customer->phone, '+'),
                 'type'              => 'template',
                 'template'          => [
                     'name'     => $this->templateName($reminder->type),

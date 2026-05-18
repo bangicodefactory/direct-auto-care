@@ -70,19 +70,9 @@ class MetaWhatsAppChannelTest extends TestCase
         Http::assertSent(function ($request) use ($reminder) {
             return str_contains($request->url(), 'test-phone-id/messages')
                 && $request->data()['messaging_product'] === 'whatsapp'
-                && $request->data()['to'] === $reminder->customer->phone
+                && $request->data()['to'] === '212600000001'
                 && $request->data()['template']['name'] === 'vidange_reminder_fr';
         });
-    }
-
-    public function test_vidange_type_uses_vidange_template(): void
-    {
-        Http::fake(['graph.facebook.com/*' => Http::response(['messages' => [['id' => 'x']]], 200)]);
-
-        $reminder = $this->makeReminder(['type' => ReminderType::Vidange]);
-        $this->makeChannel()->send($reminder);
-
-        Http::assertSent(fn ($r) => $r->data()['template']['name'] === 'vidange_reminder_fr');
     }
 
     public function test_visite_technique_type_uses_visite_technique_template(): void
