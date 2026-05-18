@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Contracts\WhatsAppChannelContract;
 use App\Models\Customer;
+use App\Services\ReminderService;
 use App\Models\ServiceRecord;
 use App\Models\User;
 use App\Policies\CustomerPolicy;
@@ -25,6 +26,13 @@ class AppServiceProvider extends ServiceProvider
             fn () => new MetaWhatsAppChannel(
                 phoneNumberId: (string) config('services.meta_whatsapp.phone_number_id'),
                 accessToken: (string) config('services.meta_whatsapp.access_token'),
+            ),
+        );
+
+        $this->app->bind(
+            ReminderService::class,
+            fn (mixed $app) => new ReminderService(
+                whatsApp: $app->make(WhatsAppChannelContract::class),
             ),
         );
     }
