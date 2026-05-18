@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\User;
+use App\Notifications\LowStockNotification;
 use App\Services\StockService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -213,6 +214,43 @@ class StockServiceTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $this->service->recordMovement($product, StockMovementType::Out, 0, null, null, $user);
+    }
+
+    // -------------------------------------------------------------------------
+    // Low-stock notifications (edge-triggered)
+    // -------------------------------------------------------------------------
+
+    public function test_low_stock_notification_sent_when_crossing_below_threshold(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['quantity_on_hand' => 6, 'low_stock_threshold' => 5]);
+        $user    = User::factory()->create();
+
+        $this->service->recordMovement($product, StockMovementType::Out, 2, null, null, $user);
+
+        Notification::assertSentTo($admin, LowStockNotification::class);
+    }
+
+    public function test_low_stock_notification_not_sent_when_already_below_threshold(): void
+    {
+        User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['quantity_on_hand' => 3, 'low_stock_threshold' => 5]);
+        $user    = User::factory()->create();
+
+        $this->service->recordMovement($product, StockMovementType::Out, 1, null, null, $user);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_low_stock_notification_not_sent_when_stock_stays_above_threshold(): void
+    {
+        User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['quantity_on_hand' => 20, 'low_stock_threshold' => 5]);
+        $user    = User::factory()->create();
+
+        $this->service->recordMovement($product, StockMovementType::Out, 5, null, null, $user);
+
+        Notification::assertNothingSent();
     }
 
     // -------------------------------------------------------------------------

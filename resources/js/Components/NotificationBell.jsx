@@ -23,18 +23,9 @@ export default function NotificationBell() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    function markRead(id, url) {
+    function markRead(id) {
         setOpen(false);
-        router.post(
-            route('notifications.read', id),
-            {},
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    if (url) window.location.href = url;
-                },
-            },
-        );
+        router.post(route('notifications.read', id));
     }
 
     function markAllRead() {
@@ -104,7 +95,7 @@ export default function NotificationBell() {
                                     <li key={n.id}>
                                         <button
                                             type="button"
-                                            onClick={() => markRead(n.id, n.url)}
+                                            onClick={() => markRead(n.id)}
                                             className={`w-full px-4 py-3 text-left transition hover:bg-gray-50 ${
                                                 !n.read_at ? 'bg-blue-50' : ''
                                             }`}

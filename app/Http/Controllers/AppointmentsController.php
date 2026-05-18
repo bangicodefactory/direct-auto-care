@@ -117,7 +117,7 @@ class AppointmentsController extends Controller implements HasMiddleware
             return back()->withErrors(['scheduled_at' => $e->getMessage()]);
         }
 
-        $admins = User::role('admin')->get();
+        $admins = User::role('admin')->where('id', '!=', $request->user()->id)->get();
         Notification::send($admins, new NewAppointmentNotification($appointment));
 
         return redirect()->route('appointments.show', $appointment)

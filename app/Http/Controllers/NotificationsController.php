@@ -12,7 +12,7 @@ class NotificationsController extends Controller
     {
         $notification = DatabaseNotification::findOrFail($id);
 
-        abort_unless($notification->notifiable_id === $request->user()->id, 403);
+        abort_unless((string) $notification->notifiable_id === (string) $request->user()->id, 403);
 
         $notification->markAsRead();
 
