@@ -5,3 +5,5 @@ pre-commit:
       run: composer lint
     - name: eslint
       run: npm run lint
+    - name: prettier
+      run: npm run format:check

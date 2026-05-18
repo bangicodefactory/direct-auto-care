@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentsController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\InvoicesController;
@@ -27,9 +28,7 @@ Route::get('/style-guide', function () {
     return Inertia::render('StyleGuide');
 })->name('style-guide');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::resource('products', ProductsController::class)
     ->middleware(['auth', 'verified']);
