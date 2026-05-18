@@ -1,3 +1,4 @@
+import { BRAND_ACCENT, BRAND_PRIMARY } from '@/constants/brand';
 import {
     CartesianGrid,
     Legend,
@@ -9,13 +10,9 @@ import {
     YAxis,
 } from 'recharts';
 
-// Matches CSS variables --primary and --accent
-const COLOR_PRIMARY = '#0B3D91';
-const COLOR_ACCENT = '#E63946';
-
 const LINES = [
-    { key: 'revenue', label: 'CA (DH)', color: COLOR_PRIMARY, yAxisId: 'revenue' },
-    { key: 'appointments', label: 'RDV', color: COLOR_ACCENT, yAxisId: 'appointments' },
+    { key: 'revenue', label: 'CA (DH)', color: BRAND_PRIMARY, yAxisId: 'revenue' },
+    { key: 'appointments', label: 'RDV', color: BRAND_ACCENT, yAxisId: 'appointments' },
 ];
 
 function revenueFormatter(value) {
@@ -40,7 +37,7 @@ export default function LineChartCard({ title, data }) {
                 <p className="text-sm text-gray-500">Aucune donnée.</p>
             ) : (
                 <ResponsiveContainer width="100%" height={220}>
-                    <LineChart data={data} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
+                    <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis
                             dataKey="month"
@@ -73,8 +70,8 @@ export default function LineChartCard({ title, data }) {
                                 borderRadius: 6,
                                 border: '1px solid #e5e7eb',
                             }}
-                            formatter={(value, name) =>
-                                name === 'CA (DH)'
+                            formatter={(value, name, { dataKey }) =>
+                                dataKey === 'revenue'
                                     ? [
                                           Number(value).toLocaleString('fr-MA', {
                                               minimumFractionDigits: 2,

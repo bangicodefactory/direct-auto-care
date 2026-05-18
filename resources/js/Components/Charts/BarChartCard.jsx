@@ -1,7 +1,5 @@
+import { BRAND_PRIMARY } from '@/constants/brand';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-
-// Matches CSS variable --primary: #0B3D91
-const COLOR_PRIMARY = '#0B3D91';
 
 export default function BarChartCard({ title, data, dataKey = 'count', nameKey = 'name' }) {
     return (
@@ -38,7 +36,7 @@ export default function BarChartCard({ title, data, dataKey = 'count', nameKey =
                         />
                         <Bar
                             dataKey={dataKey}
-                            fill={COLOR_PRIMARY}
+                            fill={BRAND_PRIMARY}
                             radius={[4, 4, 0, 0]}
                             maxBarSize={48}
                         />
