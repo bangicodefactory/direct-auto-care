@@ -5,6 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const FIELD_ORDER = ['first_name', 'last_name', 'phone', 'email', 'address', 'notes'];
 
@@ -17,6 +18,7 @@ export default function CustomerForm({
     cancelHref,
     autoFocus = true,
 }) {
+    const { t } = useTranslation();
     const inputRefs = useRef({});
 
     useEffect(() => {
@@ -30,7 +32,7 @@ export default function CustomerForm({
         <form onSubmit={onSubmit} className="space-y-6 p-6">
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <InputLabel htmlFor="first_name" value="Prénom" />
+                    <InputLabel htmlFor="first_name" value={t('customer.first_name')} />
                     <TextInput
                         id="first_name"
                         ref={(el) => (inputRefs.current.first_name = el)}
@@ -43,7 +45,7 @@ export default function CustomerForm({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="last_name" value="Nom de famille" />
+                    <InputLabel htmlFor="last_name" value={t('customer.last_name')} />
                     <TextInput
                         id="last_name"
                         ref={(el) => (inputRefs.current.last_name = el)}
@@ -56,7 +58,7 @@ export default function CustomerForm({
             </div>
 
             <div>
-                <InputLabel htmlFor="phone" value="Téléphone" />
+                <InputLabel htmlFor="phone" value={t('customer.phone')} />
                 <TextInput
                     id="phone"
                     ref={(el) => (inputRefs.current.phone = el)}
@@ -69,7 +71,7 @@ export default function CustomerForm({
             </div>
 
             <div>
-                <InputLabel htmlFor="email" value="Adresse e-mail" />
+                <InputLabel htmlFor="email" value={t('customer.email')} />
                 <TextInput
                     id="email"
                     type="email"
@@ -82,7 +84,7 @@ export default function CustomerForm({
             </div>
 
             <div>
-                <InputLabel htmlFor="address" value="Adresse" />
+                <InputLabel htmlFor="address" value={t('customer.address')} />
                 <TextInput
                     id="address"
                     ref={(el) => (inputRefs.current.address = el)}
@@ -94,7 +96,7 @@ export default function CustomerForm({
             </div>
 
             <div>
-                <InputLabel htmlFor="notes" value="Notes" />
+                <InputLabel htmlFor="notes" value={t('customer.notes')} />
                 <textarea
                     id="notes"
                     ref={(el) => (inputRefs.current.notes = el)}
@@ -107,7 +109,10 @@ export default function CustomerForm({
             </div>
 
             <fieldset>
-                <legend className="text-sm font-medium text-gray-700">Notifications</legend>
+                <legend className="text-sm font-medium text-gray-700">
+                    {t('customer.notifications')}
+                </legend>
+
                 <div className="mt-2 space-y-2">
                     <label className="flex items-center gap-2">
                         <Checkbox
@@ -115,24 +120,30 @@ export default function CustomerForm({
                             checked={data.notify_whatsapp}
                             onChange={(e) => setData('notify_whatsapp', e.target.checked)}
                         />
-                        <span className="text-sm text-gray-700">Rappels WhatsApp</span>
+                        <span className="text-sm text-gray-700">
+                            {t('customer.whatsapp_reminders')}
+                        </span>
                     </label>
+
                     <label className="flex items-center gap-2">
                         <Checkbox
                             id="notify_email"
                             checked={data.notify_email}
                             onChange={(e) => setData('notify_email', e.target.checked)}
                         />
-                        <span className="text-sm text-gray-700">Rappels par e-mail</span>
+                        <span className="text-sm text-gray-700">
+                            {t('customer.email_reminders')}
+                        </span>
                     </label>
                 </div>
             </fieldset>
 
             <div className="flex items-center justify-end gap-4">
                 <Link href={cancelHref} className="text-sm text-gray-600 hover:text-gray-900">
-                    Annuler
+                    {t('buttons.cancel')}
                 </Link>
-                <PrimaryButton disabled={processing}>Enregistrer</PrimaryButton>
+
+                <PrimaryButton disabled={processing}>{t('buttons.save')}</PrimaryButton>
             </div>
         </form>
     );

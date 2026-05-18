@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 
 function SidebarLink({ href, active, children }) {
     return (
@@ -16,28 +17,30 @@ function SidebarLink({ href, active, children }) {
 }
 
 export default function Sidebar({ role }) {
+    const { t } = useTranslation();
+
     const isAdmin = role === 'admin';
 
     return (
         <aside className="flex h-full flex-col border-r border-gray-200 bg-white">
             <nav className="flex-1 space-y-1 px-3 py-4">
                 <SidebarLink href={route('dashboard')} active={route().current('dashboard')}>
-                    Tableau de bord
+                    {t('sidebar.dashboard')}
                 </SidebarLink>
 
                 <SidebarLink
                     href={route('customers.index')}
                     active={route().current('customers.*')}
                 >
-                    Clients
+                    {t('sidebar.customers')}
                 </SidebarLink>
 
                 <SidebarLink href={route('invoices.index')} active={route().current('invoices.*')}>
-                    Factures & Devis
+                    {t('sidebar.invoices')}
                 </SidebarLink>
 
                 <SidebarLink href={route('products.index')} active={route().current('products.*')}>
-                    Produits
+                    {t('sidebar.products')}
                 </SidebarLink>
 
                 <SidebarLink
@@ -47,14 +50,14 @@ export default function Sidebar({ role }) {
                         route().current('appointments.*')
                     }
                 >
-                    Rendez-vous
+                    {t('sidebar.appointments')}
                 </SidebarLink>
 
                 <SidebarLink
                     href={route('appointments.today-page')}
                     active={route().current('appointments.today-page')}
                 >
-                    Aujourd'hui
+                    {t('sidebar.today')}
                 </SidebarLink>
 
                 {isAdmin && (
@@ -62,13 +65,13 @@ export default function Sidebar({ role }) {
                         href={route('reminders.index')}
                         active={route().current('reminders.*')}
                     >
-                        Rappels
+                        {t('sidebar.reminders')}
                     </SidebarLink>
                 )}
 
                 {isAdmin && (
                     <SidebarLink href={route('users.index')} active={route().current('users.*')}>
-                        Utilisateurs
+                        {t('sidebar.users')}
                     </SidebarLink>
                 )}
 
@@ -77,7 +80,7 @@ export default function Sidebar({ role }) {
                         href={route('settings.edit')}
                         active={route().current('settings.*')}
                     >
-                        Paramètres
+                        {t('sidebar.settings')}
                     </SidebarLink>
                 )}
             </nav>

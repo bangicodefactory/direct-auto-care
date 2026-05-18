@@ -1,7 +1,10 @@
 import InputError from '@/Components/InputError';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function CustomerCombobox({ customers, value, onChange, error, inputRef }) {
+    const { t } = useTranslation();
+
     const [query, setQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
@@ -88,7 +91,9 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
         <div ref={containerRef} className="relative">
             {selected ? (
                 <div
-                    className={`flex items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm ${error ? 'border-red-500' : 'border-gray-300'}`}
+                    className={`flex items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm ${
+                        error ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 >
                     <span className="flex-1 font-medium">
                         {selected.first_name} {selected.last_name}
@@ -96,11 +101,12 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                             <span className="ml-2 font-normal text-gray-400">{selected.phone}</span>
                         )}
                     </span>
+
                     <button
                         type="button"
                         onClick={clear}
                         className="text-gray-400 hover:text-gray-600"
-                        aria-label="Effacer la sélection"
+                        aria-label={t('customer.clear_selection')}
                     >
                         ✕
                     </button>
@@ -129,20 +135,23 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                         }}
                         onFocus={() => setIsOpen(true)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Rechercher un client par nom ou téléphone…"
-                        className={`block w-full rounded-md shadow-sm focus:border-primary focus:ring-primary sm:text-sm ${error ? 'border-red-500' : 'border-gray-300'}`}
+                        placeholder={t('customer.search_placeholder')}
+                        className={`block w-full rounded-md shadow-sm focus:border-primary focus:ring-primary sm:text-sm ${
+                            error ? 'border-red-500' : 'border-gray-300'
+                        }`}
                     />
+
                     {isOpen && (
                         <ul
                             ref={listRef}
                             role="listbox"
                             id="customer-listbox"
-                            aria-label="Clients"
+                            aria-label={t('customer.list_label')}
                             className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg"
                         >
                             {filtered.length === 0 ? (
                                 <li role="presentation" className="px-4 py-2 text-sm text-gray-500">
-                                    Aucun client trouvé.
+                                    {t('customer.no_results')}
                                 </li>
                             ) : (
                                 filtered.map((c, i) => (
@@ -162,6 +171,7 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                                         <span className="font-medium">
                                             {c.first_name} {c.last_name}
                                         </span>
+
                                         {c.phone && (
                                             <span className="ml-2 text-xs text-gray-400">
                                                 {c.phone}
@@ -174,6 +184,7 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                     )}
                 </>
             )}
+
             <InputError message={error} className="mt-2" />
         </div>
     );

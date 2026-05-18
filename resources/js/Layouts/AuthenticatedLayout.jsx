@@ -4,8 +4,11 @@ import NotificationBell from '@/Components/NotificationBell';
 import Sidebar from '@/Components/Sidebar';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function AuthenticatedLayout({ header, children }) {
+    const { t } = useTranslation();
+
     const { user, role } = usePage().props.auth;
     const flash = usePage().props.flash;
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,7 +23,9 @@ export default function AuthenticatedLayout({ header, children }) {
                             type="button"
                             className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none md:hidden"
                             onClick={() => setSidebarOpen((prev) => !prev)}
-                            aria-label="Ouvrir le menu"
+                            aria-label={
+                                sidebarOpen ? t('layout.close_menu') : t('layout.open_menu')
+                            }
                         >
                             <svg
                                 className="h-6 w-6"
@@ -53,6 +58,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
                     <div className="flex items-center gap-2">
                         <NotificationBell />
+
                         <Dropdown>
                             <Dropdown.Trigger>
                                 <span className="inline-flex rounded-md">
@@ -82,9 +88,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <p className="text-sm font-medium text-gray-800">{user.name}</p>
                                     <p className="truncate text-xs text-gray-500">{user.email}</p>
                                 </div>
-                                <Dropdown.Link href={route('profile.edit')}>Profil</Dropdown.Link>
+
+                                <Dropdown.Link href={route('profile.edit')}>
+                                    {t('layout.profile')}
+                                </Dropdown.Link>
+
                                 <Dropdown.Link href={route('logout')} method="post" as="button">
-                                    Déconnexion
+                                    {t('layout.logout')}
                                 </Dropdown.Link>
                             </Dropdown.Content>
                         </Dropdown>
@@ -92,10 +102,10 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
             </nav>
 
-            {/* Mobile sidebar backdrop — rendered as button for keyboard/screen-reader accessibility */}
+            {/* overlay */}
             <button
                 type="button"
-                aria-label="Fermer le menu"
+                aria-label={t('layout.close_menu')}
                 className={`fixed inset-0 z-20 cursor-default bg-black/50 md:hidden ${
                     sidebarOpen ? 'block' : 'hidden'
                 }`}
@@ -105,7 +115,6 @@ export default function AuthenticatedLayout({ header, children }) {
             />
 
             <div className="flex pt-16">
-                {/* Sidebar — single instance, visibility controlled by CSS */}
                 <div
                     className={`fixed inset-y-0 left-0 z-20 w-64 pt-16 transition-transform duration-200 md:z-auto md:translate-x-0 ${
                         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -114,13 +123,13 @@ export default function AuthenticatedLayout({ header, children }) {
                     <Sidebar role={role} />
                 </div>
 
-                {/* Page content */}
                 <div className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col md:ml-64">
                     {flash?.success && (
                         <div className="border-l-4 border-green-400 bg-green-50 p-4">
                             <p className="text-sm text-green-700">{flash.success}</p>
                         </div>
                     )}
+
                     {flash?.error && (
                         <div className="border-l-4 border-red-400 bg-red-50 p-4">
                             <p className="text-sm text-red-700">{flash.error}</p>
