@@ -17,7 +17,7 @@ class MetaWhatsAppChannel implements WhatsAppChannelContract
 
     public function send(Reminder $reminder): ?string
     {
-        $reminder->loadMissing('customer');
+        $reminder->loadMissing('customer', 'vehicle');
 
         $http = Http::withToken($this->accessToken);
 
@@ -27,14 +27,23 @@ class MetaWhatsAppChannel implements WhatsAppChannelContract
         }
 
         $response = $http->post("https://graph.facebook.com/v19.0/{$this->phoneNumberId}/messages", [
-                'messaging_product' => 'whatsapp',
-                'to'                => ltrim($reminder->customer->phone, '+'),
-                'type'              => 'template',
-                'template'          => [
-                    'name'     => $this->templateName($reminder->type),
-                    'language' => ['code' => 'fr'],
+            'messaging_product' => 'whatsapp',
+            'to'                => ltrim($reminder->customer->phone, '+'),
+            'type'              => 'template',
+            'template'          => [
+                'name'       => $this->templateName($reminder->type),
+                'language'   => ['code' => 'fr'],
+                'components' => [
+                    [
+                        'type'       => 'body',
+                        'parameters' => [
+                            ['type' => 'text', 'text' => $reminder->customer->first_name],
+                            ['type' => 'text', 'text' => $reminder->vehicle->license_plate],
+                        ],
+                    ],
                 ],
-            ]);
+            ],
+        ]);
 
         if ($response->failed()) {
             $reminder->update([
