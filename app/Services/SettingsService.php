@@ -4,22 +4,19 @@ namespace App\Services;
 
 use App\Models\Settings;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class SettingsService
 {
     public function get(): Settings
     {
-        return Cache::rememberForever('settings', function () {
-            $settings = Settings::firstOrCreate(['singleton' => 1]);
+        $settings = Settings::firstOrCreate(['singleton' => 1]);
 
-            if ($settings->wasRecentlyCreated) {
-                $settings->refresh();
-            }
+        if ($settings->wasRecentlyCreated) {
+            $settings->refresh();
+        }
 
-            return $settings;
-        });
+        return $settings;
     }
 
     /**
@@ -37,7 +34,6 @@ class SettingsService
         }
 
         $settings->update($data);
-        Cache::forget('settings');
 
         return $settings;
     }

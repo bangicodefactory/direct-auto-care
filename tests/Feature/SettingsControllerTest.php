@@ -6,7 +6,6 @@ use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -20,8 +19,6 @@ class SettingsControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        Cache::forget('settings');
 
         $this->seed(\Database\Seeders\RoleSeeder::class);
 
