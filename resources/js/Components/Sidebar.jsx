@@ -58,6 +58,15 @@ export default function Sidebar({ role }) {
                 </SidebarLink>
 
                 {isAdmin && (
+                    <SidebarLink
+                        href={route('reminders.index')}
+                        active={route().current('reminders.*')}
+                    >
+                        Rappels
+                    </SidebarLink>
+                )}
+
+                {isAdmin && (
                     <SidebarLink href={route('users.index')} active={route().current('users.*')}>
                         Utilisateurs
                     </SidebarLink>
