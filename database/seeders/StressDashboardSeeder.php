@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -13,6 +14,8 @@ use Illuminate\Database\Seeder;
  * Generates ~1 000 customers and ~3 000 invoices to stress-test the dashboard.
  * Run after migrate:fresh --seed to layer on top of the default seeded data:
  *   php artisan db:seed --class=StressDashboardSeeder
+ *
+ * Idempotency: not guaranteed — re-run migrate:fresh --seed before repeating.
  */
 class StressDashboardSeeder extends Seeder
 {
@@ -21,10 +24,10 @@ class StressDashboardSeeder extends Seeder
 
     // Weighted status distribution — mirrors realistic garage data.
     private const STATUS_WEIGHTS = [
-        'paid'      => 50,
-        'issued'    => 25,
-        'draft'     => 15,
-        'cancelled' => 10,
+        InvoiceStatus::Paid->value      => 50,
+        InvoiceStatus::Issued->value    => 25,
+        InvoiceStatus::Draft->value     => 15,
+        InvoiceStatus::Cancelled->value => 10,
     ];
 
     public function run(): void
@@ -32,26 +35,32 @@ class StressDashboardSeeder extends Seeder
         $admin = User::role('admin')->firstOrFail();
 
         $this->command->info('Creating ' . self::CUSTOMER_COUNT . ' customers...');
-        Customer::factory(self::CUSTOMER_COUNT)->create();
+        $newCustomerIds = Customer::factory(self::CUSTOMER_COUNT)->create()->pluck('id');
 
         $this->command->info('Creating vehicles...');
-        Customer::query()->each(function (Customer $customer) {
+        $newCustomerIds->each(function (int $customerId) {
             Vehicle::factory(fake()->numberBetween(1, 2))->create([
-                'customer_id' => $customer->id,
+                'customer_id' => $customerId,
             ]);
         });
 
         $this->command->info('Creating ' . self::INVOICE_COUNT . ' invoices...');
-        $customerIds = Customer::pluck('id');
-        $statusPool  = $this->buildStatusPool();
 
-        foreach (range(1, self::INVOICE_COUNT) as $i) {
-            $customerId = $customerIds->random();
-            $vehicle    = Vehicle::where('customer_id', $customerId)->inRandomOrder()->first();
+        // Pre-build customer → [vehicle IDs] map to avoid N+1 in the invoice loop.
+        $vehicleMap = Vehicle::whereIn('customer_id', $newCustomerIds)
+            ->get(['id', 'customer_id'])
+            ->groupBy('customer_id')
+            ->map(fn ($vehicles) => $vehicles->pluck('id'));
+
+        $statusPool = $this->buildStatusPool();
+
+        for ($i = 1; $i <= self::INVOICE_COUNT; $i++) {
+            $customerId = $newCustomerIds->random();
+            $vehicleId  = $vehicleMap->get($customerId)?->random();
 
             Invoice::factory()->create([
                 'customer_id' => $customerId,
-                'vehicle_id'  => $vehicle?->id,
+                'vehicle_id'  => $vehicleId,
                 'created_by'  => $admin->id,
                 'status'      => fake()->randomElement($statusPool),
                 'type'        => InvoiceType::Invoice->value,
