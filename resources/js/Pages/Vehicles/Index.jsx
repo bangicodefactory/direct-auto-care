@@ -21,7 +21,7 @@ function SortableHeader({ column, label, currentSort, currentDirection, onSort }
         <button
             type="button"
             onClick={() => onSort(column)}
-            className="flex items-center text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
+            className="flex min-h-[44px] items-center text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
         >
             {label}
             <SortIcon
@@ -88,7 +88,7 @@ export default function Index({ vehicles, filters, can }) {
                     <h2 className="text-xl font-semibold leading-tight text-gray-800">Véhicules</h2>
                     <Link
                         href={route('vehicles.create')}
-                        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                        className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                     >
                         Nouveau véhicule
                     </Link>
@@ -112,7 +112,7 @@ export default function Index({ vehicles, filters, can }) {
                                 <button
                                     type="button"
                                     onClick={() => setSearch('')}
-                                    className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                                    className="min-h-[44px] rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                                 >
                                     Effacer
                                 </button>
@@ -181,7 +181,7 @@ export default function Index({ vehicles, filters, can }) {
                                                 <Dropdown.Trigger>
                                                     <button
                                                         type="button"
-                                                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none"
+                                                        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none"
                                                     >
                                                         <MoreVertical className="h-5 w-5" />
                                                     </button>
@@ -233,13 +233,13 @@ export default function Index({ vehicles, filters, can }) {
                                             key={i}
                                             href={link.url}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={`px-3 py-1 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                                         />
                                     ) : (
                                         <span
                                             key={i}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className="px-3 py-1 text-sm text-gray-300"
+                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-gray-300"
                                         />
                                     ),
                                 )}

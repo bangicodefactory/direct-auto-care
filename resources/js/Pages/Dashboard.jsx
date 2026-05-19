@@ -184,7 +184,10 @@ function Section({ title, href, children }) {
                     {title}
                 </h3>
                 {href && (
-                    <Link href={href} className="text-xs font-medium text-primary hover:underline">
+                    <Link
+                        href={href}
+                        className="inline-flex min-h-[44px] items-center text-xs font-medium text-primary hover:underline"
+                    >
                         Voir tout →
                     </Link>
                 )}

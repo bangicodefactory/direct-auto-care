@@ -71,7 +71,7 @@ export default function Index({ customers, filters, can }) {
                     <h2 className="text-xl font-semibold leading-tight text-gray-800">Clients</h2>
                     <Link
                         href={route('customers.create')}
-                        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                        className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                     >
                         + Nouveau client
                     </Link>
@@ -96,7 +96,7 @@ export default function Index({ customers, filters, can }) {
                             <select
                                 id="sort"
                                 name="sort"
-                                className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                 value={filters?.sort || 'last_name'}
                                 onChange={handleSortSelect}
                             >
@@ -113,7 +113,7 @@ export default function Index({ customers, filters, can }) {
                             {search && (
                                 <button
                                     onClick={() => setSearch('')}
-                                    className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                                    className="min-h-[44px] rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                                 >
                                     Effacer
                                 </button>
@@ -125,17 +125,26 @@ export default function Index({ customers, filters, can }) {
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        <Link href={sortLink('last_name')}>
+                                        <Link
+                                            href={sortLink('last_name')}
+                                            className="inline-flex min-h-[44px] items-center"
+                                        >
                                             Nom{sortIcon('last_name')}
                                         </Link>
                                     </th>
                                     <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        <Link href={sortLink('first_name')}>
+                                        <Link
+                                            href={sortLink('first_name')}
+                                            className="inline-flex min-h-[44px] items-center"
+                                        >
                                             Prénom{sortIcon('first_name')}
                                         </Link>
                                     </th>
                                     <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        <Link href={sortLink('email')}>
+                                        <Link
+                                            href={sortLink('email')}
+                                            className="inline-flex min-h-[44px] items-center"
+                                        >
                                             E-mail{sortIcon('email')}
                                         </Link>
                                     </th>
@@ -163,7 +172,7 @@ export default function Index({ customers, filters, can }) {
                                         <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
                                             <Dropdown>
                                                 <Dropdown.Trigger>
-                                                    <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
+                                                    <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
                                                         <MoreVertical className="h-5 w-5" />
                                                     </button>
                                                 </Dropdown.Trigger>
@@ -213,13 +222,13 @@ export default function Index({ customers, filters, can }) {
                                             key={i}
                                             href={link.url}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={`px-3 py-1 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                                         />
                                     ) : (
                                         <span
                                             key={i}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className="px-3 py-1 text-sm text-gray-300"
+                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-gray-300"
                                         />
                                     ),
                                 )}

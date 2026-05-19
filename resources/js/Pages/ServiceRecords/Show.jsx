@@ -62,7 +62,7 @@ export default function Show({ record, can }) {
                                 <dd className="text-sm text-gray-900">
                                     <Link
                                         href={route('vehicles.show', record.vehicle.id)}
-                                        className="text-primary hover:underline"
+                                        className="inline-flex min-h-[44px] items-center text-primary hover:underline"
                                     >
                                         {record.vehicle.make} {record.vehicle.model}{' '}
                                         <span className="font-mono">

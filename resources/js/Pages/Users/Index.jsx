@@ -30,7 +30,7 @@ export default function Index({ users }) {
                     </h2>
                     <Link
                         href={route('users.create')}
-                        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                        className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                     >
                         Créer un utilisateur
                     </Link>
@@ -86,13 +86,13 @@ export default function Index({ users }) {
                                         <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
                                             <Link
                                                 href={route('users.edit', user.id)}
-                                                className="me-4 text-primary hover:text-primary/80"
+                                                className="inline-flex min-h-[44px] items-center me-4 text-primary hover:text-primary/80"
                                             >
                                                 Modifier
                                             </Link>
                                             <button
                                                 onClick={() => setDeletingUser(user)}
-                                                className="text-red-600 hover:text-red-800"
+                                                className="inline-flex min-h-[44px] items-center text-red-600 hover:text-red-800"
                                             >
                                                 Supprimer
                                             </button>
@@ -120,13 +120,13 @@ export default function Index({ users }) {
                                             key={i}
                                             href={link.url}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={`px-3 py-1 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                                         />
                                     ) : (
                                         <span
                                             key={i}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className="px-3 py-1 text-sm text-gray-300"
+                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-gray-300"
                                         />
                                     ),
                                 )}

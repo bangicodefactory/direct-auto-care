@@ -73,7 +73,7 @@ export default function Index({ reminders, filters, statuses, types }) {
                             <div className="flex flex-col gap-1">
                                 <label className="text-xs font-medium text-gray-600">Statut</label>
                                 <select
-                                    className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.status ?? ''}
                                     onChange={(e) =>
                                         applyFilters({
@@ -94,7 +94,7 @@ export default function Index({ reminders, filters, statuses, types }) {
                             <div className="flex flex-col gap-1">
                                 <label className="text-xs font-medium text-gray-600">Type</label>
                                 <select
-                                    className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.type ?? ''}
                                     onChange={(e) =>
                                         applyFilters({
@@ -116,7 +116,7 @@ export default function Index({ reminders, filters, statuses, types }) {
                                 <label className="text-xs font-medium text-gray-600">Du</label>
                                 <input
                                     type="date"
-                                    className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.date_from ?? ''}
                                     onChange={(e) =>
                                         applyFilters({
@@ -131,7 +131,7 @@ export default function Index({ reminders, filters, statuses, types }) {
                                 <label className="text-xs font-medium text-gray-600">Au</label>
                                 <input
                                     type="date"
-                                    className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.date_to ?? ''}
                                     onChange={(e) =>
                                         applyFilters({
@@ -156,7 +156,7 @@ export default function Index({ reminders, filters, statuses, types }) {
                                             page: undefined,
                                         })
                                     }
-                                    className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                                    className="min-h-[44px] rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                                 >
                                     Effacer
                                 </button>
@@ -236,7 +236,7 @@ export default function Index({ reminders, filters, statuses, types }) {
                                                 {(r.can.trigger || r.can.cancel) && (
                                                     <Dropdown>
                                                         <Dropdown.Trigger>
-                                                            <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
+                                                            <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
                                                                 <MoreVertical className="h-5 w-5" />
                                                             </button>
                                                         </Dropdown.Trigger>
@@ -290,13 +290,13 @@ export default function Index({ reminders, filters, statuses, types }) {
                                             key={i}
                                             href={link.url}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={`px-3 py-1 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                                         />
                                     ) : (
                                         <span
                                             key={i}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className="px-3 py-1 text-sm text-gray-300"
+                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-gray-300"
                                         />
                                     ),
                                 )}

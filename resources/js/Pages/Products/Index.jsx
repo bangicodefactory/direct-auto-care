@@ -83,7 +83,7 @@ export default function Index({ products, filters, categories, can }) {
                     {can.create && (
                         <Link
                             href={route('products.create')}
-                            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                            className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                         >
                             + Ajouter un produit
                         </Link>
@@ -105,7 +105,7 @@ export default function Index({ products, filters, categories, can }) {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                             <select
-                                className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                 value={filters?.category ?? ''}
                                 onChange={(e) => filterCategory(e.target.value)}
                             >
@@ -119,7 +119,7 @@ export default function Index({ products, filters, categories, can }) {
                             <button
                                 type="button"
                                 onClick={toggleLowStock}
-                                className={`rounded-md border px-3 py-2 text-sm ${
+                                className={`min-h-[44px] rounded-md border px-3 py-2 text-sm ${
                                     filters?.low_stock
                                         ? 'border-red-400 bg-red-50 text-red-700'
                                         : 'border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -131,7 +131,7 @@ export default function Index({ products, filters, categories, can }) {
                                 <button
                                     type="button"
                                     onClick={() => setSearch('')}
-                                    className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                                    className="min-h-[44px] rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                                 >
                                     Effacer
                                 </button>
@@ -190,7 +190,7 @@ export default function Index({ products, filters, categories, can }) {
                                         <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
                                             <Dropdown>
                                                 <Dropdown.Trigger>
-                                                    <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
+                                                    <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
                                                         <MoreVertical className="h-5 w-5" />
                                                     </button>
                                                 </Dropdown.Trigger>
@@ -242,13 +242,13 @@ export default function Index({ products, filters, categories, can }) {
                                             key={i}
                                             href={link.url}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={`px-3 py-1 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                                         />
                                     ) : (
                                         <span
                                             key={i}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className="px-3 py-1 text-sm text-gray-300"
+                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-gray-300"
                                         />
                                     ),
                                 )}
