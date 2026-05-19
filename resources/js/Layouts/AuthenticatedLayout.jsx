@@ -2,20 +2,28 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NotificationBell from '@/Components/NotificationBell';
 import Sidebar from '@/Components/Sidebar';
+import { useTranslation } from '@/helpers/i18n';
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function AuthenticatedLayout({ header, children }) {
+    const { t } = useTranslation();
     const { user, role } = usePage().props.auth;
     const flash = usePage().props.flash;
+    const locale = usePage().props.locale;
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         if (flash?.success) toast.success(flash.success);
         if (flash?.error) toast.error(flash.error);
     }, [flash?.success, flash?.error]);
+
+    useEffect(() => {
+        document.documentElement.lang = locale ?? 'fr';
+        document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+    }, [locale]);
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -27,7 +35,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             type="button"
                             className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none md:hidden"
                             onClick={() => setSidebarOpen((prev) => !prev)}
-                            aria-label="Ouvrir le menu"
+                            aria-label={sidebarOpen ? t('ui.close_menu') : t('ui.open_menu')}
                         >
                             {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </button>
@@ -57,9 +65,11 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <p className="text-sm font-medium text-gray-800">{user.name}</p>
                                     <p className="truncate text-xs text-gray-500">{user.email}</p>
                                 </div>
-                                <Dropdown.Link href={route('profile.edit')}>Profil</Dropdown.Link>
+                                <Dropdown.Link href={route('profile.edit')}>
+                                    {t('ui.profile')}
+                                </Dropdown.Link>
                                 <Dropdown.Link href={route('logout')} method="post" as="button">
-                                    Déconnexion
+                                    {t('ui.logout')}
                                 </Dropdown.Link>
                             </Dropdown.Content>
                         </Dropdown>
@@ -70,7 +80,7 @@ export default function AuthenticatedLayout({ header, children }) {
             {/* Mobile sidebar backdrop — rendered as button for keyboard/screen-reader accessibility */}
             <button
                 type="button"
-                aria-label="Fermer le menu"
+                aria-label={t('ui.close_menu')}
                 className={`fixed inset-0 z-20 cursor-default bg-black/50 md:hidden ${
                     sidebarOpen ? 'block' : 'hidden'
                 }`}

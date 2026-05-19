@@ -113,4 +113,38 @@ class ProfileTest extends TestCase
 
         $this->assertNotNull($user->fresh());
     }
+
+    public function test_locale_can_be_updated(): void
+    {
+        $user = User::factory()->create(['locale' => 'fr']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile/locale', ['locale' => 'ar']);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $this->assertSame('ar', $user->fresh()->locale);
+    }
+
+    public function test_locale_update_rejects_invalid_locale(): void
+    {
+        $user = User::factory()->create(['locale' => 'fr']);
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->patch('/profile/locale', ['locale' => 'de']);
+
+        $response->assertSessionHasErrors('locale');
+        $this->assertSame('fr', $user->fresh()->locale);
+    }
+
+    public function test_locale_update_requires_authentication(): void
+    {
+        $this->patch('/profile/locale', ['locale' => 'ar'])
+            ->assertRedirect('/login');
+    }
 }
