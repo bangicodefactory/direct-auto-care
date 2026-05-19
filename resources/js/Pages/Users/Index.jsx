@@ -45,16 +45,16 @@ export default function Index({ users }) {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Nom
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Adresse e-mail
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Rôle
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Statut
                                     </th>
                                     <th className="px-6 py-3" />
@@ -83,10 +83,10 @@ export default function Index({ users }) {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
                                             <Link
                                                 href={route('users.edit', user.id)}
-                                                className="mr-4 text-primary hover:text-primary/80"
+                                                className="me-4 text-primary hover:text-primary/80"
                                             >
                                                 Modifier
                                             </Link>

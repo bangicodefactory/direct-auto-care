@@ -93,7 +93,7 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                     <span className="flex-1 font-medium">
                         {selected.first_name} {selected.last_name}
                         {selected.phone && (
-                            <span className="ml-2 font-normal text-gray-400">{selected.phone}</span>
+                            <span className="ms-2 font-normal text-gray-400">{selected.phone}</span>
                         )}
                     </span>
                     <button
@@ -163,7 +163,7 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                                             {c.first_name} {c.last_name}
                                         </span>
                                         {c.phone && (
-                                            <span className="ml-2 text-xs text-gray-400">
+                                            <span className="ms-2 text-xs text-gray-400">
                                                 {c.phone}
                                             </span>
                                         )}

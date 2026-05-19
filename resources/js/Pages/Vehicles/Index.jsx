@@ -11,9 +11,9 @@ import { useEffect, useRef, useState } from 'react';
 
 function SortIcon({ column, currentSort, currentDirection }) {
     if (currentSort !== column) {
-        return <span className="ml-1 text-gray-300">↕</span>;
+        return <span className="ms-1 text-gray-300">↕</span>;
     }
-    return <span className="ml-1 text-primary">{currentDirection === 'asc' ? '↑' : '↓'}</span>;
+    return <span className="ms-1 text-primary">{currentDirection === 'asc' ? '↑' : '↓'}</span>;
 }
 
 function SortableHeader({ column, label, currentSort, currentDirection, onSort }) {
@@ -123,31 +123,31 @@ export default function Index({ vehicles, filters, can }) {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left">
+                                    <th className="px-6 py-3 text-start">
                                         <SortableHeader
                                             column="license_plate"
                                             label="Plaque"
                                             {...sortProps}
                                         />
                                     </th>
-                                    <th className="px-6 py-3 text-left">
+                                    <th className="px-6 py-3 text-start">
                                         <SortableHeader
                                             column="make"
                                             label="Marque / Modèle"
                                             {...sortProps}
                                         />
                                     </th>
-                                    <th className="px-6 py-3 text-left">
+                                    <th className="px-6 py-3 text-start">
                                         <SortableHeader
                                             column="year"
                                             label="Année"
                                             {...sortProps}
                                         />
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Carburant
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Client
                                     </th>
                                     <th className="px-6 py-3" />
@@ -176,7 +176,7 @@ export default function Index({ vehicles, filters, can }) {
                                                 {v.customer.name}
                                             </Link>
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
                                             <Dropdown>
                                                 <Dropdown.Trigger>
                                                     <button

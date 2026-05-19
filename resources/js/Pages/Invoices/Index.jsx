@@ -198,22 +198,22 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         N°
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Type
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Statut
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Client
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Date
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Total TTC
                                     </th>
                                     <th className="px-6 py-3" />
@@ -256,10 +256,10 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                             {inv.issue_date}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-gray-900">
+                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium text-gray-900">
                                             {Number(inv.total_ttc).toFixed(2)} DH
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
+                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm">
                                             <Link
                                                 href={route('invoices.show', inv.id)}
                                                 className="text-primary hover:underline"

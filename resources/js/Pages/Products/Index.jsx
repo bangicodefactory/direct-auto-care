@@ -142,19 +142,19 @@ export default function Index({ products, filters, categories, can }) {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Nom
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Réf.
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Catégorie
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Prix vente
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Qté
                                     </th>
                                     <th className="px-6 py-3" />
@@ -166,7 +166,7 @@ export default function Index({ products, filters, categories, can }) {
                                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                                             {p.name}
                                             {p.is_low_stock && (
-                                                <span className="ml-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                                                <span className="ms-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
                                                     Stock faible
                                                 </span>
                                             )}
@@ -177,17 +177,17 @@ export default function Index({ products, filters, categories, can }) {
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                             {p.category}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-700">
+                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm text-gray-700">
                                             {Number(p.price_sell).toFixed(2)} DH
                                         </td>
                                         <td
-                                            className={`whitespace-nowrap px-6 py-4 text-right text-sm font-semibold ${
+                                            className={`whitespace-nowrap px-6 py-4 text-end text-sm font-semibold ${
                                                 p.is_low_stock ? 'text-red-600' : 'text-gray-700'
                                             }`}
                                         >
                                             {p.quantity_on_hand} {p.unit}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
                                             <Dropdown>
                                                 <Dropdown.Trigger>
                                                     <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
