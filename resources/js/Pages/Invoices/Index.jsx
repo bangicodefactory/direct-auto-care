@@ -90,13 +90,13 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                         <div className="flex items-center gap-2">
                             <Link
                                 href={route('invoices.create', { type: 'invoice' })}
-                                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                                className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                             >
                                 + Nouvelle facture
                             </Link>
                             <Link
                                 href={route('invoices.create', { type: 'quote' })}
-                                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                className="inline-flex min-h-[44px] items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                             >
                                 + Nouveau devis
                             </Link>
@@ -124,7 +124,7 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                             <select
                                 id="type"
                                 name="type"
-                                className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                 value={filters?.type || ''}
                                 onChange={(e) => setFilter('type', e.target.value)}
                             >
@@ -139,7 +139,7 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                             <select
                                 id="status"
                                 name="status"
-                                className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                 value={filters?.status || ''}
                                 onChange={(e) => setFilter('status', e.target.value)}
                             >
@@ -161,7 +161,7 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                                     name="date_from"
                                     value={filters?.date_from || ''}
                                     onChange={(e) => setFilter('date_from', e.target.value)}
-                                    className="rounded-md border border-gray-300 px-2 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px] rounded-md border border-gray-300 px-2 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                 />
                                 <label htmlFor="date_to" className="whitespace-nowrap">
                                     au
@@ -172,7 +172,7 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                                     name="date_to"
                                     value={filters?.date_to || ''}
                                     onChange={(e) => setFilter('date_to', e.target.value)}
-                                    className="rounded-md border border-gray-300 px-2 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px] rounded-md border border-gray-300 px-2 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                 />
                             </div>
 
@@ -187,7 +187,7 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                                         setSearch('');
                                         navigate({});
                                     }}
-                                    className="rounded-md border px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                                    className="min-h-[44px] rounded-md border px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
                                 >
                                     Réinitialiser
                                 </button>
@@ -262,7 +262,7 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                                         <td className="whitespace-nowrap px-6 py-4 text-end text-sm">
                                             <Link
                                                 href={route('invoices.show', inv.id)}
-                                                className="text-primary hover:underline"
+                                                className="inline-flex min-h-[44px] items-center text-primary hover:underline"
                                             >
                                                 Voir
                                             </Link>
@@ -291,13 +291,13 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                                             key={i}
                                             href={link.url}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={`px-3 py-1 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                                         />
                                     ) : (
                                         <span
                                             key={i}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className="px-3 py-1 text-sm text-gray-300"
+                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-gray-300"
                                         />
                                     ),
                                 )}

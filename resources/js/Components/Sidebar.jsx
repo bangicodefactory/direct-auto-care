@@ -4,7 +4,7 @@ function SidebarLink({ href, active, children }) {
     return (
         <Link
             href={href}
-            className={`flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex min-h-[44px] items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                 active
                     ? 'bg-primary text-primary-foreground'
                     : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'

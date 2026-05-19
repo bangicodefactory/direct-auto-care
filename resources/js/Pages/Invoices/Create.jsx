@@ -346,7 +346,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                                     onClick={() =>
                                                                         removeItem(index)
                                                                     }
-                                                                    className="text-red-500 hover:text-red-700"
+                                                                    className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-red-500 hover:bg-red-50 hover:text-red-700"
                                                                     title="Supprimer la ligne"
                                                                 >
                                                                     <X className="h-4 w-4" />
@@ -363,7 +363,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                 <button
                                     type="button"
                                     onClick={addItem}
-                                    className="mt-3 text-sm font-medium text-primary hover:underline"
+                                    className="mt-3 inline-flex min-h-[44px] items-center text-sm font-medium text-primary hover:underline"
                                 >
                                     + Ajouter une ligne
                                 </button>

@@ -46,7 +46,7 @@ export default function NotificationBell() {
             <button
                 type="button"
                 onClick={() => setOpen((prev) => !prev)}
-                className="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none"
+                className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none"
                 aria-label={t('ui.notifications')}
             >
                 <Bell className="h-6 w-6" />
@@ -68,7 +68,7 @@ export default function NotificationBell() {
                                 <button
                                     type="button"
                                     onClick={markAllRead}
-                                    className="text-xs text-blue-600 hover:underline"
+                                    className="inline-flex min-h-[44px] items-center px-2 text-xs text-blue-600 hover:underline"
                                 >
                                     {t('ui.mark_all_read')}
                                 </button>

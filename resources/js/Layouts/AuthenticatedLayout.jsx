@@ -33,7 +33,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none md:hidden"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none md:hidden"
                             onClick={() => setSidebarOpen((prev) => !prev)}
                             aria-label={sidebarOpen ? t('ui.close_menu') : t('ui.open_menu')}
                         >
@@ -52,7 +52,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <span className="inline-flex rounded-md">
                                     <button
                                         type="button"
-                                        className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition hover:text-gray-700 focus:outline-none"
+                                        className="inline-flex min-h-[44px] items-center rounded-md border border-transparent bg-white px-3 text-sm font-medium leading-4 text-gray-500 transition hover:text-gray-700 focus:outline-none"
                                     >
                                         {user.name}
                                         <ChevronDown className="-me-0.5 ms-2 h-4 w-4" />
