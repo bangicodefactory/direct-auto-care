@@ -1,8 +1,10 @@
+import { useTranslation } from '@/helpers/i18n';
 import { router, usePage } from '@inertiajs/react';
 import { Bell } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export default function NotificationBell() {
+    const { t } = useTranslation();
     const { notifications, unreadCount } = usePage().props;
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
@@ -45,7 +47,7 @@ export default function NotificationBell() {
                 type="button"
                 onClick={() => setOpen((prev) => !prev)}
                 className="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none"
-                aria-label="Notifications"
+                aria-label={t('ui.notifications')}
             >
                 <Bell className="h-6 w-6" />
                 {unreadCount > 0 && (
@@ -60,7 +62,7 @@ export default function NotificationBell() {
                     <div className="rounded-md bg-white ring-1 ring-black ring-opacity-5">
                         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
                             <span className="text-sm font-semibold text-gray-700">
-                                Notifications
+                                {t('ui.notifications')}
                             </span>
                             {unreadCount > 0 && (
                                 <button
@@ -68,7 +70,7 @@ export default function NotificationBell() {
                                     onClick={markAllRead}
                                     className="text-xs text-blue-600 hover:underline"
                                 >
-                                    Tout marquer comme lu
+                                    {t('ui.mark_all_read')}
                                 </button>
                             )}
                         </div>
@@ -76,7 +78,7 @@ export default function NotificationBell() {
                         <ul className="max-h-80 divide-y divide-gray-50 overflow-y-auto">
                             {notifications.length === 0 ? (
                                 <li className="px-4 py-6 text-center text-sm text-gray-400">
-                                    Aucune notification
+                                    {t('ui.no_notifications')}
                                 </li>
                             ) : (
                                 notifications.map((n) => (
