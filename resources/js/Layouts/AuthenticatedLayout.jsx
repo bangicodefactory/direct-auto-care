@@ -31,23 +31,33 @@ export default function AuthenticatedLayout({ header, children }) {
         return router.on('navigate', () => setSidebarOpen(false));
     }, []);
 
+    // Close sidebar on Escape key
+    useEffect(() => {
+        if (!sidebarOpen) return;
+        const handler = (e) => {
+            if (e.key === 'Escape') setSidebarOpen(false);
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [sidebarOpen]);
+
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Top bar */}
             <nav className="fixed inset-x-0 top-0 z-30 border-b border-gray-200 bg-white">
                 <div className="flex h-16 items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-3">
-                        {/* X button — visible on mobile only when the sidebar drawer is open */}
-                        <button
-                            type="button"
-                            className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none md:hidden ${
-                                sidebarOpen ? 'visible' : 'invisible'
-                            }`}
-                            onClick={() => setSidebarOpen(false)}
-                            aria-label={t('ui.close_menu')}
-                        >
-                            <X className="h-6 w-6" />
-                        </button>
+                        {/* X button — only rendered when sidebar is open so it's never keyboard-focusable while hidden */}
+                        {sidebarOpen && (
+                            <button
+                                type="button"
+                                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none md:hidden"
+                                onClick={() => setSidebarOpen(false)}
+                                aria-label={t('ui.close_menu')}
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+                        )}
 
                         <Link href="/">
                             <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />

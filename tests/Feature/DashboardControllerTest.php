@@ -124,15 +124,21 @@ class DashboardControllerTest extends TestCase
         $customer = Customer::factory()->create();
         $vehicle  = Vehicle::factory()->create(['customer_id' => $customer->id]);
 
-        Reminder::factory(2)->create([
-            'customer_id' => $customer->id,
-            'vehicle_id'  => $vehicle->id,
-            'status'      => ReminderStatus::Pending,
-        ]);
+        Reminder::factory(2)
+            ->sequence(
+                ['scheduled_for' => today()->addDays(10)->toDateString()],
+                ['scheduled_for' => today()->addDays(20)->toDateString()],
+            )
+            ->create([
+                'customer_id' => $customer->id,
+                'vehicle_id'  => $vehicle->id,
+                'status'      => ReminderStatus::Pending,
+            ]);
         Reminder::factory()->create([
-            'customer_id' => $customer->id,
-            'vehicle_id'  => $vehicle->id,
-            'status'      => ReminderStatus::Sent,
+            'customer_id'   => $customer->id,
+            'vehicle_id'    => $vehicle->id,
+            'scheduled_for' => today()->addDays(30)->toDateString(),
+            'status'        => ReminderStatus::Sent,
         ]);
 
         $this->actingAs($this->admin)
