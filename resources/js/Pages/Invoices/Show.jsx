@@ -56,7 +56,7 @@ export default function Show({ invoice, can }) {
                     <div className="flex items-center gap-2">
                         <Link
                             href={route('invoices.index')}
-                            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="inline-flex min-h-[44px] items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
                             ← Retour
                         </Link>
@@ -64,7 +64,7 @@ export default function Show({ invoice, can }) {
                             href={route('invoices.print', invoice.id)}
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="inline-flex min-h-[44px] items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
                             Imprimer
                         </a>
@@ -72,7 +72,7 @@ export default function Show({ invoice, can }) {
                             href={route('invoices.pdf', invoice.id)}
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="inline-flex min-h-[44px] items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
                             Télécharger PDF
                         </a>
@@ -81,7 +81,7 @@ export default function Show({ invoice, can }) {
                                 type="button"
                                 disabled={processing}
                                 onClick={() => post(route('invoices.convert', invoice.id))}
-                                className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                                className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                             >
                                 Convertir en facture
                             </button>
@@ -89,7 +89,7 @@ export default function Show({ invoice, can }) {
                         {can.edit && (
                             <Link
                                 href={route('invoices.edit', invoice.id)}
-                                className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                                className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                             >
                                 Modifier
                             </Link>
