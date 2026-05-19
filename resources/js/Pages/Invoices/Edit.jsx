@@ -219,12 +219,12 @@ export default function Edit({ invoice, customers, products, vehicles }) {
                                 <div className="overflow-x-auto">
                                     <table className="min-w-full text-sm">
                                         <thead>
-                                            <tr className="border-b text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                                                <th className="pb-2 pr-3">Produit (optionnel)</th>
-                                                <th className="pb-2 pr-3">Description *</th>
-                                                <th className="pb-2 pr-3">Qté *</th>
-                                                <th className="pb-2 pr-3">P.U. HT *</th>
-                                                <th className="pb-2 pr-3 text-right">Total HT</th>
+                                            <tr className="border-b text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                <th className="pb-2 pe-3">Produit (optionnel)</th>
+                                                <th className="pb-2 pe-3">Description *</th>
+                                                <th className="pb-2 pe-3">Qté *</th>
+                                                <th className="pb-2 pe-3">P.U. HT *</th>
+                                                <th className="pb-2 pe-3 text-end">Total HT</th>
                                                 <th className="pb-2" />
                                             </tr>
                                         </thead>
@@ -235,7 +235,7 @@ export default function Edit({ invoice, customers, products, vehicles }) {
                                                     (parseFloat(item.unit_price_ht) || 0);
                                                 return (
                                                     <tr key={item._key}>
-                                                        <td className="py-2 pr-3">
+                                                        <td className="py-2 pe-3">
                                                             <select
                                                                 className="w-40 rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                                                 value={item.product_id ?? ''}
@@ -254,7 +254,7 @@ export default function Edit({ invoice, customers, products, vehicles }) {
                                                                 ))}
                                                             </select>
                                                         </td>
-                                                        <td className="py-2 pr-3">
+                                                        <td className="py-2 pe-3">
                                                             <TextInput
                                                                 className="w-48"
                                                                 value={item.description}
@@ -276,7 +276,7 @@ export default function Edit({ invoice, customers, products, vehicles }) {
                                                                 className="mt-0.5"
                                                             />
                                                         </td>
-                                                        <td className="py-2 pr-3">
+                                                        <td className="py-2 pe-3">
                                                             <TextInput
                                                                 type="number"
                                                                 className="w-20"
@@ -300,7 +300,7 @@ export default function Edit({ invoice, customers, products, vehicles }) {
                                                                 className="mt-0.5"
                                                             />
                                                         </td>
-                                                        <td className="py-2 pr-3">
+                                                        <td className="py-2 pe-3">
                                                             <TextInput
                                                                 type="number"
                                                                 className="w-28"
@@ -324,7 +324,7 @@ export default function Edit({ invoice, customers, products, vehicles }) {
                                                                 className="mt-0.5"
                                                             />
                                                         </td>
-                                                        <td className="py-2 pr-3 text-right font-medium text-gray-900">
+                                                        <td className="py-2 pe-3 text-end font-medium text-gray-900">
                                                             {lineTotal.toFixed(2)} DH
                                                         </td>
                                                         <td className="py-2">

@@ -144,16 +144,16 @@ export default function Show({ invoice, can }) {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Description
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Qté
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
                                         P.U. HT
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Total HT
                                     </th>
                                 </tr>
@@ -164,13 +164,13 @@ export default function Show({ invoice, can }) {
                                         <td className="px-6 py-3 text-sm text-gray-900">
                                             {item.description}
                                         </td>
-                                        <td className="px-6 py-3 text-right text-sm text-gray-700">
+                                        <td className="px-6 py-3 text-end text-sm text-gray-700">
                                             {item.quantity}
                                         </td>
-                                        <td className="px-6 py-3 text-right text-sm text-gray-700">
+                                        <td className="px-6 py-3 text-end text-sm text-gray-700">
                                             {Number(item.unit_price_ht).toFixed(2)} DH
                                         </td>
-                                        <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                                        <td className="px-6 py-3 text-end text-sm font-medium text-gray-900">
                                             {Number(item.line_total_ht).toFixed(2)} DH
                                         </td>
                                     </tr>

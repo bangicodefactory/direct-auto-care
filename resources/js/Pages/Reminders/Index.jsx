@@ -168,22 +168,22 @@ export default function Index({ reminders, filters, statuses, types }) {
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Client
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Véhicule
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Type
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Statut
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Planifié le
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Envoyé le
                                         </th>
                                         <th className="px-6 py-3" />
@@ -232,7 +232,7 @@ export default function Index({ reminders, filters, statuses, types }) {
                                             <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                                 {r.sent_at ?? '—'}
                                             </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
                                                 {(r.can.trigger || r.can.cancel) && (
                                                     <Dropdown>
                                                         <Dropdown.Trigger>

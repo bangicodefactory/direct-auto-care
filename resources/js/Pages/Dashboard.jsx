@@ -74,7 +74,7 @@ export default function Dashboard({ kpis, isAdmin }) {
                                                     </p>
                                                 )}
                                             </div>
-                                            <span className="ml-4 text-gray-600">
+                                            <span className="ms-4 text-gray-600">
                                                 {a.scheduled_at}
                                             </span>
                                         </li>

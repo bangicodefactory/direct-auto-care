@@ -126,19 +126,19 @@ export default function Show({ product, movements, can }) {
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Date
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Type
                                         </th>
-                                        <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-4 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Quantité
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Motif
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                             Par
                                         </th>
                                     </tr>
@@ -153,7 +153,7 @@ export default function Show({ product, movements, can }) {
                                                 {TYPE_LABELS[m.type] ?? m.type}
                                             </td>
                                             <td
-                                                className={`whitespace-nowrap px-4 py-3 text-right text-sm font-semibold ${
+                                                className={`whitespace-nowrap px-4 py-3 text-end text-sm font-semibold ${
                                                     m.quantity > 0
                                                         ? 'text-emerald-600'
                                                         : 'text-red-600'

@@ -124,22 +124,22 @@ export default function Index({ customers, filters, can }) {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         <Link href={sortLink('last_name')}>
                                             Nom{sortIcon('last_name')}
                                         </Link>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         <Link href={sortLink('first_name')}>
                                             Prénom{sortIcon('first_name')}
                                         </Link>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         <Link href={sortLink('email')}>
                                             E-mail{sortIcon('email')}
                                         </Link>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Téléphone
                                     </th>
                                     <th className="px-6 py-3" />
@@ -160,7 +160,7 @@ export default function Index({ customers, filters, can }) {
                                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                             {c.phone}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
                                             <Dropdown>
                                                 <Dropdown.Trigger>
                                                     <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">

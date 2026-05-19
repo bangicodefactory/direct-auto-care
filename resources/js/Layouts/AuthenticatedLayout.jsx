@@ -92,15 +92,15 @@ export default function AuthenticatedLayout({ header, children }) {
             <div className="flex pt-16">
                 {/* Sidebar — single instance, visibility controlled by CSS */}
                 <div
-                    className={`fixed inset-y-0 left-0 z-20 w-64 pt-16 transition-transform duration-200 md:z-auto md:translate-x-0 ${
-                        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    className={`fixed inset-y-0 start-0 z-20 w-64 pt-16 transition-transform duration-200 md:z-auto md:translate-x-0 ${
+                        sidebarOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full'
                     }`}
                 >
                     <Sidebar role={role} />
                 </div>
 
                 {/* Page content */}
-                <div className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col md:ml-64">
+                <div className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col md:ms-64">
                     {header && (
                         <header className="bg-white shadow">
                             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

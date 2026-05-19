@@ -166,7 +166,7 @@ export default function Index({ settings }) {
                                         id="logo"
                                         type="file"
                                         accept=".jpg,.jpeg,.png,.svg,.webp"
-                                        className="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-1 file:text-sm file:font-medium hover:file:bg-gray-200"
+                                        className="mt-1 block w-full text-sm text-gray-600 file:me-3 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-1 file:text-sm file:font-medium hover:file:bg-gray-200"
                                         onChange={(e) => setData('logo', e.target.files[0])}
                                     />
                                     <p className="mt-1 text-xs text-gray-500">
