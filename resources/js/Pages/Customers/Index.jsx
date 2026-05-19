@@ -121,97 +121,101 @@ export default function Index({ customers, filters, can }) {
                         </div>
 
                         {/* TABLE */}
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        <Link
-                                            href={sortLink('last_name')}
-                                            className="inline-flex min-h-[44px] items-center"
-                                        >
-                                            Nom{sortIcon('last_name')}
-                                        </Link>
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        <Link
-                                            href={sortLink('first_name')}
-                                            className="inline-flex min-h-[44px] items-center"
-                                        >
-                                            Prénom{sortIcon('first_name')}
-                                        </Link>
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        <Link
-                                            href={sortLink('email')}
-                                            className="inline-flex min-h-[44px] items-center"
-                                        >
-                                            E-mail{sortIcon('email')}
-                                        </Link>
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Téléphone
-                                    </th>
-                                    <th className="px-6 py-3" />
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                                {customers.data.map((c) => (
-                                    <tr key={c.id}>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                                            {c.last_name}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {c.first_name}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {c.email ?? '—'}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {c.phone}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
-                                            <Dropdown>
-                                                <Dropdown.Trigger>
-                                                    <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
-                                                        <MoreVertical className="h-5 w-5" />
-                                                    </button>
-                                                </Dropdown.Trigger>
-                                                <Dropdown.Content align="right" width="48">
-                                                    <Dropdown.Link
-                                                        href={route('customers.show', c.id)}
-                                                    >
-                                                        Voir
-                                                    </Dropdown.Link>
-                                                    <Dropdown.Link
-                                                        href={route('customers.edit', c.id)}
-                                                    >
-                                                        Modifier
-                                                    </Dropdown.Link>
-                                                    {can.delete && (
-                                                        <button
-                                                            className="block w-full px-4 py-2 text-start text-sm leading-5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none"
-                                                            onClick={() => setDeletingCustomer(c)}
-                                                        >
-                                                            Supprimer
-                                                        </button>
-                                                    )}
-                                                </Dropdown.Content>
-                                            </Dropdown>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {customers.data.length === 0 && (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
                                     <tr>
-                                        <td
-                                            colSpan={5}
-                                            className="px-6 py-8 text-center text-sm text-gray-500"
-                                        >
-                                            Aucun client trouvé.
-                                        </td>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            <Link
+                                                href={sortLink('last_name')}
+                                                className="inline-flex min-h-[44px] items-center"
+                                            >
+                                                Nom{sortIcon('last_name')}
+                                            </Link>
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            <Link
+                                                href={sortLink('first_name')}
+                                                className="inline-flex min-h-[44px] items-center"
+                                            >
+                                                Prénom{sortIcon('first_name')}
+                                            </Link>
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            <Link
+                                                href={sortLink('email')}
+                                                className="inline-flex min-h-[44px] items-center"
+                                            >
+                                                E-mail{sortIcon('email')}
+                                            </Link>
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Téléphone
+                                        </th>
+                                        <th className="px-6 py-3" />
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 bg-white">
+                                    {customers.data.map((c) => (
+                                        <tr key={c.id}>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                                                {c.last_name}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {c.first_name}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {c.email ?? '—'}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {c.phone}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
+                                                <Dropdown>
+                                                    <Dropdown.Trigger>
+                                                        <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
+                                                            <MoreVertical className="h-5 w-5" />
+                                                        </button>
+                                                    </Dropdown.Trigger>
+                                                    <Dropdown.Content align="right" width="48">
+                                                        <Dropdown.Link
+                                                            href={route('customers.show', c.id)}
+                                                        >
+                                                            Voir
+                                                        </Dropdown.Link>
+                                                        <Dropdown.Link
+                                                            href={route('customers.edit', c.id)}
+                                                        >
+                                                            Modifier
+                                                        </Dropdown.Link>
+                                                        {can.delete && (
+                                                            <button
+                                                                className="block w-full px-4 py-2 text-start text-sm leading-5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none"
+                                                                onClick={() =>
+                                                                    setDeletingCustomer(c)
+                                                                }
+                                                            >
+                                                                Supprimer
+                                                            </button>
+                                                        )}
+                                                    </Dropdown.Content>
+                                                </Dropdown>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {customers.data.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan={5}
+                                                className="px-6 py-8 text-center text-sm text-gray-500"
+                                            >
+                                                Aucun client trouvé.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
 
                         {/* PAGINATION */}
                         {customers.links.length > 3 && (

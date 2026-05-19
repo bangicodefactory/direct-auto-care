@@ -195,92 +195,97 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                         </div>
 
                         {/* TABLE */}
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        N°
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Type
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Statut
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Client
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Date
-                                    </th>
-                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Total TTC
-                                    </th>
-                                    <th className="px-6 py-3" />
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                                {invoices.data.map((inv) => (
-                                    <tr key={inv.id} className="hover:bg-gray-50">
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-primary">
-                                            <Link href={route('invoices.show', inv.id)}>
-                                                {inv.number}
-                                            </Link>
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm">
-                                            <Badge
-                                                value={inv.type}
-                                                styleMap={TYPE_STYLES}
-                                                labelMap={TYPE_LABELS}
-                                            />
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm">
-                                            <Badge
-                                                value={inv.status}
-                                                styleMap={STATUS_STYLES}
-                                                labelMap={STATUS_LABELS}
-                                            />
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
-                                            {inv.customer ? (
-                                                <Link
-                                                    href={route('customers.show', inv.customer.id)}
-                                                    className="hover:underline"
-                                                >
-                                                    {inv.customer.name}
-                                                </Link>
-                                            ) : (
-                                                '—'
-                                            )}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {inv.issue_date}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium text-gray-900">
-                                            {Number(inv.total_ttc).toFixed(2)} DH
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm">
-                                            <Link
-                                                href={route('invoices.show', inv.id)}
-                                                className="inline-flex min-h-[44px] items-center text-primary hover:underline"
-                                            >
-                                                Voir
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {invoices.data.length === 0 && (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
                                     <tr>
-                                        <td
-                                            colSpan={7}
-                                            className="px-6 py-10 text-center text-sm text-gray-500"
-                                        >
-                                            Aucun document trouvé.
-                                        </td>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            N°
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Type
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Statut
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Client
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Date
+                                        </th>
+                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Total TTC
+                                        </th>
+                                        <th className="px-6 py-3" />
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 bg-white">
+                                    {invoices.data.map((inv) => (
+                                        <tr key={inv.id} className="hover:bg-gray-50">
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-primary">
+                                                <Link href={route('invoices.show', inv.id)}>
+                                                    {inv.number}
+                                                </Link>
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm">
+                                                <Badge
+                                                    value={inv.type}
+                                                    styleMap={TYPE_STYLES}
+                                                    labelMap={TYPE_LABELS}
+                                                />
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm">
+                                                <Badge
+                                                    value={inv.status}
+                                                    styleMap={STATUS_STYLES}
+                                                    labelMap={STATUS_LABELS}
+                                                />
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
+                                                {inv.customer ? (
+                                                    <Link
+                                                        href={route(
+                                                            'customers.show',
+                                                            inv.customer.id,
+                                                        )}
+                                                        className="hover:underline"
+                                                    >
+                                                        {inv.customer.name}
+                                                    </Link>
+                                                ) : (
+                                                    '—'
+                                                )}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {inv.issue_date}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium text-gray-900">
+                                                {Number(inv.total_ttc).toFixed(2)} DH
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm">
+                                                <Link
+                                                    href={route('invoices.show', inv.id)}
+                                                    className="inline-flex min-h-[44px] items-center text-primary hover:underline"
+                                                >
+                                                    Voir
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {invoices.data.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan={7}
+                                                className="px-6 py-10 text-center text-sm text-gray-500"
+                                            >
+                                                Aucun document trouvé.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
 
                         {/* PAGINATION */}
                         {invoices.links.length > 3 && (

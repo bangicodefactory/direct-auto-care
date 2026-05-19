@@ -139,99 +139,105 @@ export default function Index({ products, filters, categories, can }) {
                         </div>
 
                         {/* TABLE */}
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Nom
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Réf.
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Catégorie
-                                    </th>
-                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Prix vente
-                                    </th>
-                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Qté
-                                    </th>
-                                    <th className="px-6 py-3" />
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                                {products.data.map((p) => (
-                                    <tr key={p.id}>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                                            {p.name}
-                                            {p.is_low_stock && (
-                                                <span className="ms-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                                                    Stock faible
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {p.sku ?? '—'}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {p.category}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm text-gray-700">
-                                            {Number(p.price_sell).toFixed(2)} DH
-                                        </td>
-                                        <td
-                                            className={`whitespace-nowrap px-6 py-4 text-end text-sm font-semibold ${
-                                                p.is_low_stock ? 'text-red-600' : 'text-gray-700'
-                                            }`}
-                                        >
-                                            {p.quantity_on_hand} {p.unit}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
-                                            <Dropdown>
-                                                <Dropdown.Trigger>
-                                                    <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
-                                                        <MoreVertical className="h-5 w-5" />
-                                                    </button>
-                                                </Dropdown.Trigger>
-                                                <Dropdown.Content align="right" width="48">
-                                                    <Dropdown.Link
-                                                        href={route('products.show', p.id)}
-                                                    >
-                                                        Voir
-                                                    </Dropdown.Link>
-                                                    {can.edit && (
-                                                        <Dropdown.Link
-                                                            href={route('products.edit', p.id)}
-                                                        >
-                                                            Modifier
-                                                        </Dropdown.Link>
-                                                    )}
-                                                    {can.delete && (
-                                                        <button
-                                                            className="block w-full px-4 py-2 text-start text-sm leading-5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none"
-                                                            onClick={() => setDeletingProduct(p)}
-                                                        >
-                                                            Supprimer
-                                                        </button>
-                                                    )}
-                                                </Dropdown.Content>
-                                            </Dropdown>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {products.data.length === 0 && (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
                                     <tr>
-                                        <td
-                                            colSpan={6}
-                                            className="px-6 py-8 text-center text-sm text-gray-500"
-                                        >
-                                            Aucun produit trouvé.
-                                        </td>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Nom
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Réf.
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Catégorie
+                                        </th>
+                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Prix vente
+                                        </th>
+                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Qté
+                                        </th>
+                                        <th className="px-6 py-3" />
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 bg-white">
+                                    {products.data.map((p) => (
+                                        <tr key={p.id}>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                                                {p.name}
+                                                {p.is_low_stock && (
+                                                    <span className="ms-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                                                        Stock faible
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {p.sku ?? '—'}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {p.category}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm text-gray-700">
+                                                {Number(p.price_sell).toFixed(2)} DH
+                                            </td>
+                                            <td
+                                                className={`whitespace-nowrap px-6 py-4 text-end text-sm font-semibold ${
+                                                    p.is_low_stock
+                                                        ? 'text-red-600'
+                                                        : 'text-gray-700'
+                                                }`}
+                                            >
+                                                {p.quantity_on_hand} {p.unit}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
+                                                <Dropdown>
+                                                    <Dropdown.Trigger>
+                                                        <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
+                                                            <MoreVertical className="h-5 w-5" />
+                                                        </button>
+                                                    </Dropdown.Trigger>
+                                                    <Dropdown.Content align="right" width="48">
+                                                        <Dropdown.Link
+                                                            href={route('products.show', p.id)}
+                                                        >
+                                                            Voir
+                                                        </Dropdown.Link>
+                                                        {can.edit && (
+                                                            <Dropdown.Link
+                                                                href={route('products.edit', p.id)}
+                                                            >
+                                                                Modifier
+                                                            </Dropdown.Link>
+                                                        )}
+                                                        {can.delete && (
+                                                            <button
+                                                                className="block w-full px-4 py-2 text-start text-sm leading-5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none"
+                                                                onClick={() =>
+                                                                    setDeletingProduct(p)
+                                                                }
+                                                            >
+                                                                Supprimer
+                                                            </button>
+                                                        )}
+                                                    </Dropdown.Content>
+                                                </Dropdown>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {products.data.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan={6}
+                                                className="px-6 py-8 text-center text-sm text-gray-500"
+                                            >
+                                                Aucun produit trouvé.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
 
                         {/* PAGINATION */}
                         {products.links.length > 3 && (
