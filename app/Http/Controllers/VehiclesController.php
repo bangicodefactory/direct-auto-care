@@ -51,7 +51,7 @@ class VehiclesController extends Controller
 
         return Inertia::render('Vehicles/Index', [
             'vehicles' => $vehicles,
-            'filters'  => $request->only(['search', 'sort', 'direction']),
+            'filters'  => (object) $request->only(['search', 'sort', 'direction']),
             'can'      => ['delete' => auth()->user()->can('delete', new Vehicle())],
         ]);
     }

@@ -62,7 +62,7 @@ class ProductsController extends Controller implements HasMiddleware
 
         return Inertia::render('Products/Index', [
             'products'   => $products,
-            'filters'    => $request->only(['category', 'low_stock', 'search']),
+            'filters'    => (object) $request->only(['category', 'low_stock', 'search']),
             'categories' => collect(ProductCategory::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()]),
             'can'        => [
                 'create' => $request->user()->can('create', Product::class),

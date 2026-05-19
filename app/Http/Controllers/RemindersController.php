@@ -67,7 +67,7 @@ class RemindersController extends Controller implements HasMiddleware
 
         return Inertia::render('Reminders/Index', [
             'reminders' => $reminders,
-            'filters'   => $request->only(['status', 'type', 'date_from', 'date_to']),
+            'filters'   => (object) $request->only(['status', 'type', 'date_from', 'date_to']),
             'statuses'  => collect(ReminderStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
             'types'     => collect(ReminderType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
         ]);
