@@ -141,42 +141,44 @@ export default function Show({ invoice, can }) {
                         <div className="border-b px-6 py-4">
                             <h3 className="text-sm font-semibold text-gray-700">Lignes</h3>
                         </div>
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Description
-                                    </th>
-                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Qté
-                                    </th>
-                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        P.U. HT
-                                    </th>
-                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Total HT
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                                {invoice.items.map((item) => (
-                                    <tr key={item.id}>
-                                        <td className="px-6 py-3 text-sm text-gray-900">
-                                            {item.description}
-                                        </td>
-                                        <td className="px-6 py-3 text-end text-sm text-gray-700">
-                                            {item.quantity}
-                                        </td>
-                                        <td className="px-6 py-3 text-end text-sm text-gray-700">
-                                            {Number(item.unit_price_ht).toFixed(2)} DH
-                                        </td>
-                                        <td className="px-6 py-3 text-end text-sm font-medium text-gray-900">
-                                            {Number(item.line_total_ht).toFixed(2)} DH
-                                        </td>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Description
+                                        </th>
+                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Qté
+                                        </th>
+                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            P.U. HT
+                                        </th>
+                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Total HT
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 bg-white">
+                                    {invoice.items.map((item) => (
+                                        <tr key={item.id}>
+                                            <td className="px-6 py-3 text-sm text-gray-900">
+                                                {item.description}
+                                            </td>
+                                            <td className="px-6 py-3 text-end text-sm text-gray-700">
+                                                {item.quantity}
+                                            </td>
+                                            <td className="px-6 py-3 text-end text-sm text-gray-700">
+                                                {Number(item.unit_price_ht).toFixed(2)} DH
+                                            </td>
+                                            <td className="px-6 py-3 text-end text-sm font-medium text-gray-900">
+                                                {Number(item.line_total_ht).toFixed(2)} DH
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
                         {/* Totals */}
                         <div className="flex justify-end border-t px-6 py-4">

@@ -1,10 +1,11 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import BottomNav from '@/Components/BottomNav';
 import Dropdown from '@/Components/Dropdown';
 import NotificationBell from '@/Components/NotificationBell';
 import Sidebar from '@/Components/Sidebar';
 import { useTranslation } from '@/helpers/i18n';
-import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ChevronDown, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -25,19 +26,27 @@ export default function AuthenticatedLayout({ header, children }) {
         document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
     }, [locale]);
 
+    // Close sidebar automatically on every Inertia navigation
+    useEffect(() => {
+        return router.on('navigate', () => setSidebarOpen(false));
+    }, []);
+
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Top bar */}
             <nav className="fixed inset-x-0 top-0 z-30 border-b border-gray-200 bg-white">
                 <div className="flex h-16 items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-3">
+                        {/* X button — visible on mobile only when the sidebar drawer is open */}
                         <button
                             type="button"
-                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none md:hidden"
-                            onClick={() => setSidebarOpen((prev) => !prev)}
-                            aria-label={sidebarOpen ? t('ui.close_menu') : t('ui.open_menu')}
+                            className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none md:hidden ${
+                                sidebarOpen ? 'visible' : 'invisible'
+                            }`}
+                            onClick={() => setSidebarOpen(false)}
+                            aria-label={t('ui.close_menu')}
                         >
-                            {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                            <X className="h-6 w-6" />
                         </button>
 
                         <Link href="/">
@@ -77,30 +86,27 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
             </nav>
 
-            {/* Mobile sidebar backdrop — rendered as button for keyboard/screen-reader accessibility */}
-            <button
-                type="button"
-                aria-label={t('ui.close_menu')}
-                className={`fixed inset-0 z-20 cursor-default bg-black/50 md:hidden ${
-                    sidebarOpen ? 'block' : 'hidden'
+            {/* Mobile sidebar backdrop — opacity transition for smooth fade */}
+            <div
+                aria-hidden="true"
+                className={`fixed inset-0 z-20 bg-black/50 transition-opacity duration-200 ease-in-out md:hidden ${
+                    sidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
                 }`}
                 onClick={() => setSidebarOpen(false)}
-                onKeyDown={(e) => e.key === 'Escape' && setSidebarOpen(false)}
-                tabIndex={sidebarOpen ? 0 : -1}
             />
 
             <div className="flex pt-16">
-                {/* Sidebar — single instance, visibility controlled by CSS */}
+                {/* Sidebar — desktop always visible, mobile slides in as a drawer */}
                 <div
-                    className={`fixed inset-y-0 start-0 z-20 w-64 pt-16 transition-transform duration-200 md:z-auto md:translate-x-0 ${
+                    className={`fixed inset-y-0 start-0 z-20 w-64 pt-16 transition-transform duration-200 ease-in-out md:z-auto md:translate-x-0 ${
                         sidebarOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full'
                     }`}
                 >
                     <Sidebar role={role} />
                 </div>
 
-                {/* Page content */}
-                <div className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col md:ms-64">
+                {/* Page content — pb-14 on mobile reserves space for the bottom nav */}
+                <div className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col pb-14 md:ms-64 md:pb-0">
                     {header && (
                         <header className="bg-white shadow">
                             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -112,6 +118,9 @@ export default function AuthenticatedLayout({ header, children }) {
                     <main>{children}</main>
                 </div>
             </div>
+
+            {/* Bottom navigation — mobile only, primary nav for the most-used routes */}
+            <BottomNav onMenuOpen={() => setSidebarOpen(true)} />
         </div>
     );
 }

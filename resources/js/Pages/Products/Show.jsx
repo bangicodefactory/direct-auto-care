@@ -123,64 +123,66 @@ export default function Show({ product, movements, can }) {
                             Derniers mouvements de stock
                         </h3>
                         <div className="overflow-hidden rounded-lg bg-white shadow">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Date
-                                        </th>
-                                        <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Type
-                                        </th>
-                                        <th className="px-4 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Quantité
-                                        </th>
-                                        <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Motif
-                                        </th>
-                                        <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Par
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 bg-white">
-                                    {movements.map((m) => (
-                                        <tr key={m.id}>
-                                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                                                {m.created_at}
-                                            </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                                                {TYPE_LABELS[m.type] ?? m.type}
-                                            </td>
-                                            <td
-                                                className={`whitespace-nowrap px-4 py-3 text-end text-sm font-semibold ${
-                                                    m.quantity > 0
-                                                        ? 'text-emerald-600'
-                                                        : 'text-red-600'
-                                                }`}
-                                            >
-                                                {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-500">
-                                                {m.reason ?? '—'}
-                                            </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                                                {m.user ?? '—'}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {movements.length === 0 && (
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
                                         <tr>
-                                            <td
-                                                colSpan={5}
-                                                className="px-4 py-6 text-center text-sm text-gray-400"
-                                            >
-                                                Aucun mouvement de stock enregistré.
-                                            </td>
+                                            <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Date
+                                            </th>
+                                            <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Type
+                                            </th>
+                                            <th className="px-4 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Quantité
+                                            </th>
+                                            <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Motif
+                                            </th>
+                                            <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Par
+                                            </th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 bg-white">
+                                        {movements.map((m) => (
+                                            <tr key={m.id}>
+                                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
+                                                    {m.created_at}
+                                                </td>
+                                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                                                    {TYPE_LABELS[m.type] ?? m.type}
+                                                </td>
+                                                <td
+                                                    className={`whitespace-nowrap px-4 py-3 text-end text-sm font-semibold ${
+                                                        m.quantity > 0
+                                                            ? 'text-emerald-600'
+                                                            : 'text-red-600'
+                                                    }`}
+                                                >
+                                                    {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-gray-500">
+                                                    {m.reason ?? '—'}
+                                                </td>
+                                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
+                                                    {m.user ?? '—'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {movements.length === 0 && (
+                                            <tr>
+                                                <td
+                                                    colSpan={5}
+                                                    className="px-4 py-6 text-center text-sm text-gray-400"
+                                                >
+                                                    Aucun mouvement de stock enregistré.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

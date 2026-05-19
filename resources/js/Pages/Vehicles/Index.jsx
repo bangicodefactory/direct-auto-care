@@ -120,109 +120,113 @@ export default function Index({ vehicles, filters, can }) {
                         </div>
 
                         {/* TABLE */}
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-start">
-                                        <SortableHeader
-                                            column="license_plate"
-                                            label="Plaque"
-                                            {...sortProps}
-                                        />
-                                    </th>
-                                    <th className="px-6 py-3 text-start">
-                                        <SortableHeader
-                                            column="make"
-                                            label="Marque / Modèle"
-                                            {...sortProps}
-                                        />
-                                    </th>
-                                    <th className="px-6 py-3 text-start">
-                                        <SortableHeader
-                                            column="year"
-                                            label="Année"
-                                            {...sortProps}
-                                        />
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Carburant
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Client
-                                    </th>
-                                    <th className="px-6 py-3" />
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                                {vehicles.data.map((v) => (
-                                    <tr key={v.id}>
-                                        <td className="whitespace-nowrap px-6 py-4 font-mono text-sm font-medium text-gray-900">
-                                            {v.license_plate}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                                            {v.make} {v.model}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {v.year}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {FUEL_LABELS[v.fuel_type] ?? v.fuel_type}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            <Link
-                                                href={route('customers.show', v.customer.id)}
-                                                className="text-primary hover:underline"
-                                            >
-                                                {v.customer.name}
-                                            </Link>
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
-                                            <Dropdown>
-                                                <Dropdown.Trigger>
-                                                    <button
-                                                        type="button"
-                                                        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none"
-                                                    >
-                                                        <MoreVertical className="h-5 w-5" />
-                                                    </button>
-                                                </Dropdown.Trigger>
-                                                <Dropdown.Content align="right" width="48">
-                                                    <Dropdown.Link
-                                                        href={route('vehicles.show', v.id)}
-                                                    >
-                                                        Voir
-                                                    </Dropdown.Link>
-                                                    <Dropdown.Link
-                                                        href={route('vehicles.edit', v.id)}
-                                                    >
-                                                        Modifier
-                                                    </Dropdown.Link>
-                                                    {can.delete && (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-start">
+                                            <SortableHeader
+                                                column="license_plate"
+                                                label="Plaque"
+                                                {...sortProps}
+                                            />
+                                        </th>
+                                        <th className="px-6 py-3 text-start">
+                                            <SortableHeader
+                                                column="make"
+                                                label="Marque / Modèle"
+                                                {...sortProps}
+                                            />
+                                        </th>
+                                        <th className="px-6 py-3 text-start">
+                                            <SortableHeader
+                                                column="year"
+                                                label="Année"
+                                                {...sortProps}
+                                            />
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Carburant
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Client
+                                        </th>
+                                        <th className="px-6 py-3" />
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 bg-white">
+                                    {vehicles.data.map((v) => (
+                                        <tr key={v.id}>
+                                            <td className="whitespace-nowrap px-6 py-4 font-mono text-sm font-medium text-gray-900">
+                                                {v.license_plate}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                                                {v.make} {v.model}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {v.year}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {FUEL_LABELS[v.fuel_type] ?? v.fuel_type}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                <Link
+                                                    href={route('customers.show', v.customer.id)}
+                                                    className="text-primary hover:underline"
+                                                >
+                                                    {v.customer.name}
+                                                </Link>
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
+                                                <Dropdown>
+                                                    <Dropdown.Trigger>
                                                         <button
                                                             type="button"
-                                                            className="block w-full px-4 py-2 text-start text-sm leading-5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none"
-                                                            onClick={() => setDeletingVehicle(v)}
+                                                            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none"
                                                         >
-                                                            Supprimer
+                                                            <MoreVertical className="h-5 w-5" />
                                                         </button>
-                                                    )}
-                                                </Dropdown.Content>
-                                            </Dropdown>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {vehicles.data.length === 0 && (
-                                    <tr>
-                                        <td
-                                            colSpan={6}
-                                            className="px-6 py-8 text-center text-sm text-gray-500"
-                                        >
-                                            Aucun véhicule trouvé.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                                    </Dropdown.Trigger>
+                                                    <Dropdown.Content align="right" width="48">
+                                                        <Dropdown.Link
+                                                            href={route('vehicles.show', v.id)}
+                                                        >
+                                                            Voir
+                                                        </Dropdown.Link>
+                                                        <Dropdown.Link
+                                                            href={route('vehicles.edit', v.id)}
+                                                        >
+                                                            Modifier
+                                                        </Dropdown.Link>
+                                                        {can.delete && (
+                                                            <button
+                                                                type="button"
+                                                                className="block w-full px-4 py-2 text-start text-sm leading-5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none"
+                                                                onClick={() =>
+                                                                    setDeletingVehicle(v)
+                                                                }
+                                                            >
+                                                                Supprimer
+                                                            </button>
+                                                        )}
+                                                    </Dropdown.Content>
+                                                </Dropdown>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {vehicles.data.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan={6}
+                                                className="px-6 py-8 text-center text-sm text-gray-500"
+                                            >
+                                                Aucun véhicule trouvé.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
 
                         {/* PAGINATION */}
                         {vehicles.links.length > 3 && (

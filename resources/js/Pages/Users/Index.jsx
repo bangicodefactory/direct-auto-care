@@ -42,75 +42,77 @@ export default function Index({ users }) {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Nom
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Adresse e-mail
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Rôle
-                                    </th>
-                                    <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Statut
-                                    </th>
-                                    <th className="px-6 py-3" />
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                                {users.data.map((user) => (
-                                    <tr key={user.id}>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                                            {user.name}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {user.email}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                            {roleLabels[user.roles[0]] ?? '—'}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm">
-                                            {user.is_active ? (
-                                                <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
-                                                    Actif
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
-                                                    Inactif
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
-                                            <Link
-                                                href={route('users.edit', user.id)}
-                                                className="inline-flex min-h-[44px] items-center me-4 text-primary hover:text-primary/80"
-                                            >
-                                                Modifier
-                                            </Link>
-                                            <button
-                                                onClick={() => setDeletingUser(user)}
-                                                className="inline-flex min-h-[44px] items-center text-red-600 hover:text-red-800"
-                                            >
-                                                Supprimer
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {users.data.length === 0 && (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
                                     <tr>
-                                        <td
-                                            colSpan={5}
-                                            className="px-6 py-8 text-center text-sm text-gray-500"
-                                        >
-                                            Aucun utilisateur trouvé.
-                                        </td>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Nom
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Adresse e-mail
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Rôle
+                                        </th>
+                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Statut
+                                        </th>
+                                        <th className="px-6 py-3" />
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 bg-white">
+                                    {users.data.map((user) => (
+                                        <tr key={user.id}>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                                                {user.name}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {user.email}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                                {roleLabels[user.roles[0]] ?? '—'}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm">
+                                                {user.is_active ? (
+                                                    <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
+                                                        Actif
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
+                                                        Inactif
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
+                                                <Link
+                                                    href={route('users.edit', user.id)}
+                                                    className="inline-flex min-h-[44px] items-center me-4 text-primary hover:text-primary/80"
+                                                >
+                                                    Modifier
+                                                </Link>
+                                                <button
+                                                    onClick={() => setDeletingUser(user)}
+                                                    className="inline-flex min-h-[44px] items-center text-red-600 hover:text-red-800"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {users.data.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan={5}
+                                                className="px-6 py-8 text-center text-sm text-gray-500"
+                                            >
+                                                Aucun utilisateur trouvé.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
 
                         {users.links.length > 3 && (
                             <div className="flex items-center justify-between border-t border-gray-200 px-6 py-3">
