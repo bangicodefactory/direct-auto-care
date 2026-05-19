@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceSeeder extends Seeder
 {
@@ -24,7 +25,7 @@ class InvoiceSeeder extends Seeder
             [
                 'invoice' => [
                     'type'       => InvoiceType::Quote->value,
-                    'number'     => 'DEV-2026-0001',
+                    'number'     => 'DEV-2026-00001',
                     'issue_date' => '2026-03-10',
                     'due_date'   => '2026-04-09',
                     'fiscal_year' => 2026,
@@ -41,7 +42,7 @@ class InvoiceSeeder extends Seeder
             [
                 'invoice' => [
                     'type'       => InvoiceType::Invoice->value,
-                    'number'     => 'FAC-2026-0001',
+                    'number'     => 'FAC-2026-00001',
                     'issue_date' => '2026-03-12',
                     'due_date'   => '2026-04-11',
                     'fiscal_year' => 2026,
@@ -53,13 +54,13 @@ class InvoiceSeeder extends Seeder
                     ['sku' => 'FH-MANN-W71275',  'description' => 'Filtre à huile MANN W712/75', 'qty' => 1, 'unit_price' => 45.00],
                     ['sku' => null,              'description' => 'Main d\'œuvre vidange',       'qty' => 1, 'unit_price' => 80.00],
                 ],
-                'converted_from' => 'DEV-2026-0001',
+                'converted_from' => 'DEV-2026-00001',
             ],
             // Facture 2 — révision complète + plaquettes
             [
                 'invoice' => [
                     'type'       => InvoiceType::Invoice->value,
-                    'number'     => 'FAC-2026-0002',
+                    'number'     => 'FAC-2026-00002',
                     'issue_date' => '2026-04-05',
                     'due_date'   => '2026-05-05',
                     'fiscal_year' => 2026,
@@ -79,7 +80,7 @@ class InvoiceSeeder extends Seeder
             [
                 'invoice' => [
                     'type'       => InvoiceType::Quote->value,
-                    'number'     => 'DEV-2026-0002',
+                    'number'     => 'DEV-2026-00002',
                     'issue_date' => '2026-05-10',
                     'due_date'   => '2026-06-09',
                     'fiscal_year' => 2026,
@@ -95,7 +96,7 @@ class InvoiceSeeder extends Seeder
             [
                 'invoice' => [
                     'type'       => InvoiceType::Invoice->value,
-                    'number'     => 'FAC-2026-0003',
+                    'number'     => 'FAC-2026-00003',
                     'issue_date' => '2026-04-20',
                     'due_date'   => '2026-05-20',
                     'fiscal_year' => 2026,
@@ -160,6 +161,19 @@ class InvoiceSeeder extends Seeder
             }
 
             $created[$invoice->number] = $invoice;
+        }
+
+        // Sync invoice_sequences so new invoices continue from the correct number.
+        $sequences = [
+            [InvoiceType::Invoice->value, 2026, 3],
+            [InvoiceType::Quote->value,   2026, 2],
+        ];
+
+        foreach ($sequences as [$type, $year, $last]) {
+            DB::statement(
+                'INSERT INTO invoice_sequences (type, fiscal_year, last_sequence) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE last_sequence = ?',
+                [$type, $year, $last, $last],
+            );
         }
     }
 }

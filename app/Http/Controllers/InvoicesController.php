@@ -72,7 +72,7 @@ class InvoicesController extends Controller implements HasMiddleware
 
         return Inertia::render('Invoices/Index', [
             'invoices' => $invoices,
-            'filters'  => $request->only(['type', 'status', 'search', 'date_from', 'date_to']),
+            'filters'  => (object) $request->only(['type', 'status', 'search', 'date_from', 'date_to']),
             'types'    => collect(InvoiceType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
             'statuses' => collect(InvoiceStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
             'can'      => [

@@ -85,7 +85,7 @@ class AppointmentsController extends Controller implements HasMiddleware
 
         return Inertia::render('Appointments/Index', [
             'events'       => $events,
-            'filters'      => $request->only(['status', 'start', 'end']),
+            'filters'      => (object) $request->only(['status', 'start', 'end']),
             'statuses'     => collect(AppointmentStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
             'customers'    => Inertia::defer(fn () => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']), 'modal'),
             'vehicles'     => Inertia::defer(fn () => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']), 'modal'),

@@ -108,7 +108,7 @@ export default function AuthenticatedLayout({ header, children }) {
             <div className="flex pt-16">
                 {/* Sidebar — desktop always visible, mobile slides in as a drawer */}
                 <div
-                    className={`fixed inset-y-0 start-0 z-20 w-64 pt-16 transition-transform duration-200 ease-in-out md:z-auto md:translate-x-0 ${
+                    className={`fixed inset-y-0 start-0 z-20 w-64 pt-16 transition-transform duration-200 ease-in-out md:z-auto md:!translate-x-0 ${
                         sidebarOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full'
                     }`}
                 >
