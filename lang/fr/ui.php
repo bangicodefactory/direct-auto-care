@@ -8,10 +8,15 @@ return [
     'language'  => 'Langue',
 
     // Layout / nav
-    'open_menu'  => 'Ouvrir le menu',
-    'close_menu' => 'Fermer le menu',
-    'profile'    => 'Profil',
-    'logout'     => 'Déconnexion',
+    'open_menu'     => 'Ouvrir le menu',
+    'close_menu'    => 'Fermer le menu',
+    'profile'       => 'Profil',
+    'logout'        => 'Déconnexion',
+    'nav_home'      => 'Accueil',
+    'nav_customers' => 'Clients',
+    'nav_invoices'  => 'Factures',
+    'nav_today'     => "Aujourd'hui",
+    'nav_more'      => 'Plus',
 
     // Notifications
     'notifications'   => 'Notifications',

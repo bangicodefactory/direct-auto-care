@@ -164,15 +164,21 @@ class InvoiceSeeder extends Seeder
         }
 
         // Sync invoice_sequences so new invoices continue from the correct number.
-        $sequences = [
-            [InvoiceType::Invoice->value, 2026, 3],
-            [InvoiceType::Quote->value,   2026, 2],
-        ];
+        // Derive the max sequence per type/year from the number suffix to avoid
+        // hardcoding counts or fiscal years.
+        $sequenceMap = [];
+        foreach ($created as $invoice) {
+            $key    = $invoice->type->value . '|' . $invoice->fiscal_year;
+            $seq    = (int) substr(strrchr($invoice->number, '-'), 1);
+            if (!isset($sequenceMap[$key]) || $seq > $sequenceMap[$key]['last']) {
+                $sequenceMap[$key] = ['type' => $invoice->type->value, 'year' => $invoice->fiscal_year, 'last' => $seq];
+            }
+        }
 
-        foreach ($sequences as [$type, $year, $last]) {
+        foreach ($sequenceMap as $entry) {
             DB::statement(
                 'INSERT INTO invoice_sequences (type, fiscal_year, last_sequence) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE last_sequence = ?',
-                [$type, $year, $last, $last],
+                [$entry['type'], $entry['year'], $entry['last'], $entry['last']],
             );
         }
     }
