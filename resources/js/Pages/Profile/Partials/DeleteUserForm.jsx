@@ -1,8 +1,7 @@
-import DangerButton from '@/Components/DangerButton';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
+import { Button } from '@/Components/ui/button';
 import TextInput from '@/Components/TextInput';
 import { useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
@@ -48,24 +47,26 @@ export default function DeleteUserForm({ className = '' }) {
     return (
         <section className={`space-y-6 ${className}`}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">Supprimer le compte</h2>
+                <h2 className="text-lg font-medium text-foreground">Supprimer le compte</h2>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm text-muted-foreground">
                     Une fois votre compte supprimé, toutes ses ressources et données seront
                     définitivement supprimées. Avant de supprimer votre compte, veuillez télécharger
                     toutes les données que vous souhaitez conserver.
                 </p>
             </header>
 
-            <DangerButton onClick={confirmUserDeletion}>Supprimer le compte</DangerButton>
+            <Button variant="destructive" onClick={confirmUserDeletion}>
+                Supprimer le compte
+            </Button>
 
             <Modal show={confirmingUserDeletion} onClose={closeModal}>
                 <form onSubmit={deleteUser} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
+                    <h2 className="text-lg font-medium text-foreground">
                         Êtes-vous sûr de vouloir supprimer votre compte ?
                     </h2>
 
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Une fois votre compte supprimé, toutes ses ressources et données seront
                         définitivement supprimées. Veuillez entrer votre mot de passe pour confirmer
                         la suppression de votre compte.
@@ -90,11 +91,13 @@ export default function DeleteUserForm({ className = '' }) {
                     </div>
 
                     <div className="mt-6 flex justify-end">
-                        <SecondaryButton onClick={closeModal}>Annuler</SecondaryButton>
+                        <Button variant="secondary" onClick={closeModal}>
+                            Annuler
+                        </Button>
 
-                        <DangerButton className="ms-3" disabled={processing}>
+                        <Button variant="destructive" className="ms-3" disabled={processing}>
                             Supprimer le compte
-                        </DangerButton>
+                        </Button>
                     </div>
                 </form>
             </Modal>

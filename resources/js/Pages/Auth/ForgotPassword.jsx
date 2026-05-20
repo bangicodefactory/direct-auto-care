@@ -1,5 +1,5 @@
 import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
+import { Button } from '@/Components/ui/button';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
@@ -19,7 +19,7 @@ export default function ForgotPassword({ status }) {
         <GuestLayout>
             <Head title="Mot de passe oublié" />
 
-            <div className="mb-4 text-sm text-gray-600">
+            <div className="mb-4 text-sm text-muted-foreground">
                 Mot de passe oublié ? Aucun problème. Indiquez-nous votre adresse e-mail et nous
                 vous enverrons un lien pour choisir un nouveau mot de passe.
             </div>
@@ -40,9 +40,9 @@ export default function ForgotPassword({ status }) {
                 <InputError message={errors.email} className="mt-2" />
 
                 <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    <Button className="ms-4" disabled={processing}>
                         Envoyer le lien de réinitialisation
-                    </PrimaryButton>
+                    </Button>
                 </div>
             </form>
         </GuestLayout>

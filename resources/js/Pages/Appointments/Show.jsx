@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -14,8 +15,10 @@ function Field({ label, value }) {
     if (value === null || value === undefined || value === '') return null;
     return (
         <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
-            <p className="mt-1 text-sm text-gray-900">{value}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {label}
+            </p>
+            <p className="mt-1 text-sm text-foreground">{value}</p>
         </div>
     );
 }
@@ -26,39 +29,36 @@ function CancelButton({ appointmentId }) {
 
     return (
         <>
-            <button
+            <Button
                 type="button"
+                variant="outline"
+                className="border-destructive text-destructive hover:bg-destructive/5"
                 onClick={() => setOpen(true)}
                 disabled={processing}
-                className="rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
             >
                 Annuler le RDV
-            </button>
+            </Button>
 
             <Modal show={open} maxWidth="sm" onClose={() => setOpen(false)}>
                 <div className="p-6">
-                    <h3 className="text-base font-semibold text-gray-900">
+                    <h3 className="text-base font-semibold text-foreground">
                         Confirmer l'annulation
                     </h3>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-muted-foreground">
                         Cette action est irréversible. Le rendez-vous sera marqué comme annulé.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setOpen(false)}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
+                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                             Retour
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="button"
+                            variant="destructive"
                             disabled={processing}
                             onClick={() => post(route('appointments.cancel', appointmentId))}
-                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
                         >
                             {processing ? 'Annulation…' : "Confirmer l'annulation"}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -72,40 +72,36 @@ function CompleteButton({ appointmentId }) {
 
     return (
         <>
-            <button
+            <Button
                 type="button"
+                variant="outline"
+                className="border-green-300 text-green-700 hover:bg-green-50"
                 onClick={() => setOpen(true)}
                 disabled={processing}
-                className="rounded-md border border-green-300 bg-white px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-50 disabled:opacity-50"
             >
                 Marquer comme terminé
-            </button>
+            </Button>
 
             <Modal show={open} maxWidth="sm" onClose={() => setOpen(false)}>
                 <div className="p-6">
-                    <h3 className="text-base font-semibold text-gray-900">
+                    <h3 className="text-base font-semibold text-foreground">
                         Terminer le rendez-vous
                     </h3>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-muted-foreground">
                         Le rendez-vous sera marqué comme terminé et vous serez redirigé vers la
                         création d'une fiche de service.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setOpen(false)}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
+                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                             Retour
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="button"
                             disabled={processing}
                             onClick={() => post(route('appointments.complete', appointmentId))}
-                            className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
                         >
                             {processing ? 'En cours…' : 'Terminer le rendez-vous'}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -122,14 +118,9 @@ function DeleteButton({ appointmentId }) {
     }
 
     return (
-        <button
-            type="button"
-            onClick={handleDelete}
-            disabled={processing}
-            className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
-        >
+        <Button type="button" variant="destructive" onClick={handleDelete} disabled={processing}>
             Supprimer
-        </button>
+        </Button>
     );
 }
 
@@ -139,29 +130,25 @@ export default function AppointmentsShow({ appointment, can }) {
             header={
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                        <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                        <h2 className="text-xl font-semibold leading-tight text-foreground">
                             Rendez-vous #{appointment.id}
                         </h2>
                         <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[appointment.status] ?? 'bg-gray-100 text-gray-700'}`}
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[appointment.status] ?? 'bg-muted text-foreground'}`}
                         >
                             {appointment.status_label}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Link
-                            href={route('appointments.index')}
-                            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            ← Calendrier
-                        </Link>
+                        <Button variant="outline" asChild>
+                            <Link href={route('appointments.index')}>← Calendrier</Link>
+                        </Button>
                         {can.edit && appointment.status !== 'cancelled' && (
-                            <Link
-                                href={route('appointments.edit', appointment.id)}
-                                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                            >
-                                Modifier
-                            </Link>
+                            <Button variant="outline" asChild>
+                                <Link href={route('appointments.edit', appointment.id)}>
+                                    Modifier
+                                </Link>
+                            </Button>
                         )}
                         {can.complete && <CompleteButton appointmentId={appointment.id} />}
                         {can.cancel && appointment.status !== 'cancelled' && (
@@ -176,9 +163,9 @@ export default function AppointmentsShow({ appointment, can }) {
 
             <div className="py-8">
                 <div className="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="border-b border-gray-100 px-6 py-4">
-                            <h3 className="text-sm font-semibold text-gray-700">Détails</h3>
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border px-6 py-4">
+                            <h3 className="text-sm font-semibold text-foreground">Détails</h3>
                         </div>
                         <div className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-3">
                             <Field label="Date" value={appointment.scheduled_at} />
@@ -190,27 +177,27 @@ export default function AppointmentsShow({ appointment, can }) {
                             )}
                         </div>
                         {appointment.notes && (
-                            <div className="border-t border-gray-100 px-6 py-4">
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                            <div className="border-t border-border px-6 py-4">
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                     Notes
                                 </p>
-                                <p className="mt-1 whitespace-pre-wrap text-sm text-gray-900">
+                                <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
                                     {appointment.notes}
                                 </p>
                             </div>
                         )}
                     </div>
 
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="border-b border-gray-100 px-6 py-4">
-                            <h3 className="text-sm font-semibold text-gray-700">Client</h3>
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border px-6 py-4">
+                            <h3 className="text-sm font-semibold text-foreground">Client</h3>
                         </div>
                         <div className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-3">
                             <Field label="Nom" value={appointment.customer.name} />
                             <Field label="Téléphone" value={appointment.customer.phone} />
                             <Field label="E-mail" value={appointment.customer.email} />
                         </div>
-                        <div className="border-t border-gray-100 px-6 py-3">
+                        <div className="border-t border-border px-6 py-3">
                             <Link
                                 href={route('customers.show', appointment.customer.id)}
                                 className="text-sm text-primary hover:underline"
@@ -221,16 +208,16 @@ export default function AppointmentsShow({ appointment, can }) {
                     </div>
 
                     {appointment.vehicle && (
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                            <div className="border-b border-gray-100 px-6 py-4">
-                                <h3 className="text-sm font-semibold text-gray-700">Véhicule</h3>
+                        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                            <div className="border-b border-border px-6 py-4">
+                                <h3 className="text-sm font-semibold text-foreground">Véhicule</h3>
                             </div>
                             <div className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-3">
                                 <Field label="Immatriculation" value={appointment.vehicle.plate} />
                                 <Field label="Marque" value={appointment.vehicle.make} />
                                 <Field label="Modèle" value={appointment.vehicle.model} />
                             </div>
-                            <div className="border-t border-gray-100 px-6 py-3">
+                            <div className="border-t border-border px-6 py-3">
                                 <Link
                                     href={route('vehicles.show', appointment.vehicle.id)}
                                     className="text-sm text-primary hover:underline"
@@ -242,15 +229,15 @@ export default function AppointmentsShow({ appointment, can }) {
                     )}
 
                     {appointment.services.length > 0 && (
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                            <div className="border-b border-gray-100 px-6 py-4">
-                                <h3 className="text-sm font-semibold text-gray-700">
+                        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                            <div className="border-b border-border px-6 py-4">
+                                <h3 className="text-sm font-semibold text-foreground">
                                     Types de service
                                 </h3>
                             </div>
-                            <ul className="divide-y divide-gray-100">
+                            <ul className="divide-y divide-border">
                                 {appointment.services.map((name) => (
-                                    <li key={name} className="px-6 py-3 text-sm text-gray-700">
+                                    <li key={name} className="px-6 py-3 text-sm text-foreground">
                                         {name}
                                     </li>
                                 ))}

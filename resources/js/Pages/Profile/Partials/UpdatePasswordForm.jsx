@@ -1,8 +1,7 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
+import { Button } from '@/Components/ui/button';
 import TextInput from '@/Components/TextInput';
-import { Transition } from '@headlessui/react';
 import { useForm } from '@inertiajs/react';
 import { useRef } from 'react';
 
@@ -39,9 +38,9 @@ export default function UpdatePasswordForm({ className = '' }) {
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">Modifier le mot de passe</h2>
+                <h2 className="text-lg font-medium text-foreground">Modifier le mot de passe</h2>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm text-muted-foreground">
                     Assurez-vous que votre compte utilise un mot de passe long et aléatoire pour
                     rester sécurisé.
                 </p>
@@ -96,17 +95,11 @@ export default function UpdatePasswordForm({ className = '' }) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Enregistrer</PrimaryButton>
+                    <Button disabled={processing}>Enregistrer</Button>
 
-                    <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm text-gray-600">Enregistré.</p>
-                    </Transition>
+                    {recentlySuccessful && (
+                        <p className="text-sm text-muted-foreground">Enregistré.</p>
+                    )}
                 </div>
             </form>
         </section>

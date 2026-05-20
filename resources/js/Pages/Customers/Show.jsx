@@ -1,6 +1,5 @@
-import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
+import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -13,15 +12,15 @@ const TABS = [
 ];
 
 function EmptyState({ message }) {
-    return <p className="text-sm text-gray-500">{message}</p>;
+    return <p className="text-sm text-muted-foreground">{message}</p>;
 }
 
 function VehiclesTab({ vehicles }) {
     if (!vehicles?.length) return <EmptyState message="Aucun véhicule enregistré." />;
     return (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-border">
             {vehicles.map((v) => (
-                <li key={v.id} className="py-3 text-sm text-gray-700">
+                <li key={v.id} className="py-3 text-sm text-foreground">
                     {[v.make, v.model].filter(Boolean).join(' ') || `Véhicule #${v.id}`}
                     {v.license_plate ? ` — ${v.license_plate}` : ''}
                 </li>
@@ -31,16 +30,15 @@ function VehiclesTab({ vehicles }) {
 }
 
 function HistoryTab() {
-    // Placeholder until the interventions model is built (future IST)
     return <EmptyState message="Aucun historique d'intervention." />;
 }
 
 function InvoicesTab({ invoices }) {
     if (!invoices?.length) return <EmptyState message="Aucune facture." />;
     return (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-border">
             {invoices.map((inv) => (
-                <li key={inv.id} className="py-3 text-sm text-gray-700">
+                <li key={inv.id} className="py-3 text-sm text-foreground">
                     Facture #{inv.id}
                 </li>
             ))}
@@ -51,9 +49,9 @@ function InvoicesTab({ invoices }) {
 function AppointmentsTab({ appointments }) {
     if (!appointments?.length) return <EmptyState message="Aucun rendez-vous." />;
     return (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-border">
             {appointments.map((a) => (
-                <li key={a.id} className="py-3 text-sm text-gray-700">
+                <li key={a.id} className="py-3 text-sm text-foreground">
                     Rendez-vous #{a.id}
                 </li>
             ))}
@@ -80,24 +78,20 @@ export default function Show({ customer, can }) {
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    <h2 className="text-xl font-semibold leading-tight text-foreground">
                         {customer.first_name} {customer.last_name}
                     </h2>
                     <div className="flex gap-3">
-                        <Link
-                            href={route('customers.edit', customer.id)}
-                            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                        >
-                            Modifier
-                        </Link>
+                        <Button asChild>
+                            <Link href={route('customers.edit', customer.id)}>Modifier</Link>
+                        </Button>
                         {can.delete && (
-                            <button
-                                type="button"
+                            <Button
+                                variant="destructive"
                                 onClick={() => setConfirmingDeletion(true)}
-                                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                             >
                                 Supprimer
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
@@ -107,33 +101,35 @@ export default function Show({ customer, can }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-4xl space-y-6 sm:px-6 lg:px-8">
-                    {/* INFO CARD */}
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         <div className="p-6">
-                            <h3 className="mb-4 text-lg font-medium text-gray-900">Informations</h3>
+                            <h3 className="mb-4 text-lg font-medium text-foreground">
+                                Informations
+                            </h3>
                             <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                                <dt className="font-medium text-gray-500">Téléphone</dt>
-                                <dd className="text-gray-900">{customer.phone}</dd>
+                                <dt className="font-medium text-muted-foreground">Téléphone</dt>
+                                <dd className="text-foreground">{customer.phone}</dd>
 
-                                <dt className="font-medium text-gray-500">Adresse e-mail</dt>
-                                <dd className="text-gray-900">{customer.email ?? '—'}</dd>
+                                <dt className="font-medium text-muted-foreground">
+                                    Adresse e-mail
+                                </dt>
+                                <dd className="text-foreground">{customer.email ?? '—'}</dd>
 
-                                <dt className="font-medium text-gray-500">Adresse</dt>
-                                <dd className="text-gray-900">{customer.address ?? '—'}</dd>
+                                <dt className="font-medium text-muted-foreground">Adresse</dt>
+                                <dd className="text-foreground">{customer.address ?? '—'}</dd>
 
                                 {customer.notes && (
                                     <>
-                                        <dt className="font-medium text-gray-500">Notes</dt>
-                                        <dd className="text-gray-900">{customer.notes}</dd>
+                                        <dt className="font-medium text-muted-foreground">Notes</dt>
+                                        <dd className="text-foreground">{customer.notes}</dd>
                                     </>
                                 )}
                             </dl>
                         </div>
                     </div>
 
-                    {/* TABS */}
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="border-b border-gray-200">
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border">
                             <nav
                                 className="-mb-px flex overflow-x-auto"
                                 role="tablist"
@@ -150,7 +146,7 @@ export default function Show({ customer, can }) {
                                         className={`whitespace-nowrap border-b-2 px-6 py-4 text-sm font-medium transition-colors ${
                                             activeTab === tab.key
                                                 ? 'border-primary text-primary'
-                                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                                : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
                                         }`}
                                     >
                                         {tab.label}
@@ -174,7 +170,7 @@ export default function Show({ customer, can }) {
 
                     <Link
                         href={route('customers.index')}
-                        className="text-sm text-gray-600 hover:text-gray-900"
+                        className="text-sm text-muted-foreground hover:text-foreground"
                     >
                         ← Retour à la liste
                     </Link>
@@ -187,20 +183,20 @@ export default function Show({ customer, can }) {
                 onClose={() => setConfirmingDeletion(false)}
             >
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">Supprimer ce client ?</h2>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <h2 className="text-lg font-medium text-foreground">Supprimer ce client ?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
                         <span className="font-medium">
                             {customer.first_name} {customer.last_name}
                         </span>{' '}
                         sera définitivement supprimé. Cette action est irréversible.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setConfirmingDeletion(false)}>
+                        <Button variant="secondary" onClick={() => setConfirmingDeletion(false)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={destroy} disabled={processing}>
+                        </Button>
+                        <Button variant="destructive" onClick={destroy} disabled={processing}>
                             Supprimer définitivement
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>

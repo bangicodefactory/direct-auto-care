@@ -1,11 +1,12 @@
-export default function Checkbox({ className = '', ...props }) {
+import { Checkbox as ShadCheckbox } from '@/Components/ui/checkbox';
+
+export default function Checkbox({ className = '', checked, onChange, onCheckedChange, ...props }) {
     return (
-        <input
+        <ShadCheckbox
+            checked={checked}
+            onCheckedChange={onCheckedChange ?? ((c) => onChange?.({ target: { checked: c } }))}
+            className={className}
             {...props}
-            type="checkbox"
-            className={
-                'rounded border-gray-300 text-primary shadow-sm focus:ring-primary ' + className
-            }
         />
     );
 }

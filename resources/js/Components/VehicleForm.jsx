@@ -1,8 +1,15 @@
 import CustomerCombobox from '@/Components/CustomerCombobox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select';
 import { FUEL_TYPE_OPTIONS } from '@/constants/fuelTypes';
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
@@ -102,20 +109,25 @@ export default function VehicleForm({
 
                 <div>
                     <InputLabel htmlFor="fuel_type" value="Carburant" />
-                    <select
-                        id="fuel_type"
-                        ref={(el) => (inputRefs.current.fuel_type = el)}
-                        value={data.fuel_type}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                        onChange={(e) => setData('fuel_type', e.target.value)}
+                    <Select
+                        value={data.fuel_type || ''}
+                        onValueChange={(v) => setData('fuel_type', v)}
                     >
-                        <option value="">— Sélectionner —</option>
-                        {FUEL_TYPE_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </option>
-                        ))}
-                    </select>
+                        <SelectTrigger
+                            id="fuel_type"
+                            ref={(el) => (inputRefs.current.fuel_type = el)}
+                            className="mt-1 min-h-[44px]"
+                        >
+                            <SelectValue placeholder="— Sélectionner —" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {FUEL_TYPE_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <InputError message={errors.fuel_type} className="mt-2" />
                 </div>
             </div>
@@ -183,12 +195,10 @@ export default function VehicleForm({
             </div>
 
             <div className="flex items-center justify-end gap-4">
-                <Link href={cancelHref} className="text-sm text-gray-600 hover:text-gray-900">
-                    Annuler
-                </Link>
-                <PrimaryButton disabled={processing || mileageDecreasing}>
-                    Enregistrer
-                </PrimaryButton>
+                <Button variant="ghost" asChild>
+                    <Link href={cancelHref}>Annuler</Link>
+                </Button>
+                <Button disabled={processing || mileageDecreasing}>Enregistrer</Button>
             </div>
         </form>
     );

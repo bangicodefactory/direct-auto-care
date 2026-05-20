@@ -1,8 +1,26 @@
-import DangerButton from '@/Components/DangerButton';
-import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
+import { Button } from '@/Components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
@@ -12,7 +30,7 @@ const STATUS_COLORS = {
     pending: 'bg-yellow-100 text-yellow-800',
     sent: 'bg-green-100 text-green-800',
     acknowledged: 'bg-blue-100 text-blue-800',
-    cancelled: 'bg-gray-100 text-gray-700',
+    cancelled: 'bg-muted text-foreground',
 };
 
 export default function Index({ reminders, filters, statuses, types }) {
@@ -24,10 +42,7 @@ export default function Index({ reminders, filters, statuses, types }) {
         router.get(
             route('reminders.index'),
             { ...filters, ...changes },
-            {
-                preserveState: true,
-                replace: true,
-            },
+            { preserveState: true, replace: true },
         );
     }
 
@@ -59,64 +74,86 @@ export default function Index({ reminders, filters, statuses, types }) {
         );
     }
 
+    const hasFilters = filters?.status || filters?.type || filters?.date_from || filters?.date_to;
+
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Rappels</h2>}
+            header={
+                <h2 className="text-xl font-semibold leading-tight text-foreground">Rappels</h2>
+            }
         >
             <Head title="Rappels" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         {/* FILTERS */}
-                        <div className="flex flex-wrap items-end gap-3 border-b p-4">
+                        <div className="flex flex-wrap items-end gap-3 border-b border-border p-4">
                             <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium text-gray-600">Statut</label>
-                                <select
-                                    className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                    value={filters?.status ?? ''}
-                                    onChange={(e) =>
+                                <label className="text-xs font-medium text-muted-foreground">
+                                    Statut
+                                </label>
+                                <Select
+                                    value={filters?.status || '__all__'}
+                                    onValueChange={(v) =>
                                         applyFilters({
-                                            status: e.target.value || undefined,
+                                            status: v === '__all__' ? undefined : v,
                                             page: undefined,
                                         })
                                     }
                                 >
-                                    <option value="">Tous les statuts</option>
-                                    {statuses.map((s) => (
-                                        <option key={s.value} value={s.value}>
-                                            {s.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger className="min-h-[44px] w-44">
+                                        <SelectValue placeholder="Tous les statuts" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="__all__">Tous les statuts</SelectItem>
+                                        {statuses.map((s) => (
+                                            <SelectItem key={s.value} value={s.value}>
+                                                {s.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium text-gray-600">Type</label>
-                                <select
-                                    className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                    value={filters?.type ?? ''}
-                                    onChange={(e) =>
+                                <label className="text-xs font-medium text-muted-foreground">
+                                    Type
+                                </label>
+                                <Select
+                                    value={filters?.type || '__all__'}
+                                    onValueChange={(v) =>
                                         applyFilters({
-                                            type: e.target.value || undefined,
+                                            type: v === '__all__' ? undefined : v,
                                             page: undefined,
                                         })
                                     }
                                 >
-                                    <option value="">Tous les types</option>
-                                    {types.map((t) => (
-                                        <option key={t.value} value={t.value}>
-                                            {t.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger className="min-h-[44px] w-44">
+                                        <SelectValue placeholder="Tous les types" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="__all__">Tous les types</SelectItem>
+                                        {types.map((t) => (
+                                            <SelectItem key={t.value} value={t.value}>
+                                                {t.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium text-gray-600">Du</label>
+                                <label
+                                    htmlFor="date_from"
+                                    className="text-xs font-medium text-muted-foreground"
+                                >
+                                    Du
+                                </label>
                                 <input
+                                    id="date_from"
                                     type="date"
-                                    className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px] rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.date_from ?? ''}
                                     onChange={(e) =>
                                         applyFilters({
@@ -128,10 +165,16 @@ export default function Index({ reminders, filters, statuses, types }) {
                             </div>
 
                             <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium text-gray-600">Au</label>
+                                <label
+                                    htmlFor="date_to"
+                                    className="text-xs font-medium text-muted-foreground"
+                                >
+                                    Au
+                                </label>
                                 <input
+                                    id="date_to"
                                     type="date"
-                                    className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px] rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                     value={filters?.date_to ?? ''}
                                     onChange={(e) =>
                                         applyFilters({
@@ -142,11 +185,10 @@ export default function Index({ reminders, filters, statuses, types }) {
                                 />
                             </div>
 
-                            {(filters?.status ||
-                                filters?.type ||
-                                filters?.date_from ||
-                                filters?.date_to) && (
-                                <button
+                            {hasFilters && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
                                     onClick={() =>
                                         applyFilters({
                                             status: undefined,
@@ -156,147 +198,134 @@ export default function Index({ reminders, filters, statuses, types }) {
                                             page: undefined,
                                         })
                                     }
-                                    className="min-h-[44px] rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                                 >
                                     Effacer
-                                </button>
+                                </Button>
                             )}
                         </div>
 
                         {/* TABLE */}
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Client
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Véhicule
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Type
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Statut
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Planifié le
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Envoyé le
-                                        </th>
-                                        <th className="px-6 py-3" />
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
-                                    {reminders.data.map((r) => (
-                                        <tr key={r.id}>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                                                <Link
-                                                    href={route('customers.show', r.customer.id)}
-                                                    className="hover:underline"
-                                                >
-                                                    {r.customer.name}
-                                                </Link>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                                <Link
-                                                    href={route('vehicles.show', r.vehicle.id)}
-                                                    className="hover:underline"
-                                                >
-                                                    {r.vehicle.license_plate}
-                                                </Link>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                                {r.type.label}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm">
-                                                <span
-                                                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[r.status.value] ?? 'bg-gray-100 text-gray-700'}`}
-                                                >
-                                                    {r.status.label}
-                                                </span>
-                                                {r.error_message && (
-                                                    <p
-                                                        className="mt-1 text-xs text-red-600"
-                                                        title={r.error_message}
-                                                    >
-                                                        Erreur
-                                                    </p>
-                                                )}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                                {r.scheduled_for}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                                {r.sent_at ?? '—'}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
-                                                {(r.can.trigger || r.can.cancel) && (
-                                                    <Dropdown>
-                                                        <Dropdown.Trigger>
-                                                            <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
-                                                                <MoreVertical className="h-5 w-5" />
-                                                            </button>
-                                                        </Dropdown.Trigger>
-                                                        <Dropdown.Content align="right" width="48">
-                                                            {r.can.trigger && (
-                                                                <button
-                                                                    className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none"
-                                                                    onClick={() =>
-                                                                        setTriggeringReminder(r)
-                                                                    }
-                                                                >
-                                                                    Envoyer maintenant
-                                                                </button>
-                                                            )}
-                                                            {r.can.cancel && (
-                                                                <button
-                                                                    className="block w-full px-4 py-2 text-start text-sm leading-5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none"
-                                                                    onClick={() =>
-                                                                        setCancellingReminder(r)
-                                                                    }
-                                                                >
-                                                                    Annuler
-                                                                </button>
-                                                            )}
-                                                        </Dropdown.Content>
-                                                    </Dropdown>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {reminders.data.length === 0 && (
-                                        <tr>
-                                            <td
-                                                colSpan={7}
-                                                className="px-6 py-8 text-center text-sm text-gray-500"
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Client</TableHead>
+                                    <TableHead>Véhicule</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Statut</TableHead>
+                                    <TableHead>Planifié le</TableHead>
+                                    <TableHead>Envoyé le</TableHead>
+                                    <TableHead />
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {reminders.data.map((r) => (
+                                    <TableRow key={r.id}>
+                                        <TableCell className="whitespace-nowrap font-medium text-foreground">
+                                            <Link
+                                                href={route('customers.show', r.customer.id)}
+                                                className="hover:underline"
                                             >
-                                                Aucun rappel trouvé.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                                {r.customer.name}
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                                            <Link
+                                                href={route('vehicles.show', r.vehicle.id)}
+                                                className="hover:underline"
+                                            >
+                                                {r.vehicle.license_plate}
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                                            {r.type.label}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap">
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[r.status.value] ?? 'bg-muted text-foreground'}`}
+                                            >
+                                                {r.status.label}
+                                            </span>
+                                            {r.error_message && (
+                                                <p
+                                                    className="mt-1 text-xs text-destructive"
+                                                    title={r.error_message}
+                                                >
+                                                    Erreur
+                                                </p>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                                            {r.scheduled_for}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                                            {r.sent_at ?? '—'}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-end">
+                                            {(r.can.trigger || r.can.cancel) && (
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none">
+                                                            <MoreVertical className="h-5 w-5" />
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent
+                                                        align="end"
+                                                        className="w-48"
+                                                    >
+                                                        {r.can.trigger && (
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    setTriggeringReminder(r)
+                                                                }
+                                                            >
+                                                                Envoyer maintenant
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        {r.can.cancel && (
+                                                            <DropdownMenuItem
+                                                                className="text-destructive focus:text-destructive"
+                                                                onClick={() =>
+                                                                    setCancellingReminder(r)
+                                                                }
+                                                            >
+                                                                Annuler
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {reminders.data.length === 0 && (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={7}
+                                            className="py-8 text-center text-muted-foreground"
+                                        >
+                                            Aucun rappel trouvé.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
 
                         {/* PAGINATION */}
                         {reminders.links.length > 3 && (
-                            <div className="flex items-center justify-between border-t border-gray-200 px-6 py-3">
+                            <div className="flex items-center justify-between border-t border-border px-6 py-3">
                                 {reminders.links.map((link, i) =>
                                     link.url ? (
                                         <Link
                                             key={i}
                                             href={link.url}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                                         />
                                     ) : (
                                         <span
                                             key={i}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-gray-300"
+                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-muted-foreground/40"
                                         />
                                     ),
                                 )}
@@ -313,10 +342,10 @@ export default function Index({ reminders, filters, statuses, types }) {
                 onClose={() => setTriggeringReminder(null)}
             >
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
+                    <h2 className="text-lg font-medium text-foreground">
                         Envoyer ce rappel maintenant ?
                     </h2>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Le rappel sera envoyé immédiatement à{' '}
                         <span className="font-medium">{triggeringReminder?.customer?.name}</span>{' '}
                         pour le véhicule{' '}
@@ -326,12 +355,12 @@ export default function Index({ reminders, filters, statuses, types }) {
                         .
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setTriggeringReminder(null)}>
+                        <Button variant="secondary" onClick={() => setTriggeringReminder(null)}>
                             Annuler
-                        </SecondaryButton>
-                        <PrimaryButton onClick={handleTrigger} disabled={processing}>
+                        </Button>
+                        <Button onClick={handleTrigger} disabled={processing}>
                             Envoyer
-                        </PrimaryButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -343,20 +372,20 @@ export default function Index({ reminders, filters, statuses, types }) {
                 onClose={() => setCancellingReminder(null)}
             >
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">Annuler ce rappel ?</h2>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <h2 className="text-lg font-medium text-foreground">Annuler ce rappel ?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Le rappel de{' '}
                         <span className="font-medium">{cancellingReminder?.customer?.name}</span> (
                         {cancellingReminder?.vehicle?.license_plate}) sera annulé. Il ne sera plus
                         envoyé automatiquement.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setCancellingReminder(null)}>
+                        <Button variant="secondary" onClick={() => setCancellingReminder(null)}>
                             Fermer
-                        </SecondaryButton>
-                        <DangerButton onClick={handleCancel} disabled={processing}>
+                        </Button>
+                        <Button variant="destructive" onClick={handleCancel} disabled={processing}>
                             Annuler le rappel
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>

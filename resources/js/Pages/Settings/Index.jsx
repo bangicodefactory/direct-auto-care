@@ -1,7 +1,8 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 
@@ -43,7 +44,7 @@ export default function Index({ settings }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">Paramètres</h2>
+                <h2 className="text-xl font-semibold leading-tight text-foreground">Paramètres</h2>
             }
         >
             <Head title="Paramètres" />
@@ -52,8 +53,8 @@ export default function Index({ settings }) {
                 <div className="mx-auto max-w-3xl space-y-8 px-4 sm:px-6 lg:px-8">
                     <form onSubmit={submit} className="space-y-8">
                         {/* ── Company info ── */}
-                        <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                            <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-500">
+                        <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+                            <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                                 Informations de l&apos;entreprise
                             </h3>
 
@@ -71,10 +72,10 @@ export default function Index({ settings }) {
 
                                 <div>
                                     <InputLabel htmlFor="company_address" value="Adresse" />
-                                    <textarea
+                                    <Textarea
                                         id="company_address"
                                         rows={3}
-                                        className="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-primary focus:ring-primary"
+                                        className="mt-1"
                                         value={data.company_address}
                                         onChange={(e) => setData('company_address', e.target.value)}
                                     />
@@ -141,14 +142,13 @@ export default function Index({ settings }) {
                         </section>
 
                         {/* ── Logo ── */}
-                        <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                            <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-500">
+                        <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+                            <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                                 Logo
                             </h3>
 
                             <div className="flex items-start gap-6">
-                                {/* Current logo preview */}
-                                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
+                                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
                                     {settings.logo_url ? (
                                         <img
                                             src={settings.logo_url}
@@ -156,7 +156,7 @@ export default function Index({ settings }) {
                                             className="max-h-full max-w-full object-contain"
                                         />
                                     ) : (
-                                        <span className="text-xs text-gray-400">Aucun</span>
+                                        <span className="text-xs text-muted-foreground">Aucun</span>
                                     )}
                                 </div>
 
@@ -166,10 +166,10 @@ export default function Index({ settings }) {
                                         id="logo"
                                         type="file"
                                         accept=".jpg,.jpeg,.png,.svg,.webp"
-                                        className="mt-1 block w-full text-sm text-gray-600 ltr:file:mr-3 rtl:file:ml-3 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-1 file:text-sm file:font-medium hover:file:bg-gray-200"
+                                        className="mt-1 block w-full text-sm text-muted-foreground ltr:file:mr-3 rtl:file:ml-3 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm file:font-medium hover:file:bg-muted/80"
                                         onChange={(e) => setData('logo', e.target.files[0])}
                                     />
-                                    <p className="mt-1 text-xs text-gray-500">
+                                    <p className="mt-1 text-xs text-muted-foreground">
                                         JPG, PNG, SVG ou WebP — max 2 Mo
                                     </p>
                                     <InputError message={errors.logo} className="mt-1" />
@@ -187,8 +187,8 @@ export default function Index({ settings }) {
                         </section>
 
                         {/* ── Brand colors ── */}
-                        <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                            <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-500">
+                        <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+                            <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                                 Couleurs de la marque
                             </h3>
 
@@ -202,7 +202,7 @@ export default function Index({ settings }) {
                                                 type="color"
                                                 value={data[name]}
                                                 onChange={(e) => setData(name, e.target.value)}
-                                                className="h-9 w-9 shrink-0 cursor-pointer rounded border border-gray-300 p-0.5"
+                                                className="h-9 w-9 shrink-0 cursor-pointer rounded border border-border p-0.5"
                                             />
                                             <TextInput
                                                 value={data[name]}
@@ -218,9 +218,9 @@ export default function Index({ settings }) {
                         </section>
 
                         <div className="flex justify-end">
-                            <PrimaryButton disabled={processing}>
+                            <Button disabled={processing}>
                                 {processing ? 'Enregistrement…' : 'Enregistrer'}
-                            </PrimaryButton>
+                            </Button>
                         </div>
                     </form>
                 </div>

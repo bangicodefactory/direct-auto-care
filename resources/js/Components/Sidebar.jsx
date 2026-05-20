@@ -19,7 +19,7 @@ function SidebarLink({ href, active, icon: Icon, children }) {
             className={`flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                 active
                     ? 'bg-primary text-primary-foreground'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
             }`}
         >
             <Icon className="h-4 w-4 shrink-0" />
@@ -32,7 +32,7 @@ export default function Sidebar({ role }) {
     const isAdmin = role === 'admin';
 
     return (
-        <aside className="flex h-full flex-col border-r border-gray-200 bg-white">
+        <aside className="flex h-full flex-col border-r border-border bg-card">
             <nav className="flex-1 space-y-1 px-3 py-4">
                 <SidebarLink
                     href={route('dashboard')}

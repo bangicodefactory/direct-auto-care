@@ -7,7 +7,7 @@ export default function Dashboard({ kpis, isAdmin }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                <h2 className="text-xl font-semibold leading-tight text-foreground">
                     Tableau de bord
                 </h2>
             }
@@ -53,28 +53,30 @@ export default function Dashboard({ kpis, isAdmin }) {
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         <Section title="RDV du jour" href={route('appointments.today-page')}>
                             {kpis.appointments_today.length === 0 ? (
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-muted-foreground">
                                     Aucun rendez-vous aujourd'hui.
                                 </p>
                             ) : (
-                                <ul className="divide-y divide-gray-100">
+                                <ul className="divide-y divide-border">
                                     {kpis.appointments_today.map((a) => (
                                         <li
                                             key={a.id}
                                             className="flex items-center justify-between py-2 text-sm"
                                         >
                                             <div>
-                                                <p className="font-medium text-gray-800">
+                                                <p className="font-medium text-foreground">
                                                     {a.customer}
                                                 </p>
-                                                <p className="text-xs text-gray-500">{a.vehicle}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {a.vehicle}
+                                                </p>
                                                 {a.services.length > 0 && (
-                                                    <p className="text-xs text-gray-400">
+                                                    <p className="text-xs text-muted-foreground">
                                                         {a.services.join(', ')}
                                                     </p>
                                                 )}
                                             </div>
-                                            <span className="ms-4 text-gray-600">
+                                            <span className="ms-4 text-muted-foreground">
                                                 {a.scheduled_at}
                                             </span>
                                         </li>
@@ -85,9 +87,11 @@ export default function Dashboard({ kpis, isAdmin }) {
 
                         <Section title="Stock bas" href={route('products.index')}>
                             {kpis.low_stock.length === 0 ? (
-                                <p className="text-sm text-gray-500">Aucun produit en stock bas.</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Aucun produit en stock bas.
+                                </p>
                             ) : (
-                                <ul className="divide-y divide-gray-100">
+                                <ul className="divide-y divide-border">
                                     {kpis.low_stock.map((p) => (
                                         <li
                                             key={p.id}
@@ -95,11 +99,11 @@ export default function Dashboard({ kpis, isAdmin }) {
                                         >
                                             <Link
                                                 href={route('products.edit', p.id)}
-                                                className="font-medium text-gray-800 hover:text-blue-600"
+                                                className="font-medium text-foreground hover:text-primary"
                                             >
                                                 {p.name}
                                             </Link>
-                                            <span className="text-red-600">
+                                            <span className="text-destructive">
                                                 {p.quantity_on_hand} / {p.low_stock_threshold}{' '}
                                                 {p.unit}
                                             </span>
@@ -143,7 +147,7 @@ function fmt(value) {
 }
 
 function Delta({ value }) {
-    if (value === 0) return <span className="text-xs text-gray-400">= ce mois</span>;
+    if (value === 0) return <span className="text-xs text-muted-foreground">= ce mois</span>;
     const positive = value > 0;
     return (
         <span className={`text-xs ${positive ? 'text-green-600' : 'text-red-500'}`}>
@@ -156,8 +160,10 @@ function Delta({ value }) {
 function KpiCard({ label, value, sub, href }) {
     const inner = (
         <>
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {label}
+            </p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
             {sub && <div className="mt-1">{sub}</div>}
         </>
     );
@@ -166,21 +172,21 @@ function KpiCard({ label, value, sub, href }) {
         return (
             <Link
                 href={href}
-                className="block rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200 transition-shadow hover:shadow-md"
+                className="block rounded-lg border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
             >
                 {inner}
             </Link>
         );
     }
 
-    return <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">{inner}</div>;
+    return <div className="rounded-lg border border-border bg-card p-5 shadow-sm">{inner}</div>;
 }
 
 function Section({ title, href, children }) {
     return (
-        <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">
+        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     {title}
                 </h3>
                 {href && (
