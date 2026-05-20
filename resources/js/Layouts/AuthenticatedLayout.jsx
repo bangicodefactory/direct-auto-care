@@ -40,8 +40,8 @@ function AuthenticatedLayoutInner({ header, children }) {
             <AppSidebar user={user} role={role} />
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-card px-4">
-                    <SidebarTrigger className="-ml-1" />
-                    <Separator orientation="vertical" className="mr-2 h-4" />
+                    <SidebarTrigger className="-ms-1" />
+                    <Separator orientation="vertical" className="me-2 h-4" />
                     {header && <div className="flex-1">{header}</div>}
                     <div className="ms-auto flex items-center">
                         <NotificationBell />

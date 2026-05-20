@@ -20,7 +20,7 @@ import {
     SidebarRail,
 } from '@/Components/ui/sidebar';
 import { useTranslation } from '@/helpers/i18n';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     Bell,
     Calendar,
@@ -76,11 +76,13 @@ function isActive(item) {
 
 export default function AppSidebar({ user, role, ...props }) {
     const { t } = useTranslation();
+    const locale = usePage().props.locale;
     const isAdmin = role === 'admin';
     const initials = user.name.charAt(0).toUpperCase();
+    const side = locale === 'ar' ? 'right' : 'left';
 
     return (
-        <Sidebar collapsible="icon" {...props}>
+        <Sidebar collapsible="icon" side={side} {...props}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>

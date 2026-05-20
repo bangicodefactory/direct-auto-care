@@ -215,7 +215,9 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>N°</TableHead>
+                                    <TableHead>
+                                        <span dir="ltr">N°</span>
+                                    </TableHead>
                                     <TableHead>Type</TableHead>
                                     <TableHead>Statut</TableHead>
                                     <TableHead>Client</TableHead>
