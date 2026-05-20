@@ -19,6 +19,7 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from '@/Components/ui/sidebar';
+import { useTranslation } from '@/helpers/i18n';
 import { Link } from '@inertiajs/react';
 import {
     Bell,
@@ -74,6 +75,7 @@ function isActive(item) {
 }
 
 export default function AppSidebar({ user, role, ...props }) {
+    const { t } = useTranslation();
     const isAdmin = role === 'admin';
     const initials = user.name.charAt(0).toUpperCase();
 
@@ -182,7 +184,7 @@ export default function AppSidebar({ user, role, ...props }) {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
                                     <Link href={route('profile.edit')} className="cursor-pointer">
-                                        Profil
+                                        {t('ui.profile')}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
@@ -193,7 +195,7 @@ export default function AppSidebar({ user, role, ...props }) {
                                         className="w-full cursor-pointer"
                                     >
                                         <LogOut className="me-2 h-4 w-4" />
-                                        Déconnexion
+                                        {t('ui.logout')}
                                     </Link>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>

@@ -47,7 +47,7 @@ function AuthenticatedLayoutInner({ header, children }) {
                         <NotificationBell />
                     </div>
                 </header>
-                <main className="flex-1 pb-14 md:pb-0">{children}</main>
+                <div className="flex-1 pb-14 md:pb-0">{children}</div>
             </SidebarInset>
             <BottomNav onMenuOpen={toggleSidebar} />
         </>

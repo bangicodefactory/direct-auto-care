@@ -216,7 +216,7 @@ class InvoicesController extends Controller implements HasMiddleware
 
     public function issue(Invoice $invoice): RedirectResponse
     {
-        $invoice->update(['status' => InvoiceStatus::Issued->value]);
+        $invoice->update(['status' => InvoiceStatus::Issued]);
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', "Facture {$invoice->number} émise.");
@@ -224,7 +224,7 @@ class InvoicesController extends Controller implements HasMiddleware
 
     public function markPaid(Invoice $invoice): RedirectResponse
     {
-        $invoice->update(['status' => InvoiceStatus::Paid->value]);
+        $invoice->update(['status' => InvoiceStatus::Paid]);
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', "Facture {$invoice->number} marquée comme payée.");
@@ -232,12 +232,14 @@ class InvoicesController extends Controller implements HasMiddleware
 
     public function cancel(Invoice $invoice): RedirectResponse
     {
-        $invoice->update(['status' => InvoiceStatus::Cancelled->value]);
+        $invoice->update(['status' => InvoiceStatus::Cancelled]);
 
-        $label = $invoice->type === InvoiceType::Quote ? 'Devis' : 'Facture';
+        [$label, $past] = $invoice->type === InvoiceType::Quote
+            ? ['Devis', 'annulé']
+            : ['Facture', 'annulée'];
 
         return redirect()->route('invoices.show', $invoice)
-            ->with('success', "{$label} {$invoice->number} annulé(e).");
+            ->with('success', "{$label} {$invoice->number} {$past}.");
     }
 
     public function convert(Request $request, Invoice $invoice, InvoiceService $service): RedirectResponse
