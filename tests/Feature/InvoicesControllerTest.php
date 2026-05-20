@@ -651,6 +651,19 @@ class InvoicesControllerTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_employee_cannot_issue_a_cancelled_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Cancelled->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $invoice))
+            ->assertForbidden();
+    }
+
     // =========================================================================
     // Mark paid — issued invoice → paid
     // =========================================================================
@@ -777,6 +790,16 @@ class InvoicesControllerTest extends TestCase
         $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Cancelled->value]);
 
         $this->actingAs($admin)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_roleless_user_cannot_cancel_an_invoice(): void
+    {
+        $user    = User::factory()->create();
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+
+        $this->actingAs($user)
             ->post(route('invoices.cancel', $invoice))
             ->assertForbidden();
     }

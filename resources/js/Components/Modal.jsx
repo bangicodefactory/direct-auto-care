@@ -36,9 +36,7 @@ export default function Modal({
                     if (!closeable) e.preventDefault();
                 }}
             >
-                <DialogTitle className={title ? undefined : 'sr-only'}>
-                    {title || 'Dialogue'}
-                </DialogTitle>
+                <DialogTitle className="sr-only">{title || 'Dialogue'}</DialogTitle>
                 {children}
             </DialogContent>
         </Dialog>
