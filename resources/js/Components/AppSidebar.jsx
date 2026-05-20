@@ -37,24 +37,34 @@ import {
 } from 'lucide-react';
 
 const navMain = [
-    { label: 'Tableau de bord', routeName: 'dashboard', icon: LayoutDashboard, match: 'dashboard' },
-    { label: 'Clients', routeName: 'customers.index', icon: Users, match: 'customers.*' },
-    { label: 'Véhicules', routeName: 'vehicles.index', icon: Car, match: 'vehicles.*' },
+    { labelKey: 'ui.nav_home', routeName: 'dashboard', icon: LayoutDashboard, match: 'dashboard' },
     {
-        label: 'Factures & Devis',
+        labelKey: 'ui.nav_customers',
+        routeName: 'customers.index',
+        icon: Users,
+        match: 'customers.*',
+    },
+    { labelKey: 'ui.nav_vehicles', routeName: 'vehicles.index', icon: Car, match: 'vehicles.*' },
+    {
+        labelKey: 'ui.nav_invoices',
         routeName: 'invoices.index',
         icon: FileText,
         match: 'invoices.*',
     },
-    { label: 'Produits', routeName: 'products.index', icon: Package, match: 'products.*' },
     {
-        label: 'Rendez-vous',
+        labelKey: 'ui.nav_products',
+        routeName: 'products.index',
+        icon: Package,
+        match: 'products.*',
+    },
+    {
+        labelKey: 'ui.nav_appointments',
         routeName: 'appointments.index',
         icon: Calendar,
         match: null,
     },
     {
-        label: "Aujourd'hui",
+        labelKey: 'ui.nav_today',
         routeName: 'appointments.today-page',
         icon: CalendarDays,
         match: 'appointments.today-page',
@@ -62,9 +72,19 @@ const navMain = [
 ];
 
 const navAdmin = [
-    { label: 'Rappels', routeName: 'reminders.index', icon: Bell, match: 'reminders.*' },
-    { label: 'Utilisateurs', routeName: 'users.index', icon: UserCog, match: 'users.*' },
-    { label: 'Paramètres', routeName: 'settings.edit', icon: Settings, match: 'settings.*' },
+    {
+        labelKey: 'ui.nav_reminders',
+        routeName: 'reminders.index',
+        icon: Bell,
+        match: 'reminders.*',
+    },
+    { labelKey: 'ui.nav_users', routeName: 'users.index', icon: UserCog, match: 'users.*' },
+    {
+        labelKey: 'ui.nav_settings',
+        routeName: 'settings.edit',
+        icon: Settings,
+        match: 'settings.*',
+    },
 ];
 
 function isActive(item) {
@@ -106,15 +126,15 @@ export default function AppSidebar({ user, role, ...props }) {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {navMain.map((item) => (
-                                <SidebarMenuItem key={item.label}>
+                                <SidebarMenuItem key={item.labelKey}>
                                     <SidebarMenuButton
                                         asChild
                                         isActive={isActive(item)}
-                                        tooltip={item.label}
+                                        tooltip={t(item.labelKey)}
                                     >
                                         <Link href={route(item.routeName)}>
                                             <item.icon />
-                                            <span>{item.label}</span>
+                                            <span>{t(item.labelKey)}</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
@@ -128,15 +148,15 @@ export default function AppSidebar({ user, role, ...props }) {
                         <SidebarGroupContent>
                             <SidebarMenu>
                                 {navAdmin.map((item) => (
-                                    <SidebarMenuItem key={item.label}>
+                                    <SidebarMenuItem key={item.labelKey}>
                                         <SidebarMenuButton
                                             asChild
                                             isActive={route().current(item.match)}
-                                            tooltip={item.label}
+                                            tooltip={t(item.labelKey)}
                                         >
                                             <Link href={route(item.routeName)}>
                                                 <item.icon />
-                                                <span>{item.label}</span>
+                                                <span>{t(item.labelKey)}</span>
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
