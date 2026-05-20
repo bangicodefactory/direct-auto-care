@@ -1,10 +1,12 @@
-import DangerButton from '@/Components/DangerButton';
-import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
-import { DropdownMenuItem } from '@/Components/ui/dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 import {
     Select,
     SelectContent,
@@ -192,24 +194,26 @@ export default function Index({ products, filters, categories, can }) {
                                             {p.quantity_on_hand} {p.unit}
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-end">
-                                            <Dropdown>
-                                                <Dropdown.Trigger>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
                                                     <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none">
                                                         <MoreVertical className="h-5 w-5" />
                                                     </button>
-                                                </Dropdown.Trigger>
-                                                <Dropdown.Content align="right" width="48">
-                                                    <Dropdown.Link
-                                                        href={route('products.show', p.id)}
-                                                    >
-                                                        Voir
-                                                    </Dropdown.Link>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-48">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={route('products.show', p.id)}>
+                                                            Voir
+                                                        </Link>
+                                                    </DropdownMenuItem>
                                                     {can.edit && (
-                                                        <Dropdown.Link
-                                                            href={route('products.edit', p.id)}
-                                                        >
-                                                            Modifier
-                                                        </Dropdown.Link>
+                                                        <DropdownMenuItem asChild>
+                                                            <Link
+                                                                href={route('products.edit', p.id)}
+                                                            >
+                                                                Modifier
+                                                            </Link>
+                                                        </DropdownMenuItem>
                                                     )}
                                                     {can.delete && (
                                                         <DropdownMenuItem
@@ -219,8 +223,8 @@ export default function Index({ products, filters, categories, can }) {
                                                             Supprimer
                                                         </DropdownMenuItem>
                                                     )}
-                                                </Dropdown.Content>
-                                            </Dropdown>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -274,12 +278,12 @@ export default function Index({ products, filters, categories, can }) {
                         définitivement supprimé. Cette action est irréversible.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setDeletingProduct(null)}>
+                        <Button variant="secondary" onClick={() => setDeletingProduct(null)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={destroy} disabled={processing}>
+                        </Button>
+                        <Button variant="destructive" onClick={destroy} disabled={processing}>
                             Supprimer définitivement
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>

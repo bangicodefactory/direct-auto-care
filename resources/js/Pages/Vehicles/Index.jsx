@@ -1,10 +1,12 @@
-import DangerButton from '@/Components/DangerButton';
-import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
-import { DropdownMenuItem } from '@/Components/ui/dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 import {
     Table,
     TableBody,
@@ -176,26 +178,26 @@ export default function Index({ vehicles, filters, can }) {
                                             </Link>
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-end">
-                                            <Dropdown>
-                                                <Dropdown.Trigger>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
                                                     <button
                                                         type="button"
                                                         className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none"
                                                     >
                                                         <MoreVertical className="h-5 w-5" />
                                                     </button>
-                                                </Dropdown.Trigger>
-                                                <Dropdown.Content align="right" width="48">
-                                                    <Dropdown.Link
-                                                        href={route('vehicles.show', v.id)}
-                                                    >
-                                                        Voir
-                                                    </Dropdown.Link>
-                                                    <Dropdown.Link
-                                                        href={route('vehicles.edit', v.id)}
-                                                    >
-                                                        Modifier
-                                                    </Dropdown.Link>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-48">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={route('vehicles.show', v.id)}>
+                                                            Voir
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={route('vehicles.edit', v.id)}>
+                                                            Modifier
+                                                        </Link>
+                                                    </DropdownMenuItem>
                                                     {can.delete && (
                                                         <DropdownMenuItem
                                                             className="text-destructive focus:text-destructive"
@@ -204,8 +206,8 @@ export default function Index({ vehicles, filters, can }) {
                                                             Supprimer
                                                         </DropdownMenuItem>
                                                     )}
-                                                </Dropdown.Content>
-                                            </Dropdown>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -262,12 +264,12 @@ export default function Index({ vehicles, filters, can }) {
                         sera supprimé. Cette action est irréversible.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setDeletingVehicle(null)}>
+                        <Button variant="secondary" onClick={() => setDeletingVehicle(null)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={destroy} disabled={processing}>
+                        </Button>
+                        <Button variant="destructive" onClick={destroy} disabled={processing}>
                             Supprimer définitivement
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>

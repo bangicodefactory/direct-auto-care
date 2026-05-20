@@ -1,6 +1,4 @@
-import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
 import { Button } from '@/Components/ui/button';
 import {
     Table,
@@ -145,12 +143,12 @@ export default function Index({ users }) {
                         définitivement supprimé. Cette action est irréversible.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setDeletingUser(null)}>
+                        <Button variant="secondary" onClick={() => setDeletingUser(null)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={destroy} disabled={processing}>
+                        </Button>
+                        <Button variant="destructive" onClick={destroy} disabled={processing}>
                             Supprimer définitivement
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>

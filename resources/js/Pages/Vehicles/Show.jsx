@@ -1,6 +1,4 @@
-import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
 import { Button } from '@/Components/ui/button';
 import { FUEL_LABELS } from '@/constants/fuelTypes';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -313,12 +311,12 @@ export default function Show({ vehicle, can }) {
                         sera supprimé. Cette action est irréversible.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setConfirmingDeletion(false)}>
+                        <Button variant="secondary" onClick={() => setConfirmingDeletion(false)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={destroy} disabled={processing}>
+                        </Button>
+                        <Button variant="destructive" onClick={destroy} disabled={processing}>
                             Supprimer définitivement
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -334,12 +332,16 @@ export default function Show({ vehicle, can }) {
                         supprimé définitivement.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setDeletingRecord(null)}>
+                        <Button variant="secondary" onClick={() => setDeletingRecord(null)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={destroyRecord} disabled={processingRecord}>
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={destroyRecord}
+                            disabled={processingRecord}
+                        >
                             Supprimer
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>

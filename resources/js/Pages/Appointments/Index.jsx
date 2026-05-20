@@ -2,7 +2,6 @@ import CustomerCombobox from '@/Components/CustomerCombobox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
 import ServiceTypeMultiCheck from '@/Components/ServiceTypeMultiCheck';
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
@@ -366,9 +365,9 @@ function CreateModal({ show, initialData, customers, vehicles, serviceTypes, onC
                 </div>
 
                 <div className="flex justify-end gap-3">
-                    <SecondaryButton type="button" onClick={handleClose}>
+                    <Button variant="secondary" type="button" onClick={handleClose}>
                         Annuler
-                    </SecondaryButton>
+                    </Button>
                     <Button disabled={processing}>
                         {processing ? 'Enregistrement…' : 'Confirmer'}
                     </Button>

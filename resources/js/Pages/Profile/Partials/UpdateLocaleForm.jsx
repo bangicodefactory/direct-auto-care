@@ -1,4 +1,4 @@
-import PrimaryButton from '@/Components/PrimaryButton';
+import { Button } from '@/Components/ui/button';
 import { useTranslation } from '@/helpers/i18n';
 import { useForm, usePage } from '@inertiajs/react';
 
@@ -44,7 +44,7 @@ export default function UpdateLocaleForm({ className = '' }) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>{t('ui.save')}</PrimaryButton>
+                    <Button disabled={processing}>{t('ui.save')}</Button>
 
                     {recentlySuccessful && (
                         <p className="text-sm text-muted-foreground">{t('ui.language_saved')}</p>

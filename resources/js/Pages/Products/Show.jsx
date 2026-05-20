@@ -1,8 +1,6 @@
-import DangerButton from '@/Components/DangerButton';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
 import {
@@ -183,10 +181,12 @@ export default function Show({ product, movements, can }) {
                         irréversible.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setConfirmDelete(false)}>
+                        <Button variant="secondary" onClick={() => setConfirmDelete(false)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={handleDelete}>Supprimer définitivement</DangerButton>
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            Supprimer définitivement
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -229,9 +229,13 @@ export default function Show({ product, movements, can }) {
                     </div>
 
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton type="button" onClick={() => setAdjusting(false)}>
+                        <Button
+                            variant="secondary"
+                            type="button"
+                            onClick={() => setAdjusting(false)}
+                        >
                             Annuler
-                        </SecondaryButton>
+                        </Button>
                         <Button type="submit" disabled={processing}>
                             Enregistrer
                         </Button>

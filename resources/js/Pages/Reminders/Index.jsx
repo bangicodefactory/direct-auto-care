@@ -1,10 +1,11 @@
-import DangerButton from '@/Components/DangerButton';
-import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
 import { Button } from '@/Components/ui/button';
-import { DropdownMenuItem } from '@/Components/ui/dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 import {
     Select,
     SelectContent,
@@ -261,13 +262,16 @@ export default function Index({ reminders, filters, statuses, types }) {
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-end">
                                             {(r.can.trigger || r.can.cancel) && (
-                                                <Dropdown>
-                                                    <Dropdown.Trigger>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
                                                         <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none">
                                                             <MoreVertical className="h-5 w-5" />
                                                         </button>
-                                                    </Dropdown.Trigger>
-                                                    <Dropdown.Content align="right" width="48">
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent
+                                                        align="end"
+                                                        className="w-48"
+                                                    >
                                                         {r.can.trigger && (
                                                             <DropdownMenuItem
                                                                 onClick={() =>
@@ -287,8 +291,8 @@ export default function Index({ reminders, filters, statuses, types }) {
                                                                 Annuler
                                                             </DropdownMenuItem>
                                                         )}
-                                                    </Dropdown.Content>
-                                                </Dropdown>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             )}
                                         </TableCell>
                                     </TableRow>
@@ -351,12 +355,12 @@ export default function Index({ reminders, filters, statuses, types }) {
                         .
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setTriggeringReminder(null)}>
+                        <Button variant="secondary" onClick={() => setTriggeringReminder(null)}>
                             Annuler
-                        </SecondaryButton>
-                        <PrimaryButton onClick={handleTrigger} disabled={processing}>
+                        </Button>
+                        <Button onClick={handleTrigger} disabled={processing}>
                             Envoyer
-                        </PrimaryButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -376,12 +380,12 @@ export default function Index({ reminders, filters, statuses, types }) {
                         envoyé automatiquement.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setCancellingReminder(null)}>
+                        <Button variant="secondary" onClick={() => setCancellingReminder(null)}>
                             Fermer
-                        </SecondaryButton>
-                        <DangerButton onClick={handleCancel} disabled={processing}>
+                        </Button>
+                        <Button variant="destructive" onClick={handleCancel} disabled={processing}>
                             Annuler le rappel
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>
