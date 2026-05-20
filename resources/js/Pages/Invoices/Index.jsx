@@ -212,82 +212,87 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                         </div>
 
                         {/* TABLE */}
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>
-                                        <span dir="ltr">N°</span>
-                                    </TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Statut</TableHead>
-                                    <TableHead>Client</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead className="text-end">Total TTC</TableHead>
-                                    <TableHead />
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {invoices.data.map((inv) => (
-                                    <TableRow key={inv.id}>
-                                        <TableCell className="whitespace-nowrap font-medium text-primary">
-                                            <Link href={route('invoices.show', inv.id)}>
-                                                {inv.number}
-                                            </Link>
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap">
-                                            <Badge
-                                                value={inv.type}
-                                                styleMap={TYPE_STYLES}
-                                                labelMap={TYPE_LABELS}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap">
-                                            <Badge
-                                                value={inv.status}
-                                                styleMap={STATUS_STYLES}
-                                                labelMap={STATUS_LABELS}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap text-foreground">
-                                            {inv.customer ? (
-                                                <Link
-                                                    href={route('customers.show', inv.customer.id)}
-                                                    className="hover:underline"
-                                                >
-                                                    {inv.customer.name}
-                                                </Link>
-                                            ) : (
-                                                '—'
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap text-muted-foreground">
-                                            {inv.issue_date}
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap text-end font-medium text-foreground">
-                                            {Number(inv.total_ttc).toFixed(2)} DH
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap text-end">
-                                            <Link
-                                                href={route('invoices.show', inv.id)}
-                                                className="inline-flex min-h-[44px] items-center text-primary hover:underline"
-                                            >
-                                                Voir
-                                            </Link>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {invoices.data.length === 0 && (
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell
-                                            colSpan={7}
-                                            className="py-10 text-center text-muted-foreground"
-                                        >
-                                            Aucun document trouvé.
-                                        </TableCell>
+                                        <TableHead>
+                                            <span dir="ltr">N°</span>
+                                        </TableHead>
+                                        <TableHead className="hidden sm:table-cell">Type</TableHead>
+                                        <TableHead>Statut</TableHead>
+                                        <TableHead>Client</TableHead>
+                                        <TableHead className="hidden sm:table-cell">Date</TableHead>
+                                        <TableHead className="text-end">Total TTC</TableHead>
+                                        <TableHead />
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {invoices.data.map((inv) => (
+                                        <TableRow key={inv.id}>
+                                            <TableCell className="whitespace-nowrap font-medium text-primary">
+                                                <Link href={route('invoices.show', inv.id)}>
+                                                    {inv.number}
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell className="hidden whitespace-nowrap sm:table-cell">
+                                                <Badge
+                                                    value={inv.type}
+                                                    styleMap={TYPE_STYLES}
+                                                    labelMap={TYPE_LABELS}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap">
+                                                <Badge
+                                                    value={inv.status}
+                                                    styleMap={STATUS_STYLES}
+                                                    labelMap={STATUS_LABELS}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-foreground">
+                                                {inv.customer ? (
+                                                    <Link
+                                                        href={route(
+                                                            'customers.show',
+                                                            inv.customer.id,
+                                                        )}
+                                                        className="hover:underline"
+                                                    >
+                                                        {inv.customer.name}
+                                                    </Link>
+                                                ) : (
+                                                    '—'
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
+                                                {inv.issue_date}
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-end font-medium text-foreground">
+                                                {Number(inv.total_ttc).toFixed(2)} DH
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-end">
+                                                <Link
+                                                    href={route('invoices.show', inv.id)}
+                                                    className="inline-flex min-h-[44px] items-center text-primary hover:underline"
+                                                >
+                                                    Voir
+                                                </Link>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {invoices.data.length === 0 && (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={7}
+                                                className="py-10 text-center text-muted-foreground"
+                                            >
+                                                Aucun document trouvé.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
 
                         {/* PAGINATION */}
                         {invoices.links.length > 3 && (

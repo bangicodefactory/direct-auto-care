@@ -1,6 +1,12 @@
 import Modal from '@/Components/Modal';
 import { Button } from '@/Components/ui/button';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import {
     Table,
     TableBody,
     TableCell,
@@ -10,6 +16,7 @@ import {
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { ChevronDown, Printer } from 'lucide-react';
 import { useState } from 'react';
 
 function Field({ label, value }) {
@@ -71,24 +78,35 @@ export default function Show({ invoice, can }) {
                         <Button variant="outline" asChild>
                             <Link href={route('invoices.index')}>← Retour</Link>
                         </Button>
-                        <Button variant="outline" asChild>
-                            <a
-                                href={route('invoices.print', invoice.id)}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                Imprimer
-                            </a>
-                        </Button>
-                        <Button variant="outline" asChild>
-                            <a
-                                href={route('invoices.pdf', invoice.id)}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                Télécharger PDF
-                            </a>
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    <Printer className="h-4 w-4" />
+                                    <span className="ms-2 hidden sm:inline">Documents</span>
+                                    <ChevronDown className="ms-1 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild>
+                                    <a
+                                        href={route('invoices.print', invoice.id)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Imprimer
+                                    </a>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <a
+                                        href={route('invoices.pdf', invoice.id)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Télécharger PDF
+                                    </a>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         {can.issue && (
                             <Button
                                 type="button"
