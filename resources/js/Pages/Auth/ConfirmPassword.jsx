@@ -24,7 +24,9 @@ export default function ConfirmPassword() {
         <GuestLayout>
             <Head title={t('ui.confirm_password')} />
 
-            <div className="mb-4 text-sm text-gray-600">{t('ui.confirm_password_desc')}</div>
+            <div className="mb-4 text-sm text-muted-foreground">
+                {t('ui.confirm_password_desc')}
+            </div>
 
             <form onSubmit={submit}>
                 <div className="mt-4">

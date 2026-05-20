@@ -19,7 +19,7 @@ export default function ForgotPassword({ status }) {
         <GuestLayout>
             <Head title="Mot de passe oublié" />
 
-            <div className="mb-4 text-sm text-gray-600">
+            <div className="mb-4 text-sm text-muted-foreground">
                 Mot de passe oublié ? Aucun problème. Indiquez-nous votre adresse e-mail et nous
                 vous enverrons un lien pour choisir un nouveau mot de passe.
             </div>

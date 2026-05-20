@@ -1,6 +1,5 @@
 import PrimaryButton from '@/Components/PrimaryButton';
 import { useTranslation } from '@/helpers/i18n';
-import { Transition } from '@headlessui/react';
 import { useForm, usePage } from '@inertiajs/react';
 
 export default function UpdateLocaleForm({ className = '' }) {
@@ -19,7 +18,9 @@ export default function UpdateLocaleForm({ className = '' }) {
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">{t('ui.language_preference')}</h2>
+                <h2 className="text-lg font-medium text-foreground">
+                    {t('ui.language_preference')}
+                </h2>
             </header>
 
             <form onSubmit={submit} className="mt-6 space-y-6">
@@ -35,9 +36,9 @@ export default function UpdateLocaleForm({ className = '' }) {
                                 value={value}
                                 checked={data.locale === value}
                                 onChange={() => setData('locale', value)}
-                                className="text-indigo-600 focus:ring-indigo-500"
+                                className="text-primary focus:ring-ring"
                             />
-                            <span className="text-sm text-gray-700">{label}</span>
+                            <span className="text-sm text-foreground">{label}</span>
                         </label>
                     ))}
                 </div>
@@ -45,15 +46,9 @@ export default function UpdateLocaleForm({ className = '' }) {
                 <div className="flex items-center gap-4">
                     <PrimaryButton disabled={processing}>{t('ui.save')}</PrimaryButton>
 
-                    <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm text-gray-600">{t('ui.language_saved')}</p>
-                    </Transition>
+                    {recentlySuccessful && (
+                        <p className="text-sm text-muted-foreground">{t('ui.language_saved')}</p>
+                    )}
                 </div>
             </form>
         </section>

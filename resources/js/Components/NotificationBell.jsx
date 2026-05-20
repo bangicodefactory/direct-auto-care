@@ -46,72 +46,70 @@ export default function NotificationBell() {
             <button
                 type="button"
                 onClick={() => setOpen((prev) => !prev)}
-                className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none"
+                className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none"
                 aria-label={t('ui.notifications')}
             >
                 <Bell className="h-6 w-6" />
                 {unreadCount > 0 && (
-                    <span className="absolute end-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold leading-none text-white">
+                    <span className="absolute end-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold leading-none text-destructive-foreground">
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
             </button>
 
             {open && (
-                <div className="absolute end-0 z-50 mt-2 w-80 rounded-md shadow-lg">
-                    <div className="rounded-md bg-white ring-1 ring-black ring-opacity-5">
-                        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
-                            <span className="text-sm font-semibold text-gray-700">
-                                {t('ui.notifications')}
-                            </span>
-                            {unreadCount > 0 && (
-                                <button
-                                    type="button"
-                                    onClick={markAllRead}
-                                    className="inline-flex min-h-[44px] items-center px-2 text-xs text-blue-600 hover:underline"
-                                >
-                                    {t('ui.mark_all_read')}
-                                </button>
-                            )}
-                        </div>
-
-                        <ul className="max-h-80 divide-y divide-gray-50 overflow-y-auto">
-                            {notifications.length === 0 ? (
-                                <li className="px-4 py-6 text-center text-sm text-gray-400">
-                                    {t('ui.no_notifications')}
-                                </li>
-                            ) : (
-                                notifications.map((n) => (
-                                    <li key={n.id}>
-                                        <button
-                                            type="button"
-                                            onClick={() => markRead(n.id)}
-                                            className={`w-full px-4 py-3 text-start transition hover:bg-gray-50 ${
-                                                !n.read_at ? 'bg-blue-50' : ''
-                                            }`}
-                                        >
-                                            <div className="flex items-start gap-2">
-                                                <span className="mt-0.5 text-base leading-none">
-                                                    {iconForType(n.type)}
-                                                </span>
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="truncate text-sm text-gray-800">
-                                                        {n.message}
-                                                    </p>
-                                                    <p className="mt-0.5 text-xs text-gray-400">
-                                                        {n.created_at}
-                                                    </p>
-                                                </div>
-                                                {!n.read_at && (
-                                                    <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" />
-                                                )}
-                                            </div>
-                                        </button>
-                                    </li>
-                                ))
-                            )}
-                        </ul>
+                <div className="absolute end-0 z-50 mt-2 w-80 rounded-md border border-border bg-popover shadow-lg">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-2">
+                        <span className="text-sm font-semibold text-foreground">
+                            {t('ui.notifications')}
+                        </span>
+                        {unreadCount > 0 && (
+                            <button
+                                type="button"
+                                onClick={markAllRead}
+                                className="inline-flex min-h-[44px] items-center px-2 text-xs text-primary hover:underline"
+                            >
+                                {t('ui.mark_all_read')}
+                            </button>
+                        )}
                     </div>
+
+                    <ul className="max-h-80 divide-y divide-border overflow-y-auto">
+                        {notifications.length === 0 ? (
+                            <li className="px-4 py-6 text-center text-sm text-muted-foreground">
+                                {t('ui.no_notifications')}
+                            </li>
+                        ) : (
+                            notifications.map((n) => (
+                                <li key={n.id}>
+                                    <button
+                                        type="button"
+                                        onClick={() => markRead(n.id)}
+                                        className={`w-full px-4 py-3 text-start transition hover:bg-accent ${
+                                            !n.read_at ? 'bg-primary/5' : ''
+                                        }`}
+                                    >
+                                        <div className="flex items-start gap-2">
+                                            <span className="mt-0.5 text-base leading-none">
+                                                {iconForType(n.type)}
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm text-foreground">
+                                                    {n.message}
+                                                </p>
+                                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                                    {n.created_at}
+                                                </p>
+                                            </div>
+                                            {!n.read_at && (
+                                                <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
+                                            )}
+                                        </div>
+                                    </button>
+                                </li>
+                            ))
+                        )}
+                    </ul>
                 </div>
             )}
         </div>

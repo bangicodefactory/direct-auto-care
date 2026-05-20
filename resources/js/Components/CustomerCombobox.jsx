@@ -1,4 +1,6 @@
 import InputError from '@/Components/InputError';
+import { Input } from '@/Components/ui/input';
+import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 
 export default function CustomerCombobox({ customers, value, onChange, error, inputRef }) {
@@ -88,18 +90,23 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
         <div ref={containerRef} className="relative">
             {selected ? (
                 <div
-                    className={`flex items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm ${error ? 'border-red-500' : 'border-gray-300'}`}
+                    className={cn(
+                        'flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm',
+                        error ? 'border-destructive' : 'border-input',
+                    )}
                 >
                     <span className="flex-1 font-medium">
                         {selected.first_name} {selected.last_name}
                         {selected.phone && (
-                            <span className="ms-2 font-normal text-gray-400">{selected.phone}</span>
+                            <span className="ms-2 font-normal text-muted-foreground">
+                                {selected.phone}
+                            </span>
                         )}
                     </span>
                     <button
                         type="button"
                         onClick={clear}
-                        className="text-gray-400 hover:text-gray-600"
+                        className="text-muted-foreground hover:text-foreground"
                         aria-label="Effacer la sélection"
                     >
                         ✕
@@ -107,7 +114,7 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                 </div>
             ) : (
                 <>
-                    <input
+                    <Input
                         ref={inputRef}
                         id="customer-combobox"
                         role="combobox"
@@ -130,7 +137,7 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                         onFocus={() => setIsOpen(true)}
                         onKeyDown={handleKeyDown}
                         placeholder="Rechercher un client par nom ou téléphone…"
-                        className={`block w-full rounded-md shadow-sm focus:border-primary focus:ring-primary sm:text-sm ${error ? 'border-red-500' : 'border-gray-300'}`}
+                        className={cn('min-h-[44px]', error && 'border-destructive')}
                     />
                     {isOpen && (
                         <ul
@@ -138,10 +145,13 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                             role="listbox"
                             id="customer-listbox"
                             aria-label="Clients"
-                            className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+                            className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-popover py-1 shadow-lg"
                         >
                             {filtered.length === 0 ? (
-                                <li role="presentation" className="px-4 py-2 text-sm text-gray-500">
+                                <li
+                                    role="presentation"
+                                    className="px-4 py-2 text-sm text-muted-foreground"
+                                >
                                     Aucun client trouvé.
                                 </li>
                             ) : (
@@ -156,14 +166,14 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
                                         className={`cursor-pointer px-4 py-2 text-sm ${
                                             i === activeIndex
                                                 ? 'bg-primary/10 text-primary'
-                                                : 'hover:bg-gray-50'
+                                                : 'hover:bg-accent hover:text-accent-foreground'
                                         }`}
                                     >
                                         <span className="font-medium">
                                             {c.first_name} {c.last_name}
                                         </span>
                                         {c.phone && (
-                                            <span className="ms-2 text-xs text-gray-400">
+                                            <span className="ms-2 text-xs text-muted-foreground">
                                                 {c.phone}
                                             </span>
                                         )}

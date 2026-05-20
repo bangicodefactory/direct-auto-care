@@ -2,17 +2,25 @@ import CustomerCombobox from '@/Components/CustomerCombobox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
-import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import ServiceTypeMultiCheck from '@/Components/ServiceTypeMultiCheck';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select';
+import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Deferred, Head, Link, router, useForm } from '@inertiajs/react';
 import { format, getDay, parse, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Calendar, Views, dateFnsLocalizer } from 'react-big-calendar';
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+import _withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { DndProvider } from 'react-dnd';
@@ -26,6 +34,7 @@ const localizer = dateFnsLocalizer({
     locales: { fr },
 });
 
+const withDragAndDrop = _withDragAndDrop.default ?? _withDragAndDrop;
 const DnDCalendar = withDragAndDrop(Calendar);
 
 const STATUS_STYLES = {
@@ -133,9 +142,7 @@ export default function AppointmentsIndex({
         router.put(
             route('appointments.update', event.id),
             buildReschedulePayload(event, start, end, true),
-            {
-                preserveState: false,
-            },
+            { preserveState: false },
         );
     }, []);
 
@@ -143,9 +150,7 @@ export default function AppointmentsIndex({
         router.put(
             route('appointments.update', event.id),
             buildReschedulePayload(event, start, end),
-            {
-                preserveState: false,
-            },
+            { preserveState: false },
         );
     }, []);
 
@@ -153,16 +158,13 @@ export default function AppointmentsIndex({
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    <h2 className="text-xl font-semibold leading-tight text-foreground">
                         Rendez-vous
                     </h2>
                     {can.create && (
-                        <Link
-                            href={route('appointments.create')}
-                            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                        >
-                            + Nouveau rendez-vous
-                        </Link>
+                        <Button asChild>
+                            <Link href={route('appointments.create')}>+ Nouveau rendez-vous</Link>
+                        </Button>
                     )}
                 </div>
             }
@@ -172,7 +174,7 @@ export default function AppointmentsIndex({
             <div className="py-8">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div
-                        className="overflow-hidden rounded-lg bg-white p-4 shadow-sm"
+                        className="overflow-hidden rounded-lg border border-border bg-card p-4 shadow-sm"
                         style={{ height: '72vh' }}
                     >
                         <DndProvider backend={HTML5Backend}>
@@ -277,7 +279,7 @@ function CreateModal({ show, initialData, customers, vehicles, serviceTypes, onC
     return (
         <Modal show={show} maxWidth="lg" onClose={handleClose}>
             <form onSubmit={submit} className="p-6">
-                <h3 className="mb-4 text-lg font-medium text-gray-900">Nouveau rendez-vous</h3>
+                <h3 className="mb-4 text-lg font-medium text-foreground">Nouveau rendez-vous</h3>
 
                 <div className="mb-4">
                     <InputLabel value="Client *" />
@@ -293,20 +295,23 @@ function CreateModal({ show, initialData, customers, vehicles, serviceTypes, onC
 
                 <div className="mb-4">
                     <InputLabel htmlFor="modal_vehicle_id" value="Véhicule" />
-                    <select
-                        id="modal_vehicle_id"
-                        value={data.vehicle_id}
-                        onChange={(e) => setData('vehicle_id', e.target.value)}
+                    <Select
+                        value={data.vehicle_id ? String(data.vehicle_id) : '__none__'}
+                        onValueChange={(v) => setData('vehicle_id', v === '__none__' ? '' : v)}
                         disabled={!data.customer_id}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm disabled:opacity-50"
                     >
-                        <option value="">— Aucun —</option>
-                        {filteredVehicles.map((v) => (
-                            <option key={v.id} value={v.id}>
-                                {v.license_plate} {v.make} {v.model}
-                            </option>
-                        ))}
-                    </select>
+                        <SelectTrigger id="modal_vehicle_id" className="mt-1 min-h-[44px] w-full">
+                            <SelectValue placeholder="— Aucun —" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__none__">— Aucun —</SelectItem>
+                            {filteredVehicles.map((v) => (
+                                <SelectItem key={v.id} value={String(v.id)}>
+                                    {v.license_plate} {v.make} {v.model}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <InputError message={errors.vehicle_id} className="mt-1" />
                 </div>
 
@@ -350,12 +355,12 @@ function CreateModal({ show, initialData, customers, vehicles, serviceTypes, onC
 
                 <div className="mb-6">
                     <InputLabel htmlFor="modal_notes" value="Notes" />
-                    <textarea
+                    <Textarea
                         id="modal_notes"
                         rows={3}
                         value={data.notes}
                         onChange={(e) => setData('notes', e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1"
                     />
                     <InputError message={errors.notes} className="mt-1" />
                 </div>
@@ -364,9 +369,9 @@ function CreateModal({ show, initialData, customers, vehicles, serviceTypes, onC
                     <SecondaryButton type="button" onClick={handleClose}>
                         Annuler
                     </SecondaryButton>
-                    <PrimaryButton disabled={processing}>
+                    <Button disabled={processing}>
                         {processing ? 'Enregistrement…' : 'Confirmer'}
-                    </PrimaryButton>
+                    </Button>
                 </div>
             </form>
         </Modal>

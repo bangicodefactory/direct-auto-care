@@ -1,6 +1,15 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select';
+import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
@@ -92,12 +101,12 @@ export default function Create({ customers, products, vehicles, types, defaultTy
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    <h2 className="text-xl font-semibold leading-tight text-foreground">
                         {isQuote ? 'Nouveau devis' : 'Nouvelle facture'}
                     </h2>
                     <Link
                         href={route('invoices.index')}
-                        className="text-sm text-gray-500 hover:text-gray-700"
+                        className="text-sm text-muted-foreground hover:text-foreground"
                     >
                         ← Retour
                     </Link>
@@ -109,8 +118,8 @@ export default function Create({ customers, products, vehicles, types, defaultTy
             <div className="py-8">
                 <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                     <form onSubmit={submit} className="space-y-6">
-                        {/* ── TYPE ── */}
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                        {/* TYPE */}
+                        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                             <div className="p-6">
                                 <InputLabel className="mb-2">Type de document</InputLabel>
                                 <div className="flex gap-2">
@@ -122,7 +131,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                             className={`rounded-md px-5 py-2 text-sm font-medium transition-colors ${
                                                 data.type === t.value
                                                     ? 'bg-primary text-primary-foreground'
-                                                    : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                                                    : 'border border-border bg-background text-foreground hover:bg-accent'
                                             }`}
                                         >
                                             {t.label}
@@ -133,55 +142,76 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                             </div>
                         </div>
 
-                        {/* ── CLIENT + VÉHICULE + DATES ── */}
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                        {/* CLIENT + VÉHICULE + DATES */}
+                        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                             <div className="p-6">
-                                <h3 className="mb-4 text-base font-semibold text-gray-700">
+                                <h3 className="mb-4 text-base font-semibold text-foreground">
                                     Informations générales
                                 </h3>
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    {/* Customer */}
                                     <div>
                                         <InputLabel htmlFor="customer_id" value="Client *" />
-                                        <select
-                                            id="customer_id"
-                                            name="customer_id"
-                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                            value={data.customer_id}
-                                            onChange={(e) => handleCustomerChange(e.target.value)}
+                                        <Select
+                                            value={
+                                                data.customer_id
+                                                    ? String(data.customer_id)
+                                                    : '__none__'
+                                            }
+                                            onValueChange={(v) =>
+                                                handleCustomerChange(v === '__none__' ? '' : v)
+                                            }
                                         >
-                                            <option value="">— Sélectionner un client —</option>
-                                            {customers.map((c) => (
-                                                <option key={c.id} value={c.id}>
-                                                    {c.first_name} {c.last_name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                            <SelectTrigger
+                                                id="customer_id"
+                                                className="mt-1 min-h-[44px] w-full"
+                                            >
+                                                <SelectValue placeholder="— Sélectionner un client —" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="__none__">
+                                                    — Sélectionner un client —
+                                                </SelectItem>
+                                                {customers.map((c) => (
+                                                    <SelectItem key={c.id} value={String(c.id)}>
+                                                        {c.first_name} {c.last_name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <InputError message={errors.customer_id} className="mt-1" />
                                     </div>
 
-                                    {/* Vehicle */}
                                     <div>
                                         <InputLabel htmlFor="vehicle_id" value="Véhicule" />
-                                        <select
-                                            id="vehicle_id"
-                                            name="vehicle_id"
-                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-400"
-                                            value={data.vehicle_id}
-                                            onChange={(e) => setData('vehicle_id', e.target.value)}
+                                        <Select
+                                            value={
+                                                data.vehicle_id
+                                                    ? String(data.vehicle_id)
+                                                    : '__none__'
+                                            }
+                                            onValueChange={(v) =>
+                                                setData('vehicle_id', v === '__none__' ? '' : v)
+                                            }
                                             disabled={!data.customer_id}
                                         >
-                                            <option value="">— Aucun —</option>
-                                            {filteredVehicles.map((v) => (
-                                                <option key={v.id} value={v.id}>
-                                                    {v.license_plate} — {v.make} {v.model}
-                                                </option>
-                                            ))}
-                                        </select>
+                                            <SelectTrigger
+                                                id="vehicle_id"
+                                                className="mt-1 min-h-[44px] w-full"
+                                            >
+                                                <SelectValue placeholder="— Aucun —" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="__none__">— Aucun —</SelectItem>
+                                                {filteredVehicles.map((v) => (
+                                                    <SelectItem key={v.id} value={String(v.id)}>
+                                                        {v.license_plate} — {v.make} {v.model}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <InputError message={errors.vehicle_id} className="mt-1" />
                                     </div>
 
-                                    {/* Issue date */}
                                     <div>
                                         <InputLabel
                                             htmlFor="issue_date"
@@ -198,7 +228,6 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                         <InputError message={errors.issue_date} className="mt-1" />
                                     </div>
 
-                                    {/* Due date */}
                                     <div>
                                         <InputLabel htmlFor="due_date" value="Échéance" />
                                         <TextInput
@@ -215,15 +244,15 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                             </div>
                         </div>
 
-                        {/* ── LINE ITEMS ── */}
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                        {/* LINE ITEMS */}
+                        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                             <div className="p-6">
-                                <h3 className="mb-4 text-base font-semibold text-gray-700">
+                                <h3 className="mb-4 text-base font-semibold text-foreground">
                                     Lignes de document
                                 </h3>
 
                                 {errors.items && (
-                                    <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                    <div className="mb-4 rounded-md border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                                         {errors.items}
                                     </div>
                                 )}
@@ -231,7 +260,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                 <div className="overflow-x-auto">
                                     <table className="min-w-full text-sm">
                                         <thead>
-                                            <tr className="border-b text-start text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            <tr className="border-b border-border text-start text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                                 <th className="pb-2 pe-3">Produit (optionnel)</th>
                                                 <th className="pb-2 pe-3">Description *</th>
                                                 <th className="pb-2 pe-3">Qté *</th>
@@ -240,7 +269,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                 <th className="pb-2" />
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100">
+                                        <tbody className="divide-y divide-border">
                                             {data.items.map((item, index) => {
                                                 const lineTotal =
                                                     (parseFloat(item.quantity) || 0) *
@@ -249,7 +278,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                     <tr key={item._key}>
                                                         <td className="py-2 pe-3">
                                                             <select
-                                                                className="w-40 rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                                                className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                                                 value={item.product_id}
                                                                 onChange={(e) =>
                                                                     handleProductChange(
@@ -336,7 +365,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                                 className="mt-0.5"
                                                             />
                                                         </td>
-                                                        <td className="py-2 pe-3 text-end font-medium text-gray-900">
+                                                        <td className="py-2 pe-3 text-end font-medium text-foreground">
                                                             {lineTotal.toFixed(2)} DH
                                                         </td>
                                                         <td className="py-2">
@@ -346,7 +375,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                                     onClick={() =>
                                                                         removeItem(index)
                                                                     }
-                                                                    className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-red-500 hover:bg-red-50 hover:text-red-700"
+                                                                    className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-destructive hover:bg-destructive/10"
                                                                     title="Supprimer la ligne"
                                                                 >
                                                                     <X className="h-4 w-4" />
@@ -370,18 +399,17 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                             </div>
                         </div>
 
-                        {/* ── TOTALS + NOTES ── */}
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                        {/* TOTALS + NOTES */}
+                        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                             <div className="p-6">
                                 <div className="flex flex-col gap-6 sm:flex-row">
-                                    {/* Notes */}
                                     <div className="flex-1">
                                         <InputLabel htmlFor="notes" value="Notes" />
-                                        <textarea
+                                        <Textarea
                                             id="notes"
                                             name="notes"
                                             rows={4}
-                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                            className="mt-1"
                                             value={data.notes}
                                             onChange={(e) => setData('notes', e.target.value)}
                                             placeholder="Remarques, conditions de paiement…"
@@ -389,10 +417,8 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                         <InputError message={errors.notes} className="mt-1" />
                                     </div>
 
-                                    {/* Totals */}
                                     <div className="w-full sm:w-72">
                                         <div className="space-y-3">
-                                            {/* Discount */}
                                             <div className="flex items-center justify-between gap-3">
                                                 <InputLabel
                                                     htmlFor="discount"
@@ -418,7 +444,6 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                 className="-mt-2"
                                             />
 
-                                            {/* TVA rate */}
                                             <div className="flex items-center justify-between gap-3">
                                                 <InputLabel
                                                     htmlFor="tva_rate"
@@ -444,30 +469,29 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                 className="-mt-2"
                                             />
 
-                                            {/* Computed totals */}
-                                            <div className="border-t pt-3 text-sm">
-                                                <div className="flex justify-between text-gray-600">
+                                            <div className="border-t border-border pt-3 text-sm">
+                                                <div className="flex justify-between text-muted-foreground">
                                                     <span>Sous-total HT</span>
                                                     <span>{subtotalHt.toFixed(2)} DH</span>
                                                 </div>
                                                 {discount > 0 && (
-                                                    <div className="flex justify-between text-gray-600">
+                                                    <div className="flex justify-between text-muted-foreground">
                                                         <span>Remise</span>
                                                         <span>− {discount.toFixed(2)} DH</span>
                                                     </div>
                                                 )}
-                                                <div className="flex justify-between text-gray-600">
+                                                <div className="flex justify-between text-muted-foreground">
                                                     <span>TVA ({tvaRate} %)</span>
                                                     <span>{tvaAmount.toFixed(2)} DH</span>
                                                 </div>
                                                 <div
-                                                    className={`mt-2 flex justify-between border-t pt-2 text-base font-bold ${totalTtc < 0 ? 'text-red-600' : 'text-gray-900'}`}
+                                                    className={`mt-2 flex justify-between border-t border-border pt-2 text-base font-bold ${totalTtc < 0 ? 'text-destructive' : 'text-foreground'}`}
                                                 >
                                                     <span>Total TTC</span>
                                                     <span>{totalTtc.toFixed(2)} DH</span>
                                                 </div>
                                                 {totalTtc < 0 && (
-                                                    <p className="mt-1 text-xs text-red-600">
+                                                    <p className="mt-1 text-xs text-destructive">
                                                         La remise dépasse le sous-total.
                                                     </p>
                                                 )}
@@ -478,25 +502,18 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                             </div>
                         </div>
 
-                        {/* ── ACTIONS ── */}
+                        {/* ACTIONS */}
                         <div className="flex items-center justify-end gap-3">
-                            <Link
-                                href={route('invoices.index')}
-                                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                            >
-                                Annuler
-                            </Link>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                            >
+                            <Button variant="outline" asChild>
+                                <Link href={route('invoices.index')}>Annuler</Link>
+                            </Button>
+                            <Button type="submit" disabled={processing}>
                                 {processing
                                     ? 'Enregistrement…'
                                     : isQuote
                                       ? 'Créer le devis'
                                       : 'Créer la facture'}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </div>

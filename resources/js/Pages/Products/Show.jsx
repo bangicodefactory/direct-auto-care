@@ -1,7 +1,18 @@
 import DangerButton from '@/Components/DangerButton';
+import InputError from '@/Components/InputError';
+import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -35,7 +46,7 @@ export default function Show({ product, movements, can }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                <h2 className="text-xl font-semibold leading-tight text-foreground">
                     {product.name}
                 </h2>
             }
@@ -45,8 +56,8 @@ export default function Show({ product, movements, can }) {
             <div className="py-12">
                 <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                     {/* Product info */}
-                    <div className="overflow-hidden rounded-lg bg-white shadow">
-                        <dl className="divide-y divide-gray-100">
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <dl className="divide-y divide-border">
                             {[
                                 ['Catégorie', product.category],
                                 ['Référence', product.sku ?? '—'],
@@ -65,15 +76,17 @@ export default function Show({ product, movements, can }) {
                                 ["Seuil d'alerte", product.low_stock_threshold],
                             ].map(([label, value]) => (
                                 <div key={label} className="grid grid-cols-3 gap-4 px-6 py-4">
-                                    <dt className="text-sm font-medium text-gray-500">{label}</dt>
-                                    <dd className="col-span-2 text-sm text-gray-900">{value}</dd>
+                                    <dt className="text-sm font-medium text-muted-foreground">
+                                        {label}
+                                    </dt>
+                                    <dd className="col-span-2 text-sm text-foreground">{value}</dd>
                                 </div>
                             ))}
                         </dl>
                     </div>
 
                     {product.is_low_stock && (
-                        <p className="mt-3 rounded bg-red-50 px-4 py-2 text-sm font-medium text-red-700">
+                        <p className="mt-3 rounded-md border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive">
                             Stock faible — réapprovisionnement recommandé.
                         </p>
                     )}
@@ -82,117 +95,89 @@ export default function Show({ product, movements, can }) {
                     <div className="mt-6 flex flex-wrap gap-3">
                         <Link
                             href={route('products.index')}
-                            className="text-sm text-gray-600 hover:underline"
+                            className="text-sm text-muted-foreground hover:underline"
                         >
                             ← Retour
                         </Link>
 
                         {can.edit && (
-                            <Link
-                                href={route('products.edit', product.id)}
-                                className="rounded bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
-                            >
-                                Modifier
-                            </Link>
+                            <Button asChild>
+                                <Link href={route('products.edit', product.id)}>Modifier</Link>
+                            </Button>
                         )}
 
                         {can.adjust && (
-                            <button
-                                type="button"
-                                onClick={() => setAdjusting(true)}
-                                className="rounded bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700"
-                            >
+                            <Button variant="secondary" onClick={() => setAdjusting(true)}>
                                 Ajuster le stock
-                            </button>
+                            </Button>
                         )}
 
                         {can.delete && !confirmDelete && (
-                            <button
-                                type="button"
-                                onClick={() => setConfirmDelete(true)}
-                                className="rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
-                            >
+                            <Button variant="destructive" onClick={() => setConfirmDelete(true)}>
                                 Supprimer
-                            </button>
+                            </Button>
                         )}
                     </div>
 
                     {/* Stock movements log */}
                     <div className="mt-10">
-                        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+                        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                             Derniers mouvements de stock
                         </h3>
-                        <div className="overflow-hidden rounded-lg bg-white shadow">
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                                Date
-                                            </th>
-                                            <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                                Type
-                                            </th>
-                                            <th className="px-4 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                                Quantité
-                                            </th>
-                                            <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                                Motif
-                                            </th>
-                                            <th className="px-4 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                                Par
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100 bg-white">
-                                        {movements.map((m) => (
-                                            <tr key={m.id}>
-                                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                                                    {m.created_at}
-                                                </td>
-                                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                                                    {TYPE_LABELS[m.type] ?? m.type}
-                                                </td>
-                                                <td
-                                                    className={`whitespace-nowrap px-4 py-3 text-end text-sm font-semibold ${
-                                                        m.quantity > 0
-                                                            ? 'text-emerald-600'
-                                                            : 'text-red-600'
-                                                    }`}
-                                                >
-                                                    {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-500">
-                                                    {m.reason ?? '—'}
-                                                </td>
-                                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                                                    {m.user ?? '—'}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {movements.length === 0 && (
-                                            <tr>
-                                                <td
-                                                    colSpan={5}
-                                                    className="px-4 py-6 text-center text-sm text-gray-400"
-                                                >
-                                                    Aucun mouvement de stock enregistré.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead className="text-end">Quantité</TableHead>
+                                        <TableHead>Motif</TableHead>
+                                        <TableHead>Par</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {movements.map((m) => (
+                                        <TableRow key={m.id}>
+                                            <TableCell className="whitespace-nowrap text-muted-foreground">
+                                                {m.created_at}
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-foreground">
+                                                {TYPE_LABELS[m.type] ?? m.type}
+                                            </TableCell>
+                                            <TableCell
+                                                className={`whitespace-nowrap text-end font-semibold ${m.quantity > 0 ? 'text-emerald-600' : 'text-destructive'}`}
+                                            >
+                                                {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground">
+                                                {m.reason ?? '—'}
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-muted-foreground">
+                                                {m.user ?? '—'}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {movements.length === 0 && (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={5}
+                                                className="py-6 text-center text-muted-foreground"
+                                            >
+                                                Aucun mouvement de stock enregistré.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Delete confirmation modal */}
             <Modal show={confirmDelete} maxWidth="sm" onClose={() => setConfirmDelete(false)}>
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">Supprimer le produit</h2>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <h2 className="text-lg font-medium text-foreground">Supprimer le produit</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">
                         Êtes-vous sûr de vouloir supprimer{' '}
                         <span className="font-semibold">{product.name}</span> ? Cette action est
                         irréversible.
@@ -206,11 +191,10 @@ export default function Show({ product, movements, can }) {
                 </div>
             </Modal>
 
-            {/* Adjust stock modal */}
             <Modal show={adjusting} maxWidth="sm" onClose={() => setAdjusting(false)}>
                 <form onSubmit={submitAdjustment} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">Ajuster le stock</h2>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <h2 className="text-lg font-medium text-foreground">Ajuster le stock</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Stock actuel :{' '}
                         <span className="font-semibold">
                             {product.quantity_on_hand} {product.unit}
@@ -219,12 +203,7 @@ export default function Show({ product, movements, can }) {
                     </p>
 
                     <div className="mt-4">
-                        <label
-                            htmlFor="adj-quantity"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Quantité <span className="text-red-500">*</span>
-                        </label>
+                        <InputLabel htmlFor="adj-quantity" value="Quantité *" />
                         <TextInput
                             id="adj-quantity"
                             type="number"
@@ -233,18 +212,11 @@ export default function Show({ product, movements, can }) {
                             onChange={(e) => setData('quantity', e.target.value)}
                             autoFocus
                         />
-                        {errors.quantity && (
-                            <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>
-                        )}
+                        <InputError message={errors.quantity} className="mt-1" />
                     </div>
 
                     <div className="mt-4">
-                        <label
-                            htmlFor="adj-reason"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Motif (optionnel)
-                        </label>
+                        <InputLabel htmlFor="adj-reason" value="Motif (optionnel)" />
                         <TextInput
                             id="adj-reason"
                             type="text"
@@ -253,22 +225,16 @@ export default function Show({ product, movements, can }) {
                             value={data.reason}
                             onChange={(e) => setData('reason', e.target.value)}
                         />
-                        {errors.reason && (
-                            <p className="mt-1 text-sm text-red-600">{errors.reason}</p>
-                        )}
+                        <InputError message={errors.reason} className="mt-1" />
                     </div>
 
                     <div className="mt-6 flex justify-end gap-3">
                         <SecondaryButton type="button" onClick={() => setAdjusting(false)}>
                             Annuler
                         </SecondaryButton>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-                        >
+                        <Button type="submit" disabled={processing}>
                             Enregistrer
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </Modal>

@@ -16,9 +16,11 @@ export default function ServiceTypeMultiCheck({
 
     return (
         <fieldset>
-            <legend className={`text-sm font-medium ${error ? 'text-red-600' : 'text-gray-700'}`}>
+            <legend
+                className={`text-sm font-medium ${error ? 'text-destructive' : 'text-foreground'}`}
+            >
                 {label}{' '}
-                <span className="text-red-500" aria-hidden="true">
+                <span className="text-destructive" aria-hidden="true">
                     *
                 </span>
             </legend>
@@ -26,7 +28,7 @@ export default function ServiceTypeMultiCheck({
                 {serviceTypes.map((type) => (
                     <label
                         key={type.id}
-                        className={`flex cursor-pointer items-center gap-2 text-sm text-gray-700 ${disabled ? 'opacity-50' : ''}`}
+                        className={`flex cursor-pointer items-center gap-2 text-sm text-foreground ${disabled ? 'opacity-50' : ''}`}
                     >
                         <Checkbox
                             checked={selected.includes(type.id)}

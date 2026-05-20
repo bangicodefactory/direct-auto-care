@@ -1,9 +1,17 @@
 import CustomerCombobox from '@/Components/CustomerCombobox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import ServiceTypeMultiCheck from '@/Components/ServiceTypeMultiCheck';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select';
+import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
@@ -39,15 +47,12 @@ export default function AppointmentsEdit({
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    <h2 className="text-xl font-semibold leading-tight text-foreground">
                         Modifier le rendez-vous #{appointment.id}
                     </h2>
-                    <Link
-                        href={route('appointments.show', appointment.id)}
-                        className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                        ← Retour
-                    </Link>
+                    <Button variant="outline" asChild>
+                        <Link href={route('appointments.show', appointment.id)}>← Retour</Link>
+                    </Button>
                 </div>
             }
         >
@@ -55,8 +60,8 @@ export default function AppointmentsEdit({
 
             <div className="py-8">
                 <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <form onSubmit={submit} className="divide-y divide-gray-100">
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <form onSubmit={submit} className="divide-y divide-border">
                             <div className="space-y-5 p-6">
                                 <div>
                                     <InputLabel value="Client *" />
@@ -76,20 +81,30 @@ export default function AppointmentsEdit({
 
                                 <div>
                                     <InputLabel htmlFor="vehicle_id" value="Véhicule" />
-                                    <select
-                                        id="vehicle_id"
-                                        value={data.vehicle_id}
-                                        onChange={(e) => setData('vehicle_id', e.target.value)}
+                                    <Select
+                                        value={
+                                            data.vehicle_id ? String(data.vehicle_id) : '__none__'
+                                        }
+                                        onValueChange={(v) =>
+                                            setData('vehicle_id', v === '__none__' ? '' : v)
+                                        }
                                         disabled={!data.customer_id}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm disabled:opacity-50"
                                     >
-                                        <option value="">— Aucun —</option>
-                                        {filteredVehicles.map((v) => (
-                                            <option key={v.id} value={v.id}>
-                                                {v.license_plate} {v.make} {v.model}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        <SelectTrigger
+                                            id="vehicle_id"
+                                            className="mt-1 min-h-[44px] w-full"
+                                        >
+                                            <SelectValue placeholder="— Aucun —" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="__none__">— Aucun —</SelectItem>
+                                            {filteredVehicles.map((v) => (
+                                                <SelectItem key={v.id} value={String(v.id)}>
+                                                    {v.license_plate} {v.make} {v.model}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <InputError message={errors.vehicle_id} className="mt-1" />
                                 </div>
 
@@ -132,18 +147,24 @@ export default function AppointmentsEdit({
 
                                 <div>
                                     <InputLabel htmlFor="status" value="Statut *" />
-                                    <select
-                                        id="status"
+                                    <Select
                                         value={data.status}
-                                        onChange={(e) => setData('status', e.target.value)}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                        onValueChange={(v) => setData('status', v)}
                                     >
-                                        {statuses.map((s) => (
-                                            <option key={s.value} value={s.value}>
-                                                {s.label}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        <SelectTrigger
+                                            id="status"
+                                            className="mt-1 min-h-[44px] w-full"
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {statuses.map((s) => (
+                                                <SelectItem key={s.value} value={s.value}>
+                                                    {s.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <InputError message={errors.status} className="mt-1" />
                                 </div>
 
@@ -157,29 +178,28 @@ export default function AppointmentsEdit({
 
                                 <div>
                                     <InputLabel htmlFor="notes" value="Notes" />
-                                    <textarea
+                                    <Textarea
                                         id="notes"
                                         rows={4}
                                         value={data.notes}
                                         onChange={(e) => setData('notes', e.target.value)}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                        className="mt-1"
                                     />
                                     <InputError message={errors.notes} className="mt-1" />
                                 </div>
                             </div>
 
                             <div className="flex justify-end gap-3 px-6 py-4">
-                                <Link
-                                    href={route('appointments.show', appointment.id)}
-                                    className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                >
-                                    Annuler
-                                </Link>
-                                <PrimaryButton disabled={processing}>
+                                <Button variant="outline" asChild>
+                                    <Link href={route('appointments.show', appointment.id)}>
+                                        Annuler
+                                    </Link>
+                                </Button>
+                                <Button disabled={processing}>
                                     {processing
                                         ? 'Enregistrement…'
                                         : 'Enregistrer les modifications'}
-                                </PrimaryButton>
+                                </Button>
                             </div>
                         </form>
                     </div>

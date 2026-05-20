@@ -1,8 +1,9 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import ServiceTypeMultiCheck from '@/Components/ServiceTypeMultiCheck';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -25,9 +26,9 @@ export default function Edit({ record, serviceTypes }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                <h2 className="text-xl font-semibold leading-tight text-foreground">
                     Modifier le compte rendu —{' '}
-                    <span className="font-normal text-gray-500">
+                    <span className="font-normal text-muted-foreground">
                         {make} {model} ({license_plate})
                     </span>
                 </h2>
@@ -37,9 +38,8 @@ export default function Edit({ record, serviceTypes }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-2xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         <form onSubmit={submit} className="space-y-6 p-6">
-                            {/* Date */}
                             <div>
                                 <InputLabel htmlFor="serviced_at" value="Date du service" />
                                 <TextInput
@@ -62,7 +62,6 @@ export default function Edit({ record, serviceTypes }) {
                                 disabled={processing}
                             />
 
-                            {/* Mileage */}
                             <div>
                                 <InputLabel
                                     htmlFor="mileage_at_service"
@@ -79,14 +78,13 @@ export default function Edit({ record, serviceTypes }) {
                                 <InputError message={errors.mileage_at_service} className="mt-2" />
                             </div>
 
-                            {/* Notes */}
                             <div>
                                 <InputLabel htmlFor="notes" value="Notes" />
-                                <textarea
+                                <Textarea
                                     id="notes"
                                     value={data.notes}
                                     rows={4}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                    className="mt-1"
                                     onChange={(e) => setData('notes', e.target.value)}
                                 />
                                 <InputError message={errors.notes} className="mt-2" />
@@ -95,11 +93,11 @@ export default function Edit({ record, serviceTypes }) {
                             <div className="flex items-center justify-end gap-4">
                                 <Link
                                     href={route('vehicles.show', vehicleId)}
-                                    className="text-sm text-gray-600 hover:text-gray-900"
+                                    className="text-sm text-muted-foreground hover:text-foreground"
                                 >
                                     Annuler
                                 </Link>
-                                <PrimaryButton disabled={processing}>Enregistrer</PrimaryButton>
+                                <Button disabled={processing}>Enregistrer</Button>
                             </div>
                         </form>
                     </div>

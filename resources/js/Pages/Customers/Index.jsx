@@ -3,6 +3,23 @@ import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/Components/ui/table';
+import { DropdownMenuItem } from '@/Components/ui/dropdown-menu';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
@@ -46,10 +63,10 @@ export default function Index({ customers, filters, can }) {
         return filters?.direction === 'asc' ? ' ↑' : ' ↓';
     }
 
-    function handleSortSelect(e) {
+    function handleSortChange(value) {
         router.get(
             route('customers.index'),
-            { search: filters?.search ?? '', sort: e.target.value, direction: 'asc' },
+            { search: filters?.search ?? '', sort: value, direction: 'asc' },
             { preserveState: true, replace: true },
         );
     }
@@ -68,13 +85,10 @@ export default function Index({ customers, filters, can }) {
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">Clients</h2>
-                    <Link
-                        href={route('customers.create')}
-                        className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                    >
-                        + Nouveau client
-                    </Link>
+                    <h2 className="text-xl font-semibold leading-tight text-foreground">Clients</h2>
+                    <Button asChild>
+                        <Link href={route('customers.create')}>+ Nouveau client</Link>
+                    </Button>
                 </div>
             }
         >
@@ -82,9 +96,9 @@ export default function Index({ customers, filters, can }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         {/* TOOLBAR */}
-                        <div className="flex flex-wrap items-center gap-3 border-b p-4">
+                        <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">
                             <TextInput
                                 id="search"
                                 name="search"
@@ -93,146 +107,133 @@ export default function Index({ customers, filters, can }) {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
-                            <select
-                                id="sort"
-                                name="sort"
-                                className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            <Select
                                 value={filters?.sort || 'last_name'}
-                                onChange={handleSortSelect}
+                                onValueChange={handleSortChange}
                             >
-                                <option value="last_name">Trier par : Nom</option>
-                                <option value="first_name">Trier par : Prénom</option>
-                                <option value="email">Trier par : E-mail</option>
-                                <option value="last_visit" disabled>
-                                    Dernière visite (bientôt)
-                                </option>
-                                <option value="total_spent" disabled>
-                                    Total dépensé (bientôt)
-                                </option>
-                            </select>
+                                <SelectTrigger className="min-h-[44px] w-52">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="last_name">Trier par : Nom</SelectItem>
+                                    <SelectItem value="first_name">Trier par : Prénom</SelectItem>
+                                    <SelectItem value="email">Trier par : E-mail</SelectItem>
+                                </SelectContent>
+                            </Select>
                             {search && (
-                                <button
-                                    onClick={() => setSearch('')}
-                                    className="min-h-[44px] rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
-                                >
+                                <Button variant="outline" onClick={() => setSearch('')}>
                                     Effacer
-                                </button>
+                                </Button>
                             )}
                         </div>
 
                         {/* TABLE */}
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            <Link
-                                                href={sortLink('last_name')}
-                                                className="inline-flex min-h-[44px] items-center"
-                                            >
-                                                Nom{sortIcon('last_name')}
-                                            </Link>
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            <Link
-                                                href={sortLink('first_name')}
-                                                className="inline-flex min-h-[44px] items-center"
-                                            >
-                                                Prénom{sortIcon('first_name')}
-                                            </Link>
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            <Link
-                                                href={sortLink('email')}
-                                                className="inline-flex min-h-[44px] items-center"
-                                            >
-                                                E-mail{sortIcon('email')}
-                                            </Link>
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Téléphone
-                                        </th>
-                                        <th className="px-6 py-3" />
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
-                                    {customers.data.map((c) => (
-                                        <tr key={c.id}>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                                                {c.last_name}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                                {c.first_name}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                                {c.email ?? '—'}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                                {c.phone}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium">
-                                                <Dropdown>
-                                                    <Dropdown.Trigger>
-                                                        <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
-                                                            <MoreVertical className="h-5 w-5" />
-                                                        </button>
-                                                    </Dropdown.Trigger>
-                                                    <Dropdown.Content align="right" width="48">
-                                                        <Dropdown.Link
-                                                            href={route('customers.show', c.id)}
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>
+                                        <Link
+                                            href={sortLink('last_name')}
+                                            className="inline-flex min-h-[44px] items-center text-xs font-medium uppercase tracking-wider"
+                                        >
+                                            Nom{sortIcon('last_name')}
+                                        </Link>
+                                    </TableHead>
+                                    <TableHead>
+                                        <Link
+                                            href={sortLink('first_name')}
+                                            className="inline-flex min-h-[44px] items-center text-xs font-medium uppercase tracking-wider"
+                                        >
+                                            Prénom{sortIcon('first_name')}
+                                        </Link>
+                                    </TableHead>
+                                    <TableHead>
+                                        <Link
+                                            href={sortLink('email')}
+                                            className="inline-flex min-h-[44px] items-center text-xs font-medium uppercase tracking-wider"
+                                        >
+                                            E-mail{sortIcon('email')}
+                                        </Link>
+                                    </TableHead>
+                                    <TableHead>Téléphone</TableHead>
+                                    <TableHead />
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {customers.data.map((c) => (
+                                    <TableRow key={c.id}>
+                                        <TableCell className="whitespace-nowrap font-medium text-foreground">
+                                            {c.last_name}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                                            {c.first_name}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                                            {c.email ?? '—'}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                                            {c.phone}
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap text-end">
+                                            <Dropdown>
+                                                <Dropdown.Trigger>
+                                                    <button className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none">
+                                                        <MoreVertical className="h-5 w-5" />
+                                                    </button>
+                                                </Dropdown.Trigger>
+                                                <Dropdown.Content align="right" width="48">
+                                                    <Dropdown.Link
+                                                        href={route('customers.show', c.id)}
+                                                    >
+                                                        Voir
+                                                    </Dropdown.Link>
+                                                    <Dropdown.Link
+                                                        href={route('customers.edit', c.id)}
+                                                    >
+                                                        Modifier
+                                                    </Dropdown.Link>
+                                                    {can.delete && (
+                                                        <DropdownMenuItem
+                                                            className="text-destructive focus:text-destructive"
+                                                            onClick={() => setDeletingCustomer(c)}
                                                         >
-                                                            Voir
-                                                        </Dropdown.Link>
-                                                        <Dropdown.Link
-                                                            href={route('customers.edit', c.id)}
-                                                        >
-                                                            Modifier
-                                                        </Dropdown.Link>
-                                                        {can.delete && (
-                                                            <button
-                                                                className="block w-full px-4 py-2 text-start text-sm leading-5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none"
-                                                                onClick={() =>
-                                                                    setDeletingCustomer(c)
-                                                                }
-                                                            >
-                                                                Supprimer
-                                                            </button>
-                                                        )}
-                                                    </Dropdown.Content>
-                                                </Dropdown>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {customers.data.length === 0 && (
-                                        <tr>
-                                            <td
-                                                colSpan={5}
-                                                className="px-6 py-8 text-center text-sm text-gray-500"
-                                            >
-                                                Aucun client trouvé.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                                            Supprimer
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                </Dropdown.Content>
+                                            </Dropdown>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {customers.data.length === 0 && (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={5}
+                                            className="py-8 text-center text-muted-foreground"
+                                        >
+                                            Aucun client trouvé.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
 
                         {/* PAGINATION */}
                         {customers.links.length > 3 && (
-                            <div className="flex items-center justify-between border-t border-gray-200 px-6 py-3">
+                            <div className="flex items-center justify-between border-t border-border px-6 py-3">
                                 {customers.links.map((link, i) =>
                                     link.url ? (
                                         <Link
                                             key={i}
                                             href={link.url}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                                         />
                                     ) : (
                                         <span
                                             key={i}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-gray-300"
+                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-muted-foreground/40"
                                         />
                                     ),
                                 )}
@@ -242,15 +243,14 @@ export default function Index({ customers, filters, can }) {
                 </div>
             </div>
 
-            {/* DELETE MODAL */}
             <Modal
                 show={deletingCustomer !== null}
                 maxWidth="sm"
                 onClose={() => setDeletingCustomer(null)}
             >
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">Supprimer ce client ?</h2>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <h2 className="text-lg font-medium text-foreground">Supprimer ce client ?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
                         <span className="font-medium">
                             {deletingCustomer?.first_name} {deletingCustomer?.last_name}
                         </span>{' '}
