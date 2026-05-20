@@ -234,10 +234,12 @@ class InvoicesController extends Controller implements HasMiddleware
     {
         $invoice->update(['status' => InvoiceStatus::Cancelled->value]);
 
-        $label = $invoice->type === InvoiceType::Quote ? 'Devis' : 'Facture';
+        [$label, $past] = $invoice->type === InvoiceType::Quote
+            ? ['Devis', 'annulé']
+            : ['Facture', 'annulée'];
 
         return redirect()->route('invoices.show', $invoice)
-            ->with('success', "{$label} {$invoice->number} annulé(e).");
+            ->with('success', "{$label} {$invoice->number} {$past}.");
     }
 
     public function convert(Request $request, Invoice $invoice, InvoiceService $service): RedirectResponse

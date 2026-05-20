@@ -46,6 +46,16 @@
         --secondary-container: 204 96% 67%;
         --tertiary: 6 100% 16%;
         --tertiary-container: 0 100% 24%;
+
+        /* Sidebar tokens — aligned with Bangicode M3 palette */
+        --sidebar-background: 0 0% 100%;             /* same as card */
+        --sidebar-foreground: 207 71% 11%;
+        --sidebar-primary: 219 100% 17%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 215 67% 93%;               /* light blue tint for hover */
+        --sidebar-accent-foreground: 207 71% 11%;
+        --sidebar-border: 232 22% 79%;
+        --sidebar-ring: 202 100% 30%;
     }
 }
 

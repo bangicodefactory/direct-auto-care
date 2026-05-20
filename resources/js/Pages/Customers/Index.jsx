@@ -100,11 +100,11 @@ export default function Index({ customers, filters, can }) {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         {/* TOOLBAR */}
-                        <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">
+                        <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:flex-wrap sm:items-center">
                             <TextInput
                                 id="search"
                                 name="search"
-                                className="flex-1"
+                                className="w-full sm:flex-1"
                                 placeholder="Rechercher par nom, téléphone ou e-mail…"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -113,7 +113,7 @@ export default function Index({ customers, filters, can }) {
                                 value={filters?.sort || 'last_name'}
                                 onValueChange={handleSortChange}
                             >
-                                <SelectTrigger className="min-h-[44px] w-52">
+                                <SelectTrigger className="min-h-[44px] w-full sm:w-52">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
