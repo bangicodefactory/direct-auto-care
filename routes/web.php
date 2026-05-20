@@ -46,6 +46,18 @@ Route::post('invoices/{invoice}/convert', [InvoicesController::class, 'convert']
     ->middleware(['auth', 'verified'])
     ->name('invoices.convert');
 
+Route::post('invoices/{invoice}/issue', [InvoicesController::class, 'issue'])
+    ->middleware(['auth', 'verified'])
+    ->name('invoices.issue');
+
+Route::post('invoices/{invoice}/pay', [InvoicesController::class, 'markPaid'])
+    ->middleware(['auth', 'verified'])
+    ->name('invoices.pay');
+
+Route::post('invoices/{invoice}/cancel', [InvoicesController::class, 'cancel'])
+    ->middleware(['auth', 'verified'])
+    ->name('invoices.cancel');
+
 Route::get('invoices/{invoice}/pdf', [InvoicePdfController::class, 'pdf'])
     ->middleware(['auth', 'verified'])
     ->name('invoices.pdf');

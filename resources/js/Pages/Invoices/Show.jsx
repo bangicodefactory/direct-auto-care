@@ -1,3 +1,4 @@
+import Modal from '@/Components/Modal';
 import { Button } from '@/Components/ui/button';
 import {
     Table,
@@ -9,6 +10,7 @@ import {
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 
 function Field({ label, value }) {
     if (!value) return null;
@@ -49,6 +51,7 @@ const STATUS_LABELS = {
 export default function Show({ invoice, can }) {
     const typeLabel = invoice.type === 'quote' ? 'Devis' : 'Facture';
     const { post, processing } = useForm({});
+    const [confirmingCancel, setConfirmingCancel] = useState(false);
 
     return (
         <AuthenticatedLayout
@@ -86,6 +89,24 @@ export default function Show({ invoice, can }) {
                                 Télécharger PDF
                             </a>
                         </Button>
+                        {can.issue && (
+                            <Button
+                                type="button"
+                                disabled={processing}
+                                onClick={() => post(route('invoices.issue', invoice.id))}
+                            >
+                                Émettre
+                            </Button>
+                        )}
+                        {can.markPaid && (
+                            <Button
+                                type="button"
+                                disabled={processing}
+                                onClick={() => post(route('invoices.pay', invoice.id))}
+                            >
+                                Marquer comme payée
+                            </Button>
+                        )}
                         {can.convert && (
                             <Button
                                 type="button"
@@ -98,6 +119,16 @@ export default function Show({ invoice, can }) {
                         {can.edit && (
                             <Button asChild>
                                 <Link href={route('invoices.edit', invoice.id)}>Modifier</Link>
+                            </Button>
+                        )}
+                        {can.cancel && (
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                disabled={processing}
+                                onClick={() => setConfirmingCancel(true)}
+                            >
+                                Annuler
                             </Button>
                         )}
                     </div>
@@ -220,6 +251,31 @@ export default function Show({ invoice, can }) {
                     )}
                 </div>
             </div>
+
+            <Modal show={confirmingCancel} maxWidth="sm" onClose={() => setConfirmingCancel(false)}>
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-foreground">Annuler ce document ?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {typeLabel} <span className="font-medium">{invoice.number}</span> sera
+                        marqué(e) comme annulé(e). Cette action est irréversible.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <Button variant="secondary" onClick={() => setConfirmingCancel(false)}>
+                            Fermer
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            disabled={processing}
+                            onClick={() => {
+                                setConfirmingCancel(false);
+                                post(route('invoices.cancel', invoice.id));
+                            }}
+                        >
+                            Confirmer l&apos;annulation
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }

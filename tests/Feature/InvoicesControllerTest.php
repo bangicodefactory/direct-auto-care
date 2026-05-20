@@ -588,6 +588,223 @@ class InvoicesControllerTest extends TestCase
     }
 
     // =========================================================================
+    // Issue — draft invoice → issued
+    // =========================================================================
+
+    public function test_guest_is_redirected_from_issue(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+        $this->post(route('invoices.issue', $invoice))->assertRedirect(route('login'));
+    }
+
+    public function test_employee_can_issue_a_draft_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Draft->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Issued->value]);
+    }
+
+    public function test_employee_cannot_issue_a_quote(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $quote    = Invoice::factory()->create([
+            'type'   => InvoiceType::Quote->value,
+            'status' => InvoiceStatus::Draft->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $quote))
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_issue_an_already_issued_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Issued->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_issue_a_paid_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Paid->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_issue_a_cancelled_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Cancelled->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $invoice))
+            ->assertForbidden();
+    }
+
+    // =========================================================================
+    // Mark paid — issued invoice → paid
+    // =========================================================================
+
+    public function test_guest_is_redirected_from_pay(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Issued->value]);
+        $this->post(route('invoices.pay', $invoice))->assertRedirect(route('login'));
+    }
+
+    public function test_employee_can_mark_issued_invoice_as_paid(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Issued->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.pay', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Paid->value]);
+    }
+
+    public function test_employee_cannot_mark_draft_invoice_as_paid(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Draft->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.pay', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_mark_already_paid_invoice_as_paid(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Paid->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.pay', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_mark_issued_invoice_as_paid(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Issued->value,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.pay', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Paid->value]);
+    }
+
+    // =========================================================================
+    // Cancel — admin only, draft or issued
+    // =========================================================================
+
+    public function test_guest_is_redirected_from_cancel(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+        $this->post(route('invoices.cancel', $invoice))->assertRedirect(route('login'));
+    }
+
+    public function test_admin_can_cancel_a_draft_invoice(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Cancelled->value]);
+    }
+
+    public function test_admin_can_cancel_an_issued_invoice(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Issued->value]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Cancelled->value]);
+    }
+
+    public function test_employee_cannot_cancel_an_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_admin_cannot_cancel_a_paid_invoice(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Paid->value]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_admin_cannot_cancel_an_already_cancelled_invoice(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Cancelled->value]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_roleless_user_cannot_cancel_an_invoice(): void
+    {
+        $user    = User::factory()->create();
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+
+        $this->actingAs($user)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertForbidden();
+    }
+
+    // =========================================================================
     // Helpers
     // =========================================================================
 

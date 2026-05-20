@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from '@/Components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/Components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 const maxWidthClasses = {
@@ -15,6 +15,7 @@ export default function Modal({
     maxWidth = '2xl',
     closeable = true,
     onClose = () => {},
+    title = '',
 }) {
     return (
         <Dialog
@@ -35,6 +36,7 @@ export default function Modal({
                     if (!closeable) e.preventDefault();
                 }}
             >
+                <DialogTitle className="sr-only">{title || 'Dialogue'}</DialogTitle>
                 {children}
             </DialogContent>
         </Dialog>
