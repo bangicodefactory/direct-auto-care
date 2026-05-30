@@ -564,6 +564,77 @@ class InvoicesControllerTest extends TestCase
         $this->assertEquals(150, (float) $first->unit_price_ht);
     }
 
+    public function test_cannot_convert_the_same_quote_twice(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        // First conversion succeeds.
+        $this->actingAs($admin)
+            ->post(route('invoices.convert', $quote))
+            ->assertRedirect();
+
+        // Second conversion is forbidden — the quote is already converted.
+        $this->actingAs($admin)
+            ->post(route('invoices.convert', $quote))
+            ->assertForbidden();
+
+        // Exactly one invoice was ever created from the quote.
+        $this->assertSame(1, Invoice::where('converted_from_quote_id', $quote->id)->count());
+    }
+
+    public function test_converting_a_quote_twice_does_not_double_decrement_stock(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['quantity_on_hand' => 10]);
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+        $quote->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Filtre à huile',
+            'quantity'      => 3,
+            'unit_price_ht' => 80,
+            'line_total_ht' => 240,
+        ]);
+
+        // First conversion creates the invoice and decrements stock 10 -> 7.
+        $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertRedirect();
+        $this->assertEquals(7, $product->fresh()->quantity_on_hand);
+
+        // A second attempt is rejected, so stock stays at 7 (not 4).
+        $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertForbidden();
+        $this->assertEquals(7, $product->fresh()->quantity_on_hand);
+    }
+
+    public function test_a_freshly_converted_quote_reports_convert_capability_as_false(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertRedirect();
+
+        // The Show page must no longer offer the convert action for an already-converted quote.
+        $this->actingAs($admin)
+            ->get(route('invoices.show', $quote))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Invoices/Show')
+                ->where('can.convert', false));
+    }
+
     // =========================================================================
     // InsufficientStock — surface as validation error, not 500
     // =========================================================================

@@ -142,7 +142,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 ] : null,
                 'vehicle'     => $invoice->vehicle ? [
                     'id'           => $invoice->vehicle->id,
-                    'plate'        => $invoice->vehicle->plate,
+                    'plate'        => $invoice->vehicle->license_plate,
                     'make'         => $invoice->vehicle->make,
                     'model'        => $invoice->vehicle->model,
                 ] : null,
