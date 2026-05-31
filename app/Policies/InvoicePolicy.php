@@ -33,7 +33,8 @@ class InvoicePolicy
     public function convert(User $user, Invoice $invoice): bool
     {
         return $user->hasAnyRole(['admin', 'employee'])
-            && $invoice->type === InvoiceType::Quote;
+            && $invoice->type === InvoiceType::Quote
+            && ! $invoice->convertedToInvoice()->exists();
     }
 
     public function issue(User $user, Invoice $invoice): bool

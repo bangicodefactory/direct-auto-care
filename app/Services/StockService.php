@@ -26,7 +26,7 @@ class StockService
             throw new \InvalidArgumentException('La quantité doit être différente de zéro.');
         }
 
-        [$movement, $oldQuantity, $newQuantity] = DB::transaction(function () use ($product, $type, $quantity, $reason, $invoice, $user) {
+        [$movement, $oldQuantity, $newQuantity] = DB::transaction(function () use ($product, $type, $quantity, $reason, $invoice, $user): array {
             $locked = Product::lockForUpdate()->findOrFail($product->id);
 
             $delta       = $this->delta($type, $quantity);
@@ -55,9 +55,16 @@ class StockService
             ];
         });
 
+        // recordMovement() may run inside a caller's wider transaction — e.g. InvoiceService
+        // wraps the invoice, its items, and every stock decrement in a single transaction.
+        // Defer the alert until the outermost transaction commits so a later rollback (such as
+        // an InsufficientStockException on a subsequent item) cannot leave admins with a false
+        // low-stock notification. With no open transaction, afterCommit() fires immediately.
         if ($oldQuantity >= $product->low_stock_threshold && $newQuantity < $product->low_stock_threshold) {
-            $admins = User::role('admin')->get();
-            Notification::send($admins, new LowStockNotification($product));
+            DB::afterCommit(function () use ($product): void {
+                $admins = User::role('admin')->get();
+                Notification::send($admins, new LowStockNotification($product));
+            });
         }
 
         return $movement;
