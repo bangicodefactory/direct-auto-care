@@ -58,3 +58,8 @@ docker-compose.override.yml
 *.sqlite
 *.sqlite-journal
 database/database.sqlite
+
+# Local verification screenshots (root-level only; real assets live in public/ & resources/)
+/*.png
+/*.jpg
+/*.jpeg
