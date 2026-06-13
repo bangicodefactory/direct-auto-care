@@ -6,6 +6,8 @@ export default function Edit({ customer }) {
     const { data, setData, put, processing, errors } = useForm({
         first_name: customer.first_name,
         last_name: customer.last_name,
+        type: customer.type ?? 'individual',
+        ice: customer.ice ?? '',
         phone: customer.phone,
         email: customer.email ?? '',
         address: customer.address ?? '',

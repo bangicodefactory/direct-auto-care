@@ -177,6 +177,9 @@ export default function Show({ invoice, can }) {
                         </div>
                         <div className="grid grid-cols-2 gap-6 px-6 py-4 sm:grid-cols-3">
                             <Field label="Nom" value={invoice.customer?.name} />
+                            {invoice.customer?.is_company && (
+                                <Field label="ICE" value={invoice.customer?.ice} />
+                            )}
                             <Field label="Téléphone" value={invoice.customer?.phone} />
                             <Field label="E-mail" value={invoice.customer?.email} />
                             {invoice.vehicle && (
@@ -254,6 +257,14 @@ export default function Show({ invoice, can }) {
                                     <dt>Total TTC</dt>
                                     <dd>{Number(invoice.total_ttc).toFixed(2)} DH</dd>
                                 </div>
+                                {invoice.payment_method && (
+                                    <div className="flex justify-between pt-1">
+                                        <dt className="text-muted-foreground">Mode de règlement</dt>
+                                        <dd className="text-foreground">
+                                            {invoice.payment_method}
+                                        </dd>
+                                    </div>
+                                )}
                             </dl>
                         </div>
                     </div>

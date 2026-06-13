@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CustomerType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +16,8 @@ class Customer extends Model
     protected $fillable = [
         'first_name',
         'last_name',
+        'type',
+        'ice',
         'phone',
         'email',
         'address',
@@ -24,9 +27,15 @@ class Customer extends Model
     ];
 
     protected $casts = [
+        'type' => CustomerType::class,
         'notify_email' => 'boolean',
         'notify_whatsapp' => 'boolean',
     ];
+
+    public function isCompany(): bool
+    {
+        return $this->type === CustomerType::Company;
+    }
 
     public function vehicles(): HasMany
     {

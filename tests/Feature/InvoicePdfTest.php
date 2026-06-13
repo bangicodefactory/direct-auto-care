@@ -128,6 +128,37 @@ class InvoicePdfTest extends TestCase
             ->assertSee('Alaoui');
     }
 
+    public function test_print_view_shows_ice_for_a_company_customer(): void
+    {
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+        $invoice = Invoice::factory()
+            ->for(Customer::factory()->company()->state(['ice' => '001234567000089']), 'customer')
+            ->create(['payment_method' => 'transfer']);
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $invoice))
+            ->assertOk()
+            ->assertSee('001234567000089')
+            ->assertSee('Mode de règlement')
+            ->assertSee('Virement');
+    }
+
+    public function test_print_view_hides_client_ice_for_an_individual_customer(): void
+    {
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+        // Even with an ICE stored, an individual's ICE must not render (isCompany() gates it).
+        $invoice = Invoice::factory()
+            ->for(Customer::factory()->state(['type' => 'individual', 'ice' => '009999999000011']), 'customer')
+            ->create();
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $invoice))
+            ->assertOk()
+            ->assertDontSee('009999999000011');
+    }
+
     public function test_user_without_role_cannot_access_pdf(): void
     {
         $user = User::factory()->create();

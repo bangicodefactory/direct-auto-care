@@ -102,6 +102,31 @@ class InvoicesControllerTest extends TestCase
         ]);
     }
 
+    public function test_store_persists_payment_method(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($employee)
+            ->post(route('invoices.store'), $this->storePayload($customer, ['payment_method' => 'cheque']))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('invoices', [
+            'customer_id'    => $customer->id,
+            'payment_method' => 'cheque',
+        ]);
+    }
+
+    public function test_store_rejects_invalid_payment_method(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($employee)
+            ->post(route('invoices.store'), $this->storePayload($customer, ['payment_method' => 'bitcoin']))
+            ->assertSessionHasErrors('payment_method');
+    }
+
     public function test_employee_can_access_edit_on_draft(): void
     {
         $employee = User::factory()->create()->assignRole('employee');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\CustomerType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,12 +27,25 @@ class UpdateCustomerRequest extends FormRequest
         return [
             'first_name'      => ['required', 'string', 'max:100'],
             'last_name'       => ['required', 'string', 'max:100'],
+            'type'            => ['nullable', Rule::enum(CustomerType::class)],
+            'ice'             => ['nullable', 'required_if:type,company', 'string', 'regex:/^\d{15}$/'],
             'phone'           => ['required', 'string', 'regex:/^\+212[5-7]\d{8}$/', Rule::unique('customers', 'phone')->ignore($customer)],
             'email'           => ['nullable', 'email', 'max:150', Rule::unique('customers', 'email')->ignore($customer)],
             'address'         => ['nullable', 'string'],
             'notes'           => ['nullable', 'string'],
             'notify_email'    => ['boolean'],
             'notify_whatsapp' => ['boolean'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'ice.required_if' => 'L\'ICE est obligatoire pour une société.',
+            'ice.regex'       => 'L\'ICE doit comporter exactement 15 chiffres.',
         ];
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Enums\PaymentMethod;
 use App\Exceptions\InsufficientStockException;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
@@ -94,6 +95,7 @@ class InvoicesController extends Controller implements HasMiddleware
             'products'    => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
             'vehicles'    => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
             'types'       => collect(InvoiceType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
+            'paymentMethods' => collect(PaymentMethod::cases())->map(fn ($m) => ['value' => $m->value, 'label' => $m->label()]),
             'defaultType' => InvoiceType::tryFrom($request->string('type')->value())?->value ?? InvoiceType::Invoice->value,
         ]);
     }
@@ -133,10 +135,13 @@ class InvoicesController extends Controller implements HasMiddleware
                 'tva_rate'    => $invoice->tva_rate,
                 'tva_amount'  => $invoice->tva_amount,
                 'total_ttc'   => $invoice->total_ttc,
+                'payment_method' => $invoice->payment_method?->label(),
                 'notes'       => $invoice->notes,
                 'customer'    => $invoice->customer ? [
                     'id'    => $invoice->customer->id,
                     'name'  => $invoice->customer->first_name . ' ' . $invoice->customer->last_name,
+                    'is_company' => $invoice->customer->isCompany(),
+                    'ice'   => $invoice->customer->ice,
                     'phone' => $invoice->customer->phone,
                     'email' => $invoice->customer->email,
                 ] : null,
@@ -183,6 +188,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 'due_date'    => $invoice->due_date?->format('Y-m-d'),
                 'discount'    => $invoice->discount,
                 'tva_rate'    => $invoice->tva_rate,
+                'payment_method' => $invoice->payment_method?->value,
                 'notes'       => $invoice->notes,
                 'items'       => $invoice->items->map(fn ($item) => [
                     'id'            => $item->id,
@@ -195,6 +201,7 @@ class InvoicesController extends Controller implements HasMiddleware
             'customers' => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
             'products'  => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
             'vehicles'  => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
+            'paymentMethods' => collect(PaymentMethod::cases())->map(fn ($m) => ['value' => $m->value, 'label' => $m->label()]),
         ]);
     }
 
@@ -255,6 +262,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 'due_date'                => $invoice->due_date?->toDateString(),
                 'discount'                => $invoice->discount,
                 'tva_rate'                => $invoice->tva_rate,
+                'payment_method'          => $invoice->payment_method?->value,
                 'notes'                   => $invoice->notes,
                 'converted_from_quote_id' => $invoice->id,
                 'items'                   => $invoice->items->map(fn ($item) => [

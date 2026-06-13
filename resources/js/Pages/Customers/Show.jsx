@@ -107,6 +107,18 @@ export default function Show({ customer, can }) {
                                 Informations
                             </h3>
                             <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                                <dt className="font-medium text-muted-foreground">Type</dt>
+                                <dd className="text-foreground">
+                                    {customer.type === 'company' ? 'Société' : 'Particulier'}
+                                </dd>
+
+                                {customer.type === 'company' && (
+                                    <>
+                                        <dt className="font-medium text-muted-foreground">ICE</dt>
+                                        <dd className="text-foreground">{customer.ice ?? '—'}</dd>
+                                    </>
+                                )}
+
                                 <dt className="font-medium text-muted-foreground">Téléphone</dt>
                                 <dd className="text-foreground">{customer.phone}</dd>
 

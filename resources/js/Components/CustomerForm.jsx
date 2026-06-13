@@ -3,11 +3,27 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
 
-const FIELD_ORDER = ['first_name', 'last_name', 'phone', 'email', 'address', 'notes'];
+const FIELD_ORDER = [
+    'first_name',
+    'last_name',
+    'type',
+    'ice',
+    'phone',
+    'email',
+    'address',
+    'notes',
+];
 
 export default function CustomerForm({
     data,
@@ -54,6 +70,38 @@ export default function CustomerForm({
                     />
                     <InputError message={errors.last_name} className="mt-2" />
                 </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <InputLabel htmlFor="type" value="Type de client" />
+                    <Select value={data.type} onValueChange={(value) => setData('type', value)}>
+                        <SelectTrigger id="type" className="mt-1 min-h-[44px] w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="individual">Particulier</SelectItem>
+                            <SelectItem value="company">Société</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError message={errors.type} className="mt-2" />
+                </div>
+
+                {data.type === 'company' && (
+                    <div>
+                        <InputLabel htmlFor="ice" value="ICE" />
+                        <TextInput
+                            id="ice"
+                            ref={(el) => (inputRefs.current.ice = el)}
+                            value={data.ice}
+                            className="mt-1 block w-full"
+                            inputMode="numeric"
+                            placeholder="15 chiffres"
+                            onChange={(e) => setData('ice', e.target.value)}
+                        />
+                        <InputError message={errors.ice} className="mt-2" />
+                    </div>
+                )}
             </div>
 
             <div>
