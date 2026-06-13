@@ -21,6 +21,7 @@ class ServiceOrder extends Model
         'customer_id',
         'vehicle_id',
         'mileage_in',
+        'reception_condition',
         'status',
         'diagnosis_notes',
         'internal_notes',
@@ -41,8 +42,9 @@ class ServiceOrder extends Model
     protected function casts(): array
     {
         return [
-            'status'             => ServiceOrderStatus::class,
-            'mileage_in'         => 'integer',
+            'status'              => ServiceOrderStatus::class,
+            'mileage_in'          => 'integer',
+            'reception_condition' => 'array',
             'received_at'        => 'datetime',
             'diagnosed_at'       => 'datetime',
             'quote_sent_at'      => 'datetime',

@@ -10,6 +10,7 @@ import {
     Settings,
     UserCog,
     Users,
+    Wrench,
 } from 'lucide-react';
 
 function SidebarLink({ href, active, icon: Icon, children }) {
@@ -91,6 +92,14 @@ export default function Sidebar({ role }) {
                     icon={CalendarDays}
                 >
                     Aujourd'hui
+                </SidebarLink>
+
+                <SidebarLink
+                    href={route('workshop.index')}
+                    active={route().current('workshop.*')}
+                    icon={Wrench}
+                >
+                    Atelier
                 </SidebarLink>
 
                 {isAdmin && (
