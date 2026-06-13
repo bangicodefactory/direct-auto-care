@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PaymentMethod;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,6 +22,7 @@ class UpdateInvoiceRequest extends FormRequest
             'due_date'              => ['nullable', 'date', 'after_or_equal:issue_date'],
             'discount'              => ['nullable', 'numeric', 'min:0'],
             'tva_rate'              => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'payment_method'        => ['nullable', Rule::enum(PaymentMethod::class)],
             'notes'                 => ['nullable', 'string', 'max:2000'],
             'items'                 => ['required', 'array', 'min:1'],
             'items.*.product_id'    => ['nullable', 'integer', Rule::exists('products', 'id')->whereNull('deleted_at')],

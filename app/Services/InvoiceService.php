@@ -49,6 +49,7 @@ class InvoiceService
                 'fiscal_year'             => $fiscalYear,
                 'discount'                => $data['discount'] ?? 0,
                 'tva_rate'                => $data['tva_rate'] ?? 20,
+                'payment_method'          => $data['payment_method'] ?? null,
                 'notes'                   => $data['notes'] ?? null,
                 // Always Draft on creation — status transitions are managed separately.
                 'status'                  => InvoiceStatus::Draft->value,
@@ -89,6 +90,7 @@ class InvoiceService
                 'due_date'    => isset($data['due_date']) ? Carbon::parse($data['due_date'])->toDateString() : null,
                 'discount'    => $data['discount'] ?? 0,
                 'tva_rate'    => $data['tva_rate'] ?? 20,
+                'payment_method' => $data['payment_method'] ?? null,
                 'notes'       => $data['notes'] ?? null,
             ]);
 

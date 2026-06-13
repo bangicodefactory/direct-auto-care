@@ -22,7 +22,7 @@ function withKey(item) {
     return { ...item, _key: _nextKey++ };
 }
 
-export default function Edit({ invoice, customers, products, vehicles }) {
+export default function Edit({ invoice, customers, products, vehicles, paymentMethods }) {
     const { data, setData, put, processing, errors } = useForm({
         customer_id: invoice.customer_id ?? '',
         vehicle_id: invoice.vehicle_id ?? '',
@@ -30,6 +30,7 @@ export default function Edit({ invoice, customers, products, vehicles }) {
         due_date: invoice.due_date ?? '',
         discount: invoice.discount ?? '',
         tva_rate: invoice.tva_rate ?? '20',
+        payment_method: invoice.payment_method ?? '',
         notes: invoice.notes ?? '',
         items: invoice.items.map(withKey),
     });
@@ -227,6 +228,40 @@ export default function Edit({ invoice, customers, products, vehicles }) {
                                             onChange={(e) => setData('due_date', e.target.value)}
                                         />
                                         <InputError message={errors.due_date} className="mt-1" />
+                                    </div>
+
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="payment_method"
+                                            value="Mode de règlement"
+                                        />
+                                        <Select
+                                            value={data.payment_method || '__none__'}
+                                            onValueChange={(v) =>
+                                                setData('payment_method', v === '__none__' ? '' : v)
+                                            }
+                                        >
+                                            <SelectTrigger
+                                                id="payment_method"
+                                                className="mt-1 min-h-[44px] w-full"
+                                            >
+                                                <SelectValue placeholder="— Non spécifié —" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="__none__">
+                                                    — Non spécifié —
+                                                </SelectItem>
+                                                {paymentMethods.map((m) => (
+                                                    <SelectItem key={m.value} value={m.value}>
+                                                        {m.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <InputError
+                                            message={errors.payment_method}
+                                            className="mt-1"
+                                        />
                                     </div>
                                 </div>
                             </div>

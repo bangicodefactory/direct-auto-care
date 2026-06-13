@@ -6,6 +6,8 @@ export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
         first_name: '',
         last_name: '',
+        type: 'individual',
+        ice: '',
         phone: '',
         email: '',
         address: '',

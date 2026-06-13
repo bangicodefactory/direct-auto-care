@@ -207,6 +207,67 @@ class CustomerRequestTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // StoreCustomerRequest — customer type + ICE (B2B)
+    // -------------------------------------------------------------------------
+
+    public function test_store_ice_is_required_for_a_company(): void
+    {
+        $rules = (new StoreCustomerRequest())->rules();
+        $v     = Validator::make([
+            'first_name' => 'A',
+            'last_name'  => 'B',
+            'phone'      => '+212612345678',
+            'type'       => 'company',
+        ], $rules);
+
+        $this->assertArrayHasKey('ice', $v->errors()->toArray());
+    }
+
+    public function test_store_ice_is_optional_for_an_individual(): void
+    {
+        $rules = (new StoreCustomerRequest())->rules();
+        $v     = Validator::make([
+            'first_name' => 'A',
+            'last_name'  => 'B',
+            'phone'      => '+212612345678',
+            'type'       => 'individual',
+        ], $rules);
+
+        $this->assertFalse($v->fails());
+    }
+
+    public function test_store_company_with_valid_ice_passes(): void
+    {
+        $rules = (new StoreCustomerRequest())->rules();
+        $v     = Validator::make([
+            'first_name' => 'A',
+            'last_name'  => 'B',
+            'phone'      => '+212612345678',
+            'type'       => 'company',
+            'ice'        => '001234567000089',
+        ], $rules);
+
+        $this->assertFalse($v->fails());
+    }
+
+    public function test_store_ice_must_be_exactly_15_digits(): void
+    {
+        $rules = (new StoreCustomerRequest())->rules();
+
+        foreach (['123', '12345678901234A', '1234567890123456'] as $invalid) {
+            $v = Validator::make([
+                'first_name' => 'A',
+                'last_name'  => 'B',
+                'phone'      => '+212612345678',
+                'type'       => 'company',
+                'ice'        => $invalid,
+            ], $rules);
+
+            $this->assertArrayHasKey('ice', $v->errors()->toArray(), "Expected ICE '$invalid' to fail");
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // UpdateCustomerRequest — validation rules
     // -------------------------------------------------------------------------
 

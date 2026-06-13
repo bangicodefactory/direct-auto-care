@@ -28,6 +28,8 @@ class CustomerFactory extends Factory
         return [
             'first_name' => $firstName,
             'last_name' => $lastName,
+            'type' => 'individual',
+            'ice' => null,
             'phone' => '+212' . fake()->unique()->numerify('6########'),
             'email' => fake()->optional(0.8)->safeEmail(),
             'address' => fake()->optional(0.6)->randomElement([
@@ -51,5 +53,16 @@ class CustomerFactory extends Factory
             'notify_email' => fake()->boolean(30),
             'notify_whatsapp' => fake()->boolean(40),
         ];
+    }
+
+    /**
+     * A B2B (société) customer with a 15-digit ICE.
+     */
+    public function company(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => 'company',
+            'ice' => (string) fake()->unique()->numerify('###############'),
+        ]);
     }
 }

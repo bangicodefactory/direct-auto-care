@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Enums\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,7 @@ class Invoice extends Model
         'tva_amount',
         'total_ttc',
         'status',
+        'payment_method',
         'notes',
         'created_by',
         'converted_from_quote_id',
@@ -38,8 +40,9 @@ class Invoice extends Model
     protected function casts(): array
     {
         return [
-            'type'         => InvoiceType::class,
-            'status'       => InvoiceStatus::class,
+            'type'           => InvoiceType::class,
+            'status'         => InvoiceStatus::class,
+            'payment_method' => PaymentMethod::class,
             'issue_date'   => 'date',
             'due_date'     => 'date',
             'subtotal_ht'  => 'decimal:2',

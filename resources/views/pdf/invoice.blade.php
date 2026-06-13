@@ -251,6 +251,7 @@
                         @if($invoice->customer->phone) {{ $invoice->customer->phone }}<br>@endif
                         @if($invoice->customer->email) {{ $invoice->customer->email }}<br>@endif
                         @if($invoice->customer->address) {{ $invoice->customer->address }}<br>@endif
+                        @if($invoice->customer->isCompany() && $invoice->customer->ice) ICE : {{ $invoice->customer->ice }}<br>@endif
                     </div>
                 @else
                     <div class="party-detail">—</div>
@@ -291,6 +292,10 @@
     <table class="totals-wrap">
         <tr>
             <td class="totals-notes">
+                @if($invoice->payment_method)
+                    <div class="notes-label">Mode de règlement</div>
+                    <div class="notes-body">{{ $invoice->payment_method->label() }}</div>
+                @endif
                 @if($invoice->notes)
                     <div class="notes-label">Notes</div>
                     <div class="notes-body">{{ $invoice->notes }}</div>
