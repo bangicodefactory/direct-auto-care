@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
             fn () => new MetaWhatsAppChannel(
                 phoneNumberId: (string) config('services.meta_whatsapp.phone_number_id'),
                 accessToken: (string) config('services.meta_whatsapp.access_token'),
+                redirectTo: config('services.meta_whatsapp.redirect_to'),
             ),
         );
 

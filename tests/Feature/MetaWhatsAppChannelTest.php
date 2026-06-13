@@ -122,6 +122,31 @@ class MetaWhatsAppChannelTest extends TestCase
         $this->assertEquals('503', $reminder->fresh()->error_message);
     }
 
+    public function test_redirect_to_overrides_recipient_for_every_customer(): void
+    {
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['messages' => [['id' => 'x']]], 200),
+        ]);
+
+        // Customer phone is +212600000001, but staging redirects all to one number.
+        $channel = new MetaWhatsAppChannel(
+            phoneNumberId: 'test-phone-id',
+            accessToken: 'test-token',
+            redirectTo: '+212626410690',
+        );
+
+        $reminder = $this->makeReminder(['type' => ReminderType::Vidange]);
+        $channel->send($reminder);
+
+        Http::assertSent(function ($request) use ($reminder) {
+            // Delivered to the override number, not the customer's real phone...
+            return $request->data()['to'] === '212626410690'
+                // ...but the template still carries the real customer's details.
+                && $request->data()['template']['components'][0]['parameters'][0]['text']
+                    === $reminder->customer->first_name;
+        });
+    }
+
     public function test_channel_is_bound_in_container(): void
     {
         $channel = app(WhatsAppChannelContract::class);

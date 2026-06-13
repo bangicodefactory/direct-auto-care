@@ -9,9 +9,15 @@ use Illuminate\Support\Facades\Http;
 
 class MetaWhatsAppChannel implements WhatsAppChannelContract
 {
+    /**
+     * @param  string|null  $redirectTo  When set (e.g. on staging), every message is
+     *                                    delivered to this number instead of the
+     *                                    customer's real phone. Leave null in production.
+     */
     public function __construct(
         private readonly string $phoneNumberId,
         private readonly string $accessToken,
+        private readonly ?string $redirectTo = null,
     ) {
     }
 
@@ -26,9 +32,11 @@ class MetaWhatsAppChannel implements WhatsAppChannelContract
             $http = $http->withoutVerifying();
         }
 
+        $recipient = $this->redirectTo ?: $reminder->customer->phone;
+
         $response = $http->post("https://graph.facebook.com/v19.0/{$this->phoneNumberId}/messages", [
             'messaging_product' => 'whatsapp',
-            'to'                => ltrim($reminder->customer->phone, '+'),
+            'to'                => ltrim($recipient, '+'),
             'type'              => 'template',
             'template'          => [
                 'name'       => $this->templateName($reminder->type),

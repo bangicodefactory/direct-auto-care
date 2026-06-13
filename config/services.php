@@ -39,6 +39,9 @@ return [
         'phone_number_id'     => env('META_WA_PHONE_NUMBER_ID'),
         'access_token'        => env('META_WA_ACCESS_TOKEN'),
         'business_account_id' => env('META_WA_BUSINESS_ACCOUNT_ID'),
+        // Staging/testing only: redirect every outgoing WhatsApp to one number.
+        // MUST stay null in production, or all customers' messages go to it.
+        'redirect_to'         => env('META_WA_REDIRECT_TO'),
     ],
 
 ];
