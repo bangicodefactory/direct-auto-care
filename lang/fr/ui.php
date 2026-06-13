@@ -23,6 +23,9 @@ return [
     'nav_users'        => 'Utilisateurs',
     'nav_settings'     => 'Paramètres',
     'nav_more'         => 'Plus',
+    'nav_all'          => 'Tous',
+    'nav_new_invoice'  => 'Nouvelle facture',
+    'nav_new_appointment' => 'Nouveau rendez-vous',
 
     // Notifications
     'notifications'   => 'Notifications',

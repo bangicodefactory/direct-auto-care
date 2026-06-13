@@ -23,6 +23,9 @@ return [
     'nav_users'        => 'المستخدمون',
     'nav_settings'     => 'الإعدادات',
     'nav_more'         => 'المزيد',
+    'nav_all'          => 'الكل',
+    'nav_new_invoice'  => 'فاتورة جديدة',
+    'nav_new_appointment' => 'موعد جديد',
 
     // Notifications
     'notifications'    => 'الإشعارات',

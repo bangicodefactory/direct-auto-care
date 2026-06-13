@@ -1,104 +1,110 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/Components/ui/dropdown-menu';
+import { NavMain } from '@/Components/nav-main';
+import { NavSecondary } from '@/Components/nav-secondary';
+import { NavUser } from '@/Components/nav-user';
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
-    SidebarGroup,
-    SidebarGroupContent,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
 } from '@/Components/ui/sidebar';
-import { useTranslation } from '@/helpers/i18n';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Bell,
     Calendar,
-    CalendarDays,
     Car,
-    ChevronsUpDown,
     FileText,
     LayoutDashboard,
-    LogOut,
     Package,
     Settings,
     UserCog,
     Users,
 } from 'lucide-react';
 
-const navMain = [
-    { labelKey: 'ui.nav_home', routeName: 'dashboard', icon: LayoutDashboard, match: 'dashboard' },
-    {
-        labelKey: 'ui.nav_customers',
-        routeName: 'customers.index',
-        icon: Users,
-        match: 'customers.*',
-    },
-    { labelKey: 'ui.nav_vehicles', routeName: 'vehicles.index', icon: Car, match: 'vehicles.*' },
-    {
-        labelKey: 'ui.nav_invoices',
-        routeName: 'invoices.index',
-        icon: FileText,
-        match: 'invoices.*',
-    },
-    {
-        labelKey: 'ui.nav_products',
-        routeName: 'products.index',
-        icon: Package,
-        match: 'products.*',
-    },
-    {
-        labelKey: 'ui.nav_appointments',
-        routeName: 'appointments.index',
-        icon: Calendar,
-        match: null,
-    },
-    {
-        labelKey: 'ui.nav_today',
-        routeName: 'appointments.today-page',
-        icon: CalendarDays,
-        match: 'appointments.today-page',
-    },
-];
+function buildNavMain() {
+    return [
+        {
+            labelKey: 'ui.nav_home',
+            routeName: 'dashboard',
+            icon: LayoutDashboard,
+            active: route().current('dashboard'),
+        },
+        {
+            labelKey: 'ui.nav_customers',
+            routeName: 'customers.index',
+            icon: Users,
+            active: route().current('customers.*'),
+        },
+        {
+            labelKey: 'ui.nav_vehicles',
+            routeName: 'vehicles.index',
+            icon: Car,
+            active: route().current('vehicles.*'),
+        },
+        {
+            labelKey: 'ui.nav_invoices',
+            routeName: 'invoices.index',
+            icon: FileText,
+            active: route().current('invoices.*'),
+        },
+        {
+            labelKey: 'ui.nav_products',
+            routeName: 'products.index',
+            icon: Package,
+            active: route().current('products.*'),
+        },
+        {
+            labelKey: 'ui.nav_appointments',
+            icon: Calendar,
+            active: route().current('appointments.*'),
+            items: [
+                {
+                    labelKey: 'ui.nav_all',
+                    routeName: 'appointments.index',
+                    active:
+                        route().current('appointments.*') &&
+                        !route().current('appointments.today-page'),
+                },
+                {
+                    labelKey: 'ui.nav_today',
+                    routeName: 'appointments.today-page',
+                    active: route().current('appointments.today-page'),
+                },
+            ],
+        },
+    ];
+}
 
-const navAdmin = [
-    {
-        labelKey: 'ui.nav_reminders',
-        routeName: 'reminders.index',
-        icon: Bell,
-        match: 'reminders.*',
-    },
-    { labelKey: 'ui.nav_users', routeName: 'users.index', icon: UserCog, match: 'users.*' },
-    {
-        labelKey: 'ui.nav_settings',
-        routeName: 'settings.edit',
-        icon: Settings,
-        match: 'settings.*',
-    },
-];
-
-function isActive(item) {
-    if (item.match === null) {
-        return !route().current('appointments.today-page') && route().current('appointments.*');
-    }
-    return route().current(item.match);
+function buildNavAdmin() {
+    return [
+        {
+            labelKey: 'ui.nav_reminders',
+            routeName: 'reminders.index',
+            icon: Bell,
+            active: route().current('reminders.*'),
+        },
+        {
+            labelKey: 'ui.nav_users',
+            routeName: 'users.index',
+            icon: UserCog,
+            active: route().current('users.*'),
+        },
+        {
+            labelKey: 'ui.nav_settings',
+            routeName: 'settings.edit',
+            icon: Settings,
+            active: route().current('settings.*'),
+        },
+    ];
 }
 
 export default function AppSidebar({ user, role, ...props }) {
-    const { t } = useTranslation();
     const locale = usePage().props.locale;
     const isAdmin = role === 'admin';
-    const initials = user.name.charAt(0).toUpperCase();
     const side = locale === 'ar' ? 'right' : 'left';
 
     return (
@@ -108,12 +114,12 @@ export default function AppSidebar({ user, role, ...props }) {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild tooltip="Direct Auto Care">
                             <Link href={route('dashboard')}>
-                                <ApplicationLogo className="h-8 w-8 shrink-0 fill-current text-primary" />
+                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                    <ApplicationLogo className="size-4 fill-current" />
+                                </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-semibold">Direct Auto Care</span>
-                                    <span className="truncate text-xs text-muted-foreground">
-                                        Garage
-                                    </span>
+                                    <span className="truncate text-xs">Garage</span>
                                 </div>
                             </Link>
                         </SidebarMenuButton>
@@ -122,108 +128,12 @@ export default function AppSidebar({ user, role, ...props }) {
             </SidebarHeader>
 
             <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            {navMain.map((item) => (
-                                <SidebarMenuItem key={item.labelKey}>
-                                    <SidebarMenuButton
-                                        asChild
-                                        isActive={isActive(item)}
-                                        tooltip={t(item.labelKey)}
-                                    >
-                                        <Link href={route(item.routeName)}>
-                                            <item.icon />
-                                            <span>{t(item.labelKey)}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
-
-                {isAdmin && (
-                    <SidebarGroup>
-                        <SidebarGroupContent>
-                            <SidebarMenu>
-                                {navAdmin.map((item) => (
-                                    <SidebarMenuItem key={item.labelKey}>
-                                        <SidebarMenuButton
-                                            asChild
-                                            isActive={route().current(item.match)}
-                                            tooltip={t(item.labelKey)}
-                                        >
-                                            <Link href={route(item.routeName)}>
-                                                <item.icon />
-                                                <span>{t(item.labelKey)}</span>
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                ))}
-                            </SidebarMenu>
-                        </SidebarGroupContent>
-                    </SidebarGroup>
-                )}
+                <NavMain items={buildNavMain()} />
+                {isAdmin && <NavSecondary items={buildNavAdmin()} className="mt-auto" />}
             </SidebarContent>
 
             <SidebarFooter>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton
-                                    size="lg"
-                                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                                    tooltip={user.name}
-                                >
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                                        {initials}
-                                    </div>
-                                    <div className="grid flex-1 text-left text-sm leading-tight">
-                                        <span className="truncate font-semibold">{user.name}</span>
-                                        <span className="truncate text-xs text-muted-foreground">
-                                            {user.email}
-                                        </span>
-                                    </div>
-                                    <ChevronsUpDown className="ms-auto h-4 w-4 shrink-0" />
-                                </SidebarMenuButton>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                className="w-[--radix-dropdown-menu-trigger-width] min-w-56"
-                                side="top"
-                                align="end"
-                                sideOffset={4}
-                            >
-                                <DropdownMenuLabel className="font-normal">
-                                    <p className="text-sm font-medium text-foreground">
-                                        {user.name}
-                                    </p>
-                                    <p className="truncate text-xs text-muted-foreground">
-                                        {user.email}
-                                    </p>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link href={route('profile.edit')} className="cursor-pointer">
-                                        {t('ui.profile')}
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        href={route('logout')}
-                                        method="post"
-                                        as="button"
-                                        className="w-full cursor-pointer"
-                                    >
-                                        <LogOut className="me-2 h-4 w-4" />
-                                        {t('ui.logout')}
-                                    </Link>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+                <NavUser user={user} />
             </SidebarFooter>
 
             <SidebarRail />

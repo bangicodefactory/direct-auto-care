@@ -1,7 +1,19 @@
-import BarChartCard from '@/Components/Charts/BarChartCard';
-import LineChartCard from '@/Components/Charts/LineChartCard';
+import { ChartAreaInteractive } from '@/Components/chart-area-interactive';
+import { SectionCards } from '@/Components/section-cards';
+import { Badge } from '@/Components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { ChartContainer } from '@/Components/ui/chart';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import { Bar, BarChart, XAxis, YAxis } from 'recharts';
 
 export default function Dashboard({ kpis, isAdmin }) {
     return (
@@ -14,121 +26,24 @@ export default function Dashboard({ kpis, isAdmin }) {
         >
             <Head title="Tableau de bord" />
 
-            <div className="py-8">
-                <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
-                    {/* ── KPI cards — 2 col mobile, 4 col desktop ── */}
-                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                        <KpiCard
-                            label="Clients"
-                            value={kpis.customers_total}
-                            sub={<Delta value={kpis.customers_delta} />}
-                        />
-                        <KpiCard label="Véhicules actifs" value={kpis.active_vehicles} />
-                        <KpiCard
-                            label="Rappels en attente"
-                            value={kpis.pending_reminders}
-                            href={route('reminders.index')}
-                        />
-                        <KpiCard
-                            label="RDV aujourd'hui"
-                            value={kpis.appointments_today.length}
-                            href={route('appointments.today-page')}
-                        />
-                        {isAdmin && (
-                            <>
-                                <KpiCard label="CA ce mois (DH)" value={fmt(kpis.revenue_month)} />
-                                <KpiCard
-                                    label="CA cette année (DH)"
-                                    value={fmt(kpis.revenue_year)}
-                                />
-                                <KpiCard
-                                    label="CA année dernière (DH)"
-                                    value={fmt(kpis.revenue_last_year)}
-                                />
-                            </>
-                        )}
-                    </div>
+            <div className="@container/main flex flex-1 flex-col gap-2">
+                <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                    <SectionCards kpis={kpis} isAdmin={isAdmin} />
 
-                    {/* ── Lists — 1 col mobile, 2 col desktop ── */}
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                        <Section title="RDV du jour" href={route('appointments.today-page')}>
-                            {kpis.appointments_today.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">
-                                    Aucun rendez-vous aujourd'hui.
-                                </p>
-                            ) : (
-                                <ul className="divide-y divide-border">
-                                    {kpis.appointments_today.map((a) => (
-                                        <li
-                                            key={a.id}
-                                            className="flex items-center justify-between py-2 text-sm"
-                                        >
-                                            <div>
-                                                <p className="font-medium text-foreground">
-                                                    {a.customer}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {a.vehicle}
-                                                </p>
-                                                {a.services.length > 0 && (
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {a.services.join(', ')}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <span className="ms-4 text-muted-foreground">
-                                                {a.scheduled_at}
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </Section>
-
-                        <Section title="Stock bas" href={route('products.index')}>
-                            {kpis.low_stock.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">
-                                    Aucun produit en stock bas.
-                                </p>
-                            ) : (
-                                <ul className="divide-y divide-border">
-                                    {kpis.low_stock.map((p) => (
-                                        <li
-                                            key={p.id}
-                                            className="flex items-center justify-between py-2 text-sm"
-                                        >
-                                            <Link
-                                                href={route('products.edit', p.id)}
-                                                className="font-medium text-foreground hover:text-primary"
-                                            >
-                                                {p.name}
-                                            </Link>
-                                            <span className="text-destructive">
-                                                {p.quantity_on_hand} / {p.low_stock_threshold}{' '}
-                                                {p.unit}
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </Section>
-                    </div>
-
-                    {/* ── Admin-only charts — 1 col mobile, 3 col desktop ── */}
                     {isAdmin && (
-                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                            <BarChartCard
-                                title="Top prestations"
-                                data={kpis.top_services}
-                                dataKey="count"
-                                nameKey="name"
-                            />
-                            <div className="lg:col-span-2">
-                                <LineChartCard
-                                    title="Évolution mensuelle (12 mois)"
-                                    data={kpis.monthly_stats}
-                                />
-                            </div>
+                        <div className="px-4 lg:px-6">
+                            <ChartAreaInteractive data={kpis.monthly_stats} />
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4 px-4 @4xl/main:grid-cols-2 lg:px-6">
+                        <TodayAppointmentsCard appointments={kpis.appointments_today} />
+                        <LowStockCard products={kpis.low_stock} />
+                    </div>
+
+                    {isAdmin && (
+                        <div className="px-4 lg:px-6">
+                            <TopServicesCard services={kpis.top_services} />
                         </div>
                     )}
                 </div>
@@ -137,68 +52,146 @@ export default function Dashboard({ kpis, isAdmin }) {
     );
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Sections ─────────────────────────────────────────────────────────────────
 
-function fmt(value) {
-    return Number(value).toLocaleString('fr-MA', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-}
-
-function Delta({ value }) {
-    if (value === 0) return <span className="text-xs text-muted-foreground">= ce mois</span>;
-    const positive = value > 0;
+function SectionCard({ title, description, href, children }) {
     return (
-        <span className={`text-xs ${positive ? 'text-green-600' : 'text-red-500'}`}>
-            {positive ? '+' : ''}
-            {value} ce mois
-        </span>
-    );
-}
-
-function KpiCard({ label, value, sub, href }) {
-    const inner = (
-        <>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {label}
-            </p>
-            <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
-            {sub && <div className="mt-1">{sub}</div>}
-        </>
-    );
-
-    if (href) {
-        return (
-            <Link
-                href={href}
-                className="block rounded-lg border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
-            >
-                {inner}
-            </Link>
-        );
-    }
-
-    return <div className="rounded-lg border border-border bg-card p-5 shadow-sm">{inner}</div>;
-}
-
-function Section({ title, href, children }) {
-    return (
-        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
-            <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    {title}
-                </h3>
+        <Card className="@container/card">
+            <CardHeader className="relative">
+                <CardTitle className="text-base">{title}</CardTitle>
+                {description && <CardDescription>{description}</CardDescription>}
                 {href && (
                     <Link
                         href={href}
-                        className="inline-flex min-h-[44px] items-center text-xs font-medium text-primary hover:underline"
+                        className="absolute end-4 top-4 text-xs font-medium text-secondary hover:underline"
                     >
                         Voir tout →
                     </Link>
                 )}
-            </div>
-            {children}
-        </div>
+            </CardHeader>
+            <CardContent>{children}</CardContent>
+        </Card>
+    );
+}
+
+function TodayAppointmentsCard({ appointments }) {
+    return (
+        <SectionCard
+            title="RDV du jour"
+            description="Rendez-vous planifiés aujourd'hui"
+            href={route('appointments.today-page')}
+        >
+            {appointments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucun rendez-vous aujourd'hui.</p>
+            ) : (
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Client</TableHead>
+                            <TableHead>Véhicule</TableHead>
+                            <TableHead className="text-end">Heure</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {appointments.map((a) => (
+                            <TableRow key={a.id}>
+                                <TableCell className="font-medium">{a.customer}</TableCell>
+                                <TableCell className="text-muted-foreground">
+                                    {a.vehicle}
+                                    {a.services.length > 0 && (
+                                        <span className="block text-xs">
+                                            {a.services.join(', ')}
+                                        </span>
+                                    )}
+                                </TableCell>
+                                <TableCell className="text-end text-muted-foreground">
+                                    {a.scheduled_at}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            )}
+        </SectionCard>
+    );
+}
+
+function LowStockCard({ products }) {
+    return (
+        <SectionCard
+            title="Stock bas"
+            description="Produits sous le seuil d'alerte"
+            href={route('products.index')}
+        >
+            {products.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucun produit en stock bas.</p>
+            ) : (
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Produit</TableHead>
+                            <TableHead className="text-end">Stock / Seuil</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {products.map((p) => (
+                            <TableRow key={p.id}>
+                                <TableCell>
+                                    <Link
+                                        href={route('products.edit', p.id)}
+                                        className="font-medium hover:text-primary"
+                                    >
+                                        {p.name}
+                                    </Link>
+                                </TableCell>
+                                <TableCell className="text-end">
+                                    <Badge variant="destructive" className="tabular-nums">
+                                        {p.quantity_on_hand} / {p.low_stock_threshold} {p.unit}
+                                    </Badge>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            )}
+        </SectionCard>
+    );
+}
+
+const topServicesConfig = {
+    count: {
+        label: 'Prestations',
+        color: 'hsl(var(--chart-2))',
+    },
+};
+
+function TopServicesCard({ services }) {
+    return (
+        <SectionCard title="Top prestations" description="Les 5 prestations les plus réalisées">
+            {services.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucune donnée.</p>
+            ) : (
+                <ChartContainer config={topServicesConfig} className="aspect-auto h-[200px] w-full">
+                    <BarChart data={services} layout="vertical" margin={{ left: 0, right: 16 }}>
+                        <XAxis type="number" hide />
+                        <YAxis
+                            dataKey="name"
+                            type="category"
+                            tickLine={false}
+                            axisLine={false}
+                            width={140}
+                            tick={{ fontSize: 12 }}
+                        />
+                        <Bar
+                            dataKey="count"
+                            fill="var(--color-count)"
+                            radius={4}
+                            barSize={20}
+                            label={{ position: 'right', fontSize: 12 }}
+                        />
+                    </BarChart>
+                </ChartContainer>
+            )}
+        </SectionCard>
     );
 }

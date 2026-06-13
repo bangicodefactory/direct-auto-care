@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+
 @config "../../tailwind.config.js";
 @plugin "@tailwindcss/forms";
 
@@ -57,6 +58,13 @@
         --sidebar-accent-foreground: 207 71% 11%;
         --sidebar-border: 232 22% 79%;
         --sidebar-ring: 202 100% 30%;
+
+        /* Chart tokens — aligned with Bangicode M3 palette */
+        --chart-1: 219 100% 17%;             /* Navy — CA */
+        --chart-2: 202 100% 30%;             /* Sky Blue — RDV */
+        --chart-3: 6 100% 16%;               /* Tech red */
+        --chart-4: 204 96% 67%;              /* Light sky */
+        --chart-5: 215 67% 87%;              /* Pale blue */
     }
 }
 
