@@ -8,6 +8,7 @@ use App\Http\Requests\StoreServiceOrderRequest;
 use App\Http\Requests\UpdateServiceOrderRequest;
 use App\Models\Appointment;
 use App\Models\Customer;
+use App\Models\Product;
 use App\Models\ServiceOrder;
 use App\Models\Vehicle;
 use App\Services\ServiceOrderService;
@@ -109,7 +110,8 @@ class ServiceOrderController extends Controller
 
         $serviceOrder->load(['customer', 'vehicle', 'items', 'quote', 'invoice']);
 
-        $next = $serviceOrder->status->nextStatus();
+        $next     = $serviceOrder->status->nextStatus();
+        $canUpdate = $request->user()->can('update', $serviceOrder);
 
         return Inertia::render('Workshop/Show', [
             'order' => [
@@ -125,6 +127,7 @@ class ServiceOrderController extends Controller
                 'cancelled_at'        => $serviceOrder->cancelled_at?->format('d/m/Y H:i'),
                 'items'               => $serviceOrder->items->map(fn ($item) => [
                     'id'            => $item->id,
+                    'product_id'    => $item->product_id,
                     'description'   => $item->description,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
@@ -145,8 +148,19 @@ class ServiceOrderController extends Controller
             ]),
             'next' => $next ? ['value' => $next->value, 'label' => $next->label()] : null,
             'can'  => [
-                'update' => $request->user()->can('update', $serviceOrder),
+                'update' => $canUpdate,
             ],
+            // Catalogue for the parts picker — only sent while parts are editable.
+            'products' => ($canUpdate && $serviceOrder->status === ServiceOrderStatus::InProgress)
+                ? Product::orderBy('name')->get(['id', 'name', 'sku', 'price_sell', 'quantity_on_hand'])
+                    ->map(fn (Product $p) => [
+                        'id'               => $p->id,
+                        'name'             => $p->name,
+                        'sku'              => $p->sku,
+                        'price_sell'       => $p->price_sell,
+                        'quantity_on_hand' => $p->quantity_on_hand,
+                    ])
+                : [],
         ]);
     }
 

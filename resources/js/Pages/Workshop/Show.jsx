@@ -3,7 +3,7 @@ import VehicleConditionDiagram from '@/Components/VehicleConditionDiagram';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Check } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 const BADGE = {
@@ -87,7 +87,173 @@ function PhaseStepper({ phases, currentStatus }) {
     );
 }
 
-export default function Show({ order, phases, next, can }) {
+function PartsManager({ order, products, editable }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        product_id: '',
+        description: '',
+        quantity: 1,
+        unit_price_ht: '',
+    });
+
+    const total = order.items.reduce((sum, item) => sum + Number(item.line_total_ht), 0);
+
+    function pickProduct(id) {
+        const product = products.find((p) => String(p.id) === String(id));
+        setData((current) => ({
+            ...current,
+            product_id: id,
+            // Pre-fill price + description from the catalogue; leave the user free to override.
+            unit_price_ht: product ? product.price_sell : current.unit_price_ht,
+            description: product ? '' : current.description,
+        }));
+    }
+
+    function submit(e) {
+        e.preventDefault();
+        post(route('workshop.items.store', order.id), {
+            preserveScroll: true,
+            onSuccess: () => reset(),
+        });
+    }
+
+    function remove(itemId) {
+        router.delete(route('workshop.items.destroy', [order.id, itemId]), {
+            preserveScroll: true,
+        });
+    }
+
+    if (!editable && order.items.length === 0) {
+        return null;
+    }
+
+    return (
+        <Card title="Pièces & main d'œuvre">
+            {order.items.length > 0 ? (
+                <ul className="divide-y divide-border text-sm">
+                    {order.items.map((item) => (
+                        <li key={item.id} className="flex items-center justify-between gap-3 py-2">
+                            <span className="text-foreground">
+                                {item.quantity} × {item.description}
+                            </span>
+                            <span className="flex items-center gap-3">
+                                <span className="text-muted-foreground">
+                                    {Number(item.line_total_ht).toFixed(2)} DH
+                                </span>
+                                {editable && (
+                                    <button
+                                        type="button"
+                                        onClick={() => remove(item.id)}
+                                        className="text-muted-foreground transition hover:text-destructive"
+                                        aria-label="Retirer la pièce"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </button>
+                                )}
+                            </span>
+                        </li>
+                    ))}
+                    <li className="flex justify-between py-2 font-semibold text-foreground">
+                        <span>Total HT</span>
+                        <span>{total.toFixed(2)} DH</span>
+                    </li>
+                </ul>
+            ) : (
+                <p className="text-sm text-muted-foreground">Aucune pièce ajoutée.</p>
+            )}
+
+            {editable && (
+                <form onSubmit={submit} className="mt-4 space-y-3 border-t border-border pt-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="sm:col-span-2">
+                            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Produit (stock)
+                            </label>
+                            <select
+                                value={data.product_id}
+                                onChange={(e) => pickProduct(e.target.value)}
+                                className={FIELD}
+                            >
+                                <option value="">— Ligne libre (main d'œuvre)…</option>
+                                {products.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.sku} — {p.name} (stock : {p.quantity_on_hand})
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.product_id && (
+                                <p className="mt-1 text-sm text-destructive">{errors.product_id}</p>
+                            )}
+                        </div>
+
+                        {!data.product_id && (
+                            <div className="sm:col-span-2">
+                                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    Description
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.description}
+                                    onChange={(e) => setData('description', e.target.value)}
+                                    className={FIELD}
+                                    placeholder="Ex. Main d'œuvre diagnostic"
+                                />
+                                {errors.description && (
+                                    <p className="mt-1 text-sm text-destructive">
+                                        {errors.description}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        <div>
+                            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Quantité
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                step="1"
+                                value={data.quantity}
+                                onChange={(e) => setData('quantity', e.target.value)}
+                                className={FIELD}
+                            />
+                            {errors.quantity && (
+                                <p className="mt-1 text-sm text-destructive">{errors.quantity}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Prix unitaire HT (DH)
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={data.unit_price_ht}
+                                onChange={(e) => setData('unit_price_ht', e.target.value)}
+                                className={FIELD}
+                            />
+                            {errors.unit_price_ht && (
+                                <p className="mt-1 text-sm text-destructive">
+                                    {errors.unit_price_ht}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                        <Button type="submit" disabled={processing}>
+                            Ajouter la pièce
+                        </Button>
+                    </div>
+                </form>
+            )}
+        </Card>
+    );
+}
+
+export default function Show({ order, phases, next, can, products = [] }) {
     const isCancelled = order.status === 'cancelled';
     const isClosed = order.status === 'closed';
     const diagnosisEditable = order.status === 'diagnosis' || order.status === 'in_progress';
@@ -310,23 +476,12 @@ export default function Show({ order, phases, next, can }) {
                         )
                     )}
 
-                    {/* Parts used (read-only; managed in IST-113) */}
-                    {order.items.length > 0 && (
-                        <Card title="Pièces & main d'œuvre">
-                            <ul className="divide-y divide-border text-sm">
-                                {order.items.map((item) => (
-                                    <li key={item.id} className="flex justify-between py-2">
-                                        <span className="text-foreground">
-                                            {item.quantity} × {item.description}
-                                        </span>
-                                        <span className="text-muted-foreground">
-                                            {Number(item.line_total_ht).toFixed(2)} DH
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </Card>
-                    )}
+                    {/* Parts & labour — editable while the order is in progress */}
+                    <PartsManager
+                        order={order}
+                        products={products}
+                        editable={can.update && order.status === 'in_progress'}
+                    />
 
                     {/* Condition diagram */}
                     <Card title="État du véhicule à la réception">
