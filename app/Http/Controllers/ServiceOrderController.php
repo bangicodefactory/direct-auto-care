@@ -171,12 +171,19 @@ class ServiceOrderController extends Controller
         return back()->with('success', 'Ordre de service mis à jour.');
     }
 
-    public function advance(ServiceOrder $serviceOrder): RedirectResponse
+    public function advance(Request $request, ServiceOrder $serviceOrder, ServiceOrderService $service): RedirectResponse
     {
         $this->authorize('update', $serviceOrder);
 
         $next = $serviceOrder->status->nextStatus();
         abort_if($next === null, 422, 'Aucune transition disponible.');
+
+        // Closing also generates the invoice from the order's items.
+        if ($next === ServiceOrderStatus::Closed) {
+            $order = $service->close($serviceOrder, $request->user());
+
+            return back()->with('success', "Ordre clôturé — facture {$order->invoice->number} générée.");
+        }
 
         $serviceOrder->update([
             'status'                  => $next->value,
