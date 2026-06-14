@@ -5,11 +5,13 @@ namespace App\Services;
 use App\Enums\AppointmentStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\ReminderStatus;
+use App\Enums\ServiceOrderStatus;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Reminder;
+use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Support\Carbon;
@@ -53,6 +55,36 @@ class DashboardService
             'pending_reminders'    => Reminder::where('status', ReminderStatus::Pending)->count(),
             'appointments_today'   => $this->appointmentsToday(),
             'low_stock'            => $this->lowStock(),
+            'workshop'             => $this->workshopStats(),
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // Workshop — active service orders per phase + closed today
+    // -------------------------------------------------------------------------
+
+    private function workshopStats(): array
+    {
+        $counts = ServiceOrder::query()
+            ->active()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return [
+            'active'        => (int) $counts->sum(),
+            'closed_today'  => ServiceOrder::whereDate('closed_at', today())->count(),
+            // Active phases only (Closed/Cancelled excluded), each with its phase colour.
+            'by_status'     => collect(ServiceOrderStatus::cases())
+                ->reject(fn (ServiceOrderStatus $s) => in_array($s, [ServiceOrderStatus::Closed, ServiceOrderStatus::Cancelled], true))
+                ->map(fn (ServiceOrderStatus $s) => [
+                    'value' => $s->value,
+                    'label' => $s->label(),
+                    'color' => $s->color(),
+                    'count' => (int) ($counts[$s->value] ?? 0),
+                ])
+                ->values()
+                ->toArray(),
         ];
     }
 
