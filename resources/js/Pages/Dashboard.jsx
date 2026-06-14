@@ -176,11 +176,11 @@ function WorkshopSection({ workshop }) {
     const workshopUrl = route('workshop.index');
 
     return (
-        <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">
+        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     Atelier
-                    <span className="ms-2 text-gray-400">
+                    <span className="ms-2 text-muted-foreground/70">
                         {workshop.active} actif{workshop.active > 1 ? 's' : ''}
                     </span>
                 </h3>
@@ -198,27 +198,29 @@ function WorkshopSection({ workshop }) {
                     <Link
                         key={phase.value}
                         href={`${workshopUrl}?status=${phase.value}`}
-                        className="rounded-lg border border-gray-100 bg-gray-50 p-3 transition hover:bg-gray-100"
+                        className="rounded-lg border border-border bg-muted/40 p-3 transition hover:bg-muted"
                     >
                         <div className="flex items-center gap-2">
                             <span
                                 className={`h-2 w-2 flex-shrink-0 rounded-full ${PHASE_DOT[phase.color] ?? PHASE_DOT.gray}`}
                             />
-                            <span className="truncate text-xs font-medium text-gray-600">
+                            <span className="truncate text-xs font-medium text-muted-foreground">
                                 {phase.label}
                             </span>
                         </div>
-                        <p className="mt-1 text-2xl font-bold text-gray-900">{phase.count}</p>
+                        <p className="mt-1 text-2xl font-bold text-foreground">{phase.count}</p>
                     </Link>
                 ))}
-                <div className="rounded-lg border border-green-100 bg-green-50 p-3">
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-900 dark:bg-green-950">
                     <div className="flex items-center gap-2">
                         <span className="h-2 w-2 flex-shrink-0 rounded-full bg-green-500" />
-                        <span className="truncate text-xs font-medium text-green-700">
+                        <span className="truncate text-xs font-medium text-green-700 dark:text-green-400">
                             Clôturés aujourd'hui
                         </span>
                     </div>
-                    <p className="mt-1 text-2xl font-bold text-gray-900">{workshop.closed_today}</p>
+                    <p className="mt-1 text-2xl font-bold text-foreground">
+                        {workshop.closed_today}
+                    </p>
                 </div>
             </div>
         </div>

@@ -119,9 +119,7 @@ function AppointmentRow({ apt, now }) {
             >
                 <div className="w-14 flex-shrink-0 text-center">
                     <p className="text-sm font-semibold text-foreground">{apt.scheduled_at}</p>
-                    {apt.ends_at && (
-                        <p className="text-xs text-muted-foreground">{apt.ends_at}</p>
-                    )}
+                    {apt.ends_at && <p className="text-xs text-muted-foreground">{apt.ends_at}</p>}
                 </div>
 
                 <div
