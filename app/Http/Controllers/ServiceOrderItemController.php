@@ -9,6 +9,7 @@ use App\Models\ServiceOrder;
 use App\Models\ServiceOrderItem;
 use App\Services\ServiceOrderService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class ServiceOrderItemController extends Controller
 {
@@ -30,6 +31,7 @@ class ServiceOrderItemController extends Controller
     }
 
     public function destroy(
+        Request $request,
         ServiceOrder $serviceOrder,
         ServiceOrderItem $item,
         ServiceOrderService $service,
@@ -39,7 +41,7 @@ class ServiceOrderItemController extends Controller
         abort_unless($item->service_order_id === $serviceOrder->id, 404);
         $this->ensureInProgress($serviceOrder);
 
-        $service->removeItem($item, request()->user());
+        $service->removeItem($item, $request->user());
 
         return back()->with('success', 'Pièce retirée de l\'ordre de service.');
     }

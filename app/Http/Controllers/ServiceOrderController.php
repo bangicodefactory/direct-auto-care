@@ -110,7 +110,8 @@ class ServiceOrderController extends Controller
 
         $serviceOrder->load(['customer', 'vehicle', 'items', 'quote', 'invoice']);
 
-        $next = $serviceOrder->status->nextStatus();
+        $next     = $serviceOrder->status->nextStatus();
+        $canUpdate = $request->user()->can('update', $serviceOrder);
 
         return Inertia::render('Workshop/Show', [
             'order' => [
@@ -147,7 +148,7 @@ class ServiceOrderController extends Controller
             ]),
             'next' => $next ? ['value' => $next->value, 'label' => $next->label()] : null,
             'can'  => [
-                'update' => $canUpdate = $request->user()->can('update', $serviceOrder),
+                'update' => $canUpdate,
             ],
             // Catalogue for the parts picker — only sent while parts are editable.
             'products' => ($canUpdate && $serviceOrder->status === ServiceOrderStatus::InProgress)
