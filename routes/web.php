@@ -11,6 +11,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RemindersController;
 use App\Http\Controllers\ServiceOrderController;
+use App\Http\Controllers\ServiceOrderItemController;
 use App\Http\Controllers\ServiceRecordsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiclesController;
@@ -49,6 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('workshop/{serviceOrder}', [ServiceOrderController::class, 'update'])->name('workshop.update');
     Route::patch('workshop/{serviceOrder}/advance', [ServiceOrderController::class, 'advance'])->name('workshop.advance');
     Route::patch('workshop/{serviceOrder}/cancel', [ServiceOrderController::class, 'cancel'])->name('workshop.cancel');
+    Route::post('workshop/{serviceOrder}/items', [ServiceOrderItemController::class, 'store'])->name('workshop.items.store');
+    Route::delete('workshop/{serviceOrder}/items/{item}', [ServiceOrderItemController::class, 'destroy'])->name('workshop.items.destroy');
 });
 
 Route::resource('invoices', InvoicesController::class)
