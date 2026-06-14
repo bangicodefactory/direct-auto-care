@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AppointmentStatus;
 use App\Enums\ServiceOrderStatus;
 use App\Http\Requests\StoreServiceOrderRequest;
+use App\Http\Requests\UpdateServiceOrderRequest;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\ServiceOrder;
@@ -102,11 +103,13 @@ class ServiceOrderController extends Controller
             ->with('success', "Ordre de service {$order->number} créé.");
     }
 
-    public function show(ServiceOrder $serviceOrder): Response
+    public function show(Request $request, ServiceOrder $serviceOrder): Response
     {
         $this->authorize('view', $serviceOrder);
 
-        $serviceOrder->load(['customer', 'vehicle', 'items', 'appointment']);
+        $serviceOrder->load(['customer', 'vehicle', 'items', 'quote', 'invoice']);
+
+        $next = $serviceOrder->status->nextStatus();
 
         return Inertia::render('Workshop/Show', [
             'order' => [
@@ -116,10 +119,75 @@ class ServiceOrderController extends Controller
                 'reception_condition' => $serviceOrder->reception_condition,
                 'reception_photos'    => $serviceOrder->receptionPhotoUrls(),
                 'signature_url'       => $serviceOrder->signatureUrl(),
+                'diagnosis_notes'     => $serviceOrder->diagnosis_notes,
                 'internal_notes'      => $serviceOrder->internal_notes,
                 'received_at'         => $serviceOrder->received_at?->format('d/m/Y H:i'),
+                'cancelled_at'        => $serviceOrder->cancelled_at?->format('d/m/Y H:i'),
+                'items'               => $serviceOrder->items->map(fn ($item) => [
+                    'id'            => $item->id,
+                    'description'   => $item->description,
+                    'quantity'      => $item->quantity,
+                    'unit_price_ht' => $item->unit_price_ht,
+                    'line_total_ht' => $item->line_total_ht,
+                ]),
+                'quote'   => $serviceOrder->quote
+                    ? ['id' => $serviceOrder->quote->id, 'number' => $serviceOrder->quote->number]
+                    : null,
+                'invoice' => $serviceOrder->invoice
+                    ? ['id' => $serviceOrder->invoice->id, 'number' => $serviceOrder->invoice->number]
+                    : null,
+            ],
+            // The 8-phase stepper: each phase with the timestamp it was entered.
+            'phases' => collect(ServiceOrderStatus::workflow())->map(fn ($s) => [
+                'value' => $s->value,
+                'label' => $s->label(),
+                'at'    => $serviceOrder->{$s->timestampColumn()}?->format('d/m/Y H:i'),
+            ]),
+            'next' => $next ? ['value' => $next->value, 'label' => $next->label()] : null,
+            'can'  => [
+                'update' => $request->user()->can('update', $serviceOrder),
             ],
         ]);
+    }
+
+    public function update(UpdateServiceOrderRequest $request, ServiceOrder $serviceOrder): RedirectResponse
+    {
+        $serviceOrder->update($request->validated());
+
+        return back()->with('success', 'Ordre de service mis à jour.');
+    }
+
+    public function advance(ServiceOrder $serviceOrder): RedirectResponse
+    {
+        $this->authorize('update', $serviceOrder);
+
+        $next = $serviceOrder->status->nextStatus();
+        abort_if($next === null, 422, 'Aucune transition disponible.');
+
+        $serviceOrder->update([
+            'status'                  => $next->value,
+            $next->timestampColumn()  => now(),
+        ]);
+
+        return back()->with('success', "Statut mis à jour : {$next->label()}.");
+    }
+
+    public function cancel(ServiceOrder $serviceOrder): RedirectResponse
+    {
+        $this->authorize('update', $serviceOrder);
+
+        // A closed or already-cancelled order is terminal — can't be (re-)cancelled.
+        abort_if(in_array($serviceOrder->status, [
+            ServiceOrderStatus::Closed,
+            ServiceOrderStatus::Cancelled,
+        ], true), 422, 'Cet ordre ne peut plus être annulé.');
+
+        $serviceOrder->update([
+            'status'       => ServiceOrderStatus::Cancelled->value,
+            'cancelled_at' => now(),
+        ]);
+
+        return back()->with('success', "Ordre de service {$serviceOrder->number} annulé.");
     }
 
     /**

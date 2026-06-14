@@ -14,6 +14,26 @@ enum ServiceOrderStatus: string
     case Closed         = 'closed';
     case Cancelled      = 'cancelled';
 
+    /**
+     * The 8 linear workflow phases in order (excludes the terminal Cancelled),
+     * used to render the phase stepper.
+     *
+     * @return array<int, self>
+     */
+    public static function workflow(): array
+    {
+        return [
+            self::Reception,
+            self::Diagnosis,
+            self::QuoteSent,
+            self::InProgress,
+            self::QualityControl,
+            self::Notified,
+            self::ReadyPickup,
+            self::Closed,
+        ];
+    }
+
     public function label(): string
     {
         return match ($this) {
