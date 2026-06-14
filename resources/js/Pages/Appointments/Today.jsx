@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { LogIn } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const REFRESH_MS = 5 * 60 * 1000;
 
@@ -83,6 +84,8 @@ export default function AppointmentsToday({ todayList }) {
 }
 
 function AppointmentRow({ apt, now }) {
+    const [checkingIn, setCheckingIn] = useState(false);
+
     const isActive =
         apt.status !== 'cancelled' &&
         apt.scheduled_at <= now &&
@@ -91,39 +94,75 @@ function AppointmentRow({ apt, now }) {
     const isPast = apt.ends_at !== null && apt.ends_at <= now;
     const dimmed = apt.status === 'cancelled' || (isPast && apt.status !== 'completed');
 
+    // Check-in is offered only for a confirmed appointment that has a vehicle and
+    // hasn't already been turned into a service order.
+    const canCheckIn = apt.status === 'confirmed' && apt.vehicle && !apt.service_order_id;
+
+    function checkIn() {
+        router.post(
+            route('appointments.check-in', apt.id),
+            {},
+            {
+                onStart: () => setCheckingIn(true),
+                onFinish: () => setCheckingIn(false),
+            },
+        );
+    }
+
     return (
-        <Link
-            href={route('appointments.show', apt.id)}
+        <div
             className={`flex items-start gap-4 rounded-lg bg-white p-4 shadow-sm transition hover:shadow-md ${dimmed ? 'opacity-60' : ''}`}
         >
-            <div className="w-14 flex-shrink-0 text-center">
-                <p className="text-sm font-semibold text-gray-900">{apt.scheduled_at}</p>
-                {apt.ends_at && <p className="text-xs text-gray-400">{apt.ends_at}</p>}
-            </div>
-
-            <div
-                className={`mt-1 h-10 w-1 flex-shrink-0 rounded-full ${isActive ? 'bg-primary' : 'bg-gray-200'}`}
-            />
-
-            <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">{apt.customer.name}</span>
-                    {apt.vehicle && (
-                        <span className="text-xs text-gray-500">{apt.vehicle.plate}</span>
-                    )}
-                    <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[apt.status] ?? 'bg-gray-100 text-gray-700'}`}
-                    >
-                        {apt.status_label}
-                    </span>
+            <Link
+                href={route('appointments.show', apt.id)}
+                className="flex min-w-0 flex-1 items-start gap-4"
+            >
+                <div className="w-14 flex-shrink-0 text-center">
+                    <p className="text-sm font-semibold text-gray-900">{apt.scheduled_at}</p>
+                    {apt.ends_at && <p className="text-xs text-gray-400">{apt.ends_at}</p>}
                 </div>
-                {apt.services.length > 0 && (
-                    <p className="mt-0.5 text-xs text-gray-500">{apt.services.join(' · ')}</p>
-                )}
-                {apt.notes && <p className="mt-0.5 truncate text-xs text-gray-400">{apt.notes}</p>}
-            </div>
 
-            <div className="flex-shrink-0 text-xs text-gray-400">{apt.duration} min</div>
-        </Link>
+                <div
+                    className={`mt-1 h-10 w-1 flex-shrink-0 rounded-full ${isActive ? 'bg-primary' : 'bg-gray-200'}`}
+                />
+
+                <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">
+                            {apt.customer.name}
+                        </span>
+                        {apt.vehicle && (
+                            <span className="text-xs text-gray-500">{apt.vehicle.plate}</span>
+                        )}
+                        <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[apt.status] ?? 'bg-gray-100 text-gray-700'}`}
+                        >
+                            {apt.status_label}
+                        </span>
+                    </div>
+                    {apt.services.length > 0 && (
+                        <p className="mt-0.5 text-xs text-gray-500">{apt.services.join(' · ')}</p>
+                    )}
+                    {apt.notes && (
+                        <p className="mt-0.5 truncate text-xs text-gray-400">{apt.notes}</p>
+                    )}
+                </div>
+            </Link>
+
+            <div className="flex flex-shrink-0 flex-col items-end gap-2">
+                <span className="text-xs text-gray-400">{apt.duration} min</span>
+                {canCheckIn && (
+                    <button
+                        type="button"
+                        onClick={checkIn}
+                        disabled={checkingIn}
+                        className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+                    >
+                        <LogIn className="h-3.5 w-3.5" />
+                        Check-in
+                    </button>
+                )}
+            </div>
+        </div>
     );
 }
