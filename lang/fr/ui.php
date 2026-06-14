@@ -16,6 +16,7 @@ return [
     'nav_customers' => 'Clients',
     'nav_invoices'  => 'Factures',
     'nav_today'     => "Aujourd'hui",
+    'nav_workshop'  => 'Atelier',
     'nav_more'      => 'Plus',
 
     // Notifications

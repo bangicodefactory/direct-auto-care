@@ -24,14 +24,30 @@ class ServiceOrderController extends Controller
         $orders = ServiceOrder::query()
             ->active()
             ->with(['customer', 'vehicle'])
-            ->latest('received_at')
+            ->orderByDesc('updated_at')
             ->get()
             ->map(fn (ServiceOrder $o) => $this->summary($o));
 
+        $counts = ServiceOrder::query()
+            ->active()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
         return Inertia::render('Workshop/Index', [
             'orders'   => $orders,
+            // Active-phase statuses only (Closed/Cancelled are excluded from the board),
+            // each with its live count for the filter chips.
             'statuses' => collect(ServiceOrderStatus::cases())
-                ->map(fn ($s) => ['value' => $s->value, 'label' => $s->label(), 'color' => $s->color()]),
+                ->reject(fn ($s) => in_array($s, [ServiceOrderStatus::Closed, ServiceOrderStatus::Cancelled], true))
+                ->map(fn ($s) => [
+                    'value' => $s->value,
+                    'label' => $s->label(),
+                    'color' => $s->color(),
+                    'count' => (int) ($counts[$s->value] ?? 0),
+                ])
+                ->values(),
+            'total'    => $orders->count(),
             'can'      => ['create' => $request->user()->can('create', ServiceOrder::class)],
         ]);
     }
@@ -106,6 +122,8 @@ class ServiceOrderController extends Controller
             'vehicle'      => $order->vehicle
                 ? trim($order->vehicle->license_plate . ' — ' . $order->vehicle->make . ' ' . $order->vehicle->model)
                 : null,
+            'plate'        => $order->vehicle?->license_plate,
+            'updated_at'   => $order->updated_at?->format('d/m/Y H:i'),
         ];
     }
 }
