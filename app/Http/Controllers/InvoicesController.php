@@ -28,6 +28,9 @@ class InvoicesController extends Controller implements HasMiddleware
             new Middleware('can:update,invoice', only: ['edit', 'update']),
             new Middleware('can:delete,invoice', only: ['destroy']),
             new Middleware('can:convert,invoice', only: ['convert']),
+            new Middleware('can:issue,invoice', only: ['issue']),
+            new Middleware('can:markPaid,invoice', only: ['markPaid']),
+            new Middleware('can:cancel,invoice', only: ['cancel']),
         ];
     }
 
@@ -139,7 +142,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 ] : null,
                 'vehicle'     => $invoice->vehicle ? [
                     'id'           => $invoice->vehicle->id,
-                    'plate'        => $invoice->vehicle->plate,
+                    'plate'        => $invoice->vehicle->license_plate,
                     'make'         => $invoice->vehicle->make,
                     'model'        => $invoice->vehicle->model,
                 ] : null,
@@ -154,9 +157,12 @@ class InvoicesController extends Controller implements HasMiddleware
                 'created_by'  => $invoice->creator?->name,
             ],
             'can' => [
-                'edit'    => $request->user()->can('update', $invoice),
-                'delete'  => $request->user()->can('delete', $invoice),
-                'convert' => $request->user()->can('convert', $invoice),
+                'edit'     => $request->user()->can('update', $invoice),
+                'delete'   => $request->user()->can('delete', $invoice),
+                'convert'  => $request->user()->can('convert', $invoice),
+                'issue'    => $request->user()->can('issue', $invoice),
+                'markPaid' => $request->user()->can('markPaid', $invoice),
+                'cancel'   => $request->user()->can('cancel', $invoice),
             ],
         ]);
     }
@@ -206,6 +212,34 @@ class InvoicesController extends Controller implements HasMiddleware
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', "{$label} {$invoice->number} {$past} à jour.");
+    }
+
+    public function issue(Invoice $invoice): RedirectResponse
+    {
+        $invoice->update(['status' => InvoiceStatus::Issued->value]);
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', "Facture {$invoice->number} émise.");
+    }
+
+    public function markPaid(Invoice $invoice): RedirectResponse
+    {
+        $invoice->update(['status' => InvoiceStatus::Paid->value]);
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', "Facture {$invoice->number} marquée comme payée.");
+    }
+
+    public function cancel(Invoice $invoice): RedirectResponse
+    {
+        $invoice->update(['status' => InvoiceStatus::Cancelled->value]);
+
+        [$label, $past] = $invoice->type === InvoiceType::Quote
+            ? ['Devis', 'annulé']
+            : ['Facture', 'annulée'];
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', "{$label} {$invoice->number} {$past}.");
     }
 
     public function convert(Request $request, Invoice $invoice, InvoiceService $service): RedirectResponse

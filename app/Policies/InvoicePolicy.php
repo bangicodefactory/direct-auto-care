@@ -33,7 +33,27 @@ class InvoicePolicy
     public function convert(User $user, Invoice $invoice): bool
     {
         return $user->hasAnyRole(['admin', 'employee'])
-            && $invoice->type === InvoiceType::Quote;
+            && $invoice->type === InvoiceType::Quote
+            && ! $invoice->convertedToInvoice()->exists();
+    }
+
+    public function issue(User $user, Invoice $invoice): bool
+    {
+        return $user->hasAnyRole(['admin', 'employee'])
+            && $invoice->type === InvoiceType::Invoice
+            && $invoice->status === InvoiceStatus::Draft;
+    }
+
+    public function markPaid(User $user, Invoice $invoice): bool
+    {
+        return $user->hasAnyRole(['admin', 'employee'])
+            && $invoice->status === InvoiceStatus::Issued;
+    }
+
+    public function cancel(User $user, Invoice $invoice): bool
+    {
+        return $user->hasRole('admin')
+            && in_array($invoice->status, [InvoiceStatus::Draft, InvoiceStatus::Issued]);
     }
 
     public function delete(User $user, Invoice $invoice): bool

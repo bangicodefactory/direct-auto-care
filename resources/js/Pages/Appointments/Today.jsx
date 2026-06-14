@@ -1,3 +1,4 @@
+import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { LogIn } from 'lucide-react';
@@ -48,17 +49,16 @@ export default function AppointmentsToday({ todayList }) {
             header={
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                        <h2 className="text-xl font-semibold leading-tight text-foreground">
                             Rendez-vous du jour
                         </h2>
-                        <p className="mt-0.5 text-sm capitalize text-gray-500">{todayLabel()}</p>
+                        <p className="mt-0.5 text-sm capitalize text-muted-foreground">
+                            {todayLabel()}
+                        </p>
                     </div>
-                    <Link
-                        href={route('appointments.index')}
-                        className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                        ← Calendrier
-                    </Link>
+                    <Button variant="outline" asChild>
+                        <Link href={route('appointments.index')}>← Calendrier</Link>
+                    </Button>
                 </div>
             }
         >
@@ -67,8 +67,8 @@ export default function AppointmentsToday({ todayList }) {
             <div className="py-8">
                 <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
                     {todayList.length === 0 ? (
-                        <div className="rounded-lg bg-white p-12 text-center shadow-sm">
-                            <p className="text-gray-500">Aucun rendez-vous aujourd'hui.</p>
+                        <div className="rounded-lg border border-border bg-card p-12 text-center shadow-sm">
+                            <p className="text-muted-foreground">Aucun rendez-vous aujourd'hui.</p>
                         </div>
                     ) : (
                         <div className="space-y-3">
@@ -111,46 +111,52 @@ function AppointmentRow({ apt, now }) {
 
     return (
         <div
-            className={`flex items-start gap-4 rounded-lg bg-white p-4 shadow-sm transition hover:shadow-md ${dimmed ? 'opacity-60' : ''}`}
+            className={`flex items-start gap-4 rounded-lg border border-border bg-card p-4 shadow-sm transition hover:shadow-md ${dimmed ? 'opacity-60' : ''}`}
         >
             <Link
                 href={route('appointments.show', apt.id)}
                 className="flex min-w-0 flex-1 items-start gap-4"
             >
                 <div className="w-14 flex-shrink-0 text-center">
-                    <p className="text-sm font-semibold text-gray-900">{apt.scheduled_at}</p>
-                    {apt.ends_at && <p className="text-xs text-gray-400">{apt.ends_at}</p>}
+                    <p className="text-sm font-semibold text-foreground">{apt.scheduled_at}</p>
+                    {apt.ends_at && (
+                        <p className="text-xs text-muted-foreground">{apt.ends_at}</p>
+                    )}
                 </div>
 
                 <div
-                    className={`mt-1 h-10 w-1 flex-shrink-0 rounded-full ${isActive ? 'bg-primary' : 'bg-gray-200'}`}
+                    className={`mt-1 h-10 w-1 flex-shrink-0 rounded-full ${isActive ? 'bg-primary' : 'bg-border'}`}
                 />
 
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-foreground">
                             {apt.customer.name}
                         </span>
                         {apt.vehicle && (
-                            <span className="text-xs text-gray-500">{apt.vehicle.plate}</span>
+                            <span className="text-xs text-muted-foreground">
+                                {apt.vehicle.plate}
+                            </span>
                         )}
                         <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[apt.status] ?? 'bg-gray-100 text-gray-700'}`}
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[apt.status] ?? 'bg-muted text-foreground'}`}
                         >
                             {apt.status_label}
                         </span>
                     </div>
                     {apt.services.length > 0 && (
-                        <p className="mt-0.5 text-xs text-gray-500">{apt.services.join(' · ')}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                            {apt.services.join(' · ')}
+                        </p>
                     )}
                     {apt.notes && (
-                        <p className="mt-0.5 truncate text-xs text-gray-400">{apt.notes}</p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{apt.notes}</p>
                     )}
                 </div>
             </Link>
 
             <div className="flex flex-shrink-0 flex-col items-end gap-2">
-                <span className="text-xs text-gray-400">{apt.duration} min</span>
+                <span className="text-xs text-muted-foreground">{apt.duration} min</span>
                 {canCheckIn && (
                     <button
                         type="button"

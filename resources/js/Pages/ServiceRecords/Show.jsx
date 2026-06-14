@@ -1,6 +1,5 @@
-import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
+import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -23,26 +22,24 @@ export default function Show({ record, can }) {
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    <h2 className="text-xl font-semibold leading-tight text-foreground">
                         Compte rendu du {record.serviced_at}
                     </h2>
                     <div className="flex gap-2">
                         {can.edit && (
-                            <Link
-                                href={route('service-records.edit', record.id)}
-                                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                            >
-                                Modifier
-                            </Link>
+                            <Button variant="outline" asChild>
+                                <Link href={route('service-records.edit', record.id)}>
+                                    Modifier
+                                </Link>
+                            </Button>
                         )}
                         {can.delete && (
-                            <button
-                                type="button"
+                            <Button
+                                variant="destructive"
                                 onClick={() => setConfirmingDeletion(true)}
-                                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                             >
                                 Supprimer
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
@@ -52,14 +49,18 @@ export default function Show({ record, can }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-2xl space-y-6 sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="border-b p-6">
-                            <h3 className="text-base font-semibold text-gray-900">Informations</h3>
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border p-6">
+                            <h3 className="text-base font-semibold text-foreground">
+                                Informations
+                            </h3>
                         </div>
-                        <dl className="divide-y divide-gray-100 p-6">
+                        <dl className="divide-y divide-border p-6">
                             <div className="grid grid-cols-2 gap-4 py-3">
-                                <dt className="text-sm font-medium text-gray-500">Véhicule</dt>
-                                <dd className="text-sm text-gray-900">
+                                <dt className="text-sm font-medium text-muted-foreground">
+                                    Véhicule
+                                </dt>
+                                <dd className="text-sm text-foreground">
                                     <Link
                                         href={route('vehicles.show', record.vehicle.id)}
                                         className="inline-flex min-h-[44px] items-center text-primary hover:underline"
@@ -72,16 +73,16 @@ export default function Show({ record, can }) {
                                 </dd>
                             </div>
                             <div className="grid grid-cols-2 gap-4 py-3">
-                                <dt className="text-sm font-medium text-gray-500">
+                                <dt className="text-sm font-medium text-muted-foreground">
                                     Date du service
                                 </dt>
-                                <dd className="text-sm text-gray-900">{record.serviced_at}</dd>
+                                <dd className="text-sm text-foreground">{record.serviced_at}</dd>
                             </div>
                             <div className="grid grid-cols-2 gap-4 py-3">
-                                <dt className="text-sm font-medium text-gray-500">
+                                <dt className="text-sm font-medium text-muted-foreground">
                                     Types de service
                                 </dt>
-                                <dd className="text-sm text-gray-900">
+                                <dd className="text-sm text-foreground">
                                     {record.service_types.length > 0 ? (
                                         <div className="flex flex-wrap gap-1">
                                             {record.service_types.map((name) => (
@@ -94,24 +95,26 @@ export default function Show({ record, can }) {
                                             ))}
                                         </div>
                                     ) : (
-                                        <span className="text-gray-400">—</span>
+                                        <span className="text-muted-foreground">—</span>
                                     )}
                                 </dd>
                             </div>
                             {record.mileage_at_service != null && (
                                 <div className="grid grid-cols-2 gap-4 py-3">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                    <dt className="text-sm font-medium text-muted-foreground">
                                         Kilométrage
                                     </dt>
-                                    <dd className="text-sm text-gray-900">
+                                    <dd className="text-sm text-foreground">
                                         {record.mileage_at_service.toLocaleString('fr-MA')} km
                                     </dd>
                                 </div>
                             )}
                             {record.notes && (
                                 <div className="grid grid-cols-2 gap-4 py-3">
-                                    <dt className="text-sm font-medium text-gray-500">Notes</dt>
-                                    <dd className="whitespace-pre-wrap text-sm text-gray-900">
+                                    <dt className="text-sm font-medium text-muted-foreground">
+                                        Notes
+                                    </dt>
+                                    <dd className="whitespace-pre-wrap text-sm text-foreground">
                                         {record.notes}
                                     </dd>
                                 </div>
@@ -121,7 +124,7 @@ export default function Show({ record, can }) {
 
                     <Link
                         href={route('vehicles.show', record.vehicle.id)}
-                        className="text-sm text-gray-600 hover:text-gray-900"
+                        className="text-sm text-muted-foreground hover:text-foreground"
                     >
                         ← Retour au véhicule
                     </Link>
@@ -134,20 +137,20 @@ export default function Show({ record, can }) {
                 onClose={() => setConfirmingDeletion(false)}
             >
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
+                    <h2 className="text-lg font-medium text-foreground">
                         Supprimer ce compte rendu ?
                     </h2>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Le compte rendu du <span className="font-medium">{record.serviced_at}</span>{' '}
                         sera supprimé définitivement.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setConfirmingDeletion(false)}>
+                        <Button variant="secondary" onClick={() => setConfirmingDeletion(false)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={destroy} disabled={processing}>
+                        </Button>
+                        <Button variant="destructive" onClick={destroy} disabled={processing}>
                             Supprimer définitivement
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>

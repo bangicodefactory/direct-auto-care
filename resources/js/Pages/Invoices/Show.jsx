@@ -1,12 +1,32 @@
+import Modal from '@/Components/Modal';
+import { Button } from '@/Components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { ChevronDown, Printer } from 'lucide-react';
+import { useState } from 'react';
 
 function Field({ label, value }) {
     if (!value) return null;
     return (
         <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
-            <p className="mt-1 text-sm text-gray-900">{value}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {label}
+            </p>
+            <p className="mt-1 text-sm text-foreground">{value}</p>
         </div>
     );
 }
@@ -22,7 +42,7 @@ function Badge({ children, className = '' }) {
 }
 
 const STATUS_STYLES = {
-    draft: 'bg-gray-100 text-gray-700',
+    draft: 'bg-muted text-foreground',
     issued: 'bg-blue-100 text-blue-700',
     paid: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
@@ -38,61 +58,96 @@ const STATUS_LABELS = {
 export default function Show({ invoice, can }) {
     const typeLabel = invoice.type === 'quote' ? 'Devis' : 'Facture';
     const { post, processing } = useForm({});
+    const [confirmingCancel, setConfirmingCancel] = useState(false);
 
     return (
         <AuthenticatedLayout
             header={
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                        <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                        <h2 className="text-xl font-semibold leading-tight text-foreground">
                             {typeLabel} {invoice.number}
                         </h2>
                         <Badge
-                            className={STATUS_STYLES[invoice.status] ?? 'bg-gray-100 text-gray-700'}
+                            className={STATUS_STYLES[invoice.status] ?? 'bg-muted text-foreground'}
                         >
                             {STATUS_LABELS[invoice.status] ?? invoice.status}
                         </Badge>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Link
-                            href={route('invoices.index')}
-                            className="inline-flex min-h-[44px] items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            ← Retour
-                        </Link>
-                        <a
-                            href={route('invoices.print', invoice.id)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex min-h-[44px] items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            Imprimer
-                        </a>
-                        <a
-                            href={route('invoices.pdf', invoice.id)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex min-h-[44px] items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            Télécharger PDF
-                        </a>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button variant="outline" asChild>
+                            <Link href={route('invoices.index')}>← Retour</Link>
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    <Printer className="h-4 w-4" />
+                                    <span className="ms-2 hidden sm:inline">Documents</span>
+                                    <ChevronDown className="ms-1 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild>
+                                    <a
+                                        href={route('invoices.print', invoice.id)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Imprimer
+                                    </a>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <a
+                                        href={route('invoices.pdf', invoice.id)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Télécharger PDF
+                                    </a>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        {can.issue && (
+                            <Button
+                                type="button"
+                                disabled={processing}
+                                onClick={() => post(route('invoices.issue', invoice.id))}
+                            >
+                                Émettre
+                            </Button>
+                        )}
+                        {can.markPaid && (
+                            <Button
+                                type="button"
+                                disabled={processing}
+                                onClick={() => post(route('invoices.pay', invoice.id))}
+                            >
+                                Marquer comme payée
+                            </Button>
+                        )}
                         {can.convert && (
-                            <button
+                            <Button
                                 type="button"
                                 disabled={processing}
                                 onClick={() => post(route('invoices.convert', invoice.id))}
-                                className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                             >
                                 Convertir en facture
-                            </button>
+                            </Button>
                         )}
                         {can.edit && (
-                            <Link
-                                href={route('invoices.edit', invoice.id)}
-                                className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                            <Button asChild>
+                                <Link href={route('invoices.edit', invoice.id)}>Modifier</Link>
+                            </Button>
+                        )}
+                        {can.cancel && (
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                disabled={processing}
+                                onClick={() => setConfirmingCancel(true)}
                             >
-                                Modifier
-                            </Link>
+                                Annuler
+                            </Button>
                         )}
                     </div>
                 </div>
@@ -103,9 +158,9 @@ export default function Show({ invoice, can }) {
             <div className="py-8">
                 <div className="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
                     {/* Meta */}
-                    <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-                        <div className="border-b px-6 py-4">
-                            <h3 className="text-sm font-semibold text-gray-700">Informations</h3>
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border px-6 py-4">
+                            <h3 className="text-sm font-semibold text-foreground">Informations</h3>
                         </div>
                         <div className="grid grid-cols-2 gap-6 px-6 py-4 sm:grid-cols-4">
                             <Field label="Numéro" value={invoice.number} />
@@ -116,9 +171,9 @@ export default function Show({ invoice, can }) {
                     </div>
 
                     {/* Customer + Vehicle */}
-                    <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-                        <div className="border-b px-6 py-4">
-                            <h3 className="text-sm font-semibold text-gray-700">Client</h3>
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border px-6 py-4">
+                            <h3 className="text-sm font-semibold text-foreground">Client</h3>
                         </div>
                         <div className="grid grid-cols-2 gap-6 px-6 py-4 sm:grid-cols-3">
                             <Field label="Nom" value={invoice.customer?.name} />
@@ -137,75 +192,65 @@ export default function Show({ invoice, can }) {
                     </div>
 
                     {/* Line items */}
-                    <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-                        <div className="border-b px-6 py-4">
-                            <h3 className="text-sm font-semibold text-gray-700">Lignes</h3>
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border px-6 py-4">
+                            <h3 className="text-sm font-semibold text-foreground">Lignes</h3>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Description
-                                        </th>
-                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Qté
-                                        </th>
-                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            P.U. HT
-                                        </th>
-                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Total HT
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
-                                    {invoice.items.map((item) => (
-                                        <tr key={item.id}>
-                                            <td className="px-6 py-3 text-sm text-gray-900">
-                                                {item.description}
-                                            </td>
-                                            <td className="px-6 py-3 text-end text-sm text-gray-700">
-                                                {item.quantity}
-                                            </td>
-                                            <td className="px-6 py-3 text-end text-sm text-gray-700">
-                                                {Number(item.unit_price_ht).toFixed(2)} DH
-                                            </td>
-                                            <td className="px-6 py-3 text-end text-sm font-medium text-gray-900">
-                                                {Number(item.line_total_ht).toFixed(2)} DH
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead className="text-end">Qté</TableHead>
+                                    <TableHead className="text-end">P.U. HT</TableHead>
+                                    <TableHead className="text-end">Total HT</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {invoice.items.map((item) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell className="text-foreground">
+                                            {item.description}
+                                        </TableCell>
+                                        <TableCell className="text-end text-muted-foreground">
+                                            {item.quantity}
+                                        </TableCell>
+                                        <TableCell className="text-end text-muted-foreground">
+                                            {Number(item.unit_price_ht).toFixed(2)} DH
+                                        </TableCell>
+                                        <TableCell className="text-end font-medium text-foreground">
+                                            {Number(item.line_total_ht).toFixed(2)} DH
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
 
                         {/* Totals */}
-                        <div className="flex justify-end border-t px-6 py-4">
+                        <div className="flex justify-end border-t border-border px-6 py-4">
                             <dl className="w-64 space-y-2 text-sm">
                                 <div className="flex justify-between">
-                                    <dt className="text-gray-500">Sous-total HT</dt>
-                                    <dd className="text-gray-900">
+                                    <dt className="text-muted-foreground">Sous-total HT</dt>
+                                    <dd className="text-foreground">
                                         {Number(invoice.subtotal_ht).toFixed(2)} DH
                                     </dd>
                                 </div>
                                 {Number(invoice.discount) > 0 && (
                                     <div className="flex justify-between">
-                                        <dt className="text-gray-500">Remise</dt>
-                                        <dd className="text-gray-900">
+                                        <dt className="text-muted-foreground">Remise</dt>
+                                        <dd className="text-foreground">
                                             − {Number(invoice.discount).toFixed(2)} DH
                                         </dd>
                                     </div>
                                 )}
                                 <div className="flex justify-between">
-                                    <dt className="text-gray-500">
+                                    <dt className="text-muted-foreground">
                                         TVA ({Number(invoice.tva_rate).toFixed(0)} %)
                                     </dt>
-                                    <dd className="text-gray-900">
+                                    <dd className="text-foreground">
                                         {Number(invoice.tva_amount).toFixed(2)} DH
                                     </dd>
                                 </div>
-                                <div className="flex justify-between border-t pt-2 text-base font-semibold">
+                                <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
                                     <dt>Total TTC</dt>
                                     <dd>{Number(invoice.total_ttc).toFixed(2)} DH</dd>
                                 </div>
@@ -215,15 +260,40 @@ export default function Show({ invoice, can }) {
 
                     {/* Notes */}
                     {invoice.notes && (
-                        <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-                            <div className="border-b px-6 py-4">
-                                <h3 className="text-sm font-semibold text-gray-700">Notes</h3>
+                        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                            <div className="border-b border-border px-6 py-4">
+                                <h3 className="text-sm font-semibold text-foreground">Notes</h3>
                             </div>
-                            <p className="px-6 py-4 text-sm text-gray-700">{invoice.notes}</p>
+                            <p className="px-6 py-4 text-sm text-foreground">{invoice.notes}</p>
                         </div>
                     )}
                 </div>
             </div>
+
+            <Modal show={confirmingCancel} maxWidth="sm" onClose={() => setConfirmingCancel(false)}>
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-foreground">Annuler ce document ?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {typeLabel} <span className="font-medium">{invoice.number}</span> sera
+                        marqué(e) comme annulé(e). Cette action est irréversible.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <Button variant="secondary" onClick={() => setConfirmingCancel(false)}>
+                            Fermer
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            disabled={processing}
+                            onClick={() => {
+                                setConfirmingCancel(false);
+                                post(route('invoices.cancel', invoice.id));
+                            }}
+                        >
+                            Confirmer l&apos;annulation
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }

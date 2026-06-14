@@ -13,6 +13,7 @@ use App\Notifications\LowStockNotification;
 use App\Services\StockService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -250,6 +251,47 @@ class StockServiceTest extends TestCase
 
         $this->service->recordMovement($product, StockMovementType::Out, 5, null, null, $user);
 
+        Notification::assertNothingSent();
+    }
+
+    public function test_low_stock_notification_is_deferred_until_enclosing_transaction_commits(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['quantity_on_hand' => 6, 'low_stock_threshold' => 5]);
+        $user    = User::factory()->create();
+
+        DB::transaction(function () use ($product, $user): void {
+            // Crosses below the threshold (6 -> 4) inside an outer transaction.
+            $this->service->recordMovement($product, StockMovementType::Out, 2, null, null, $user);
+
+            // Still uncommitted — the alert must not have gone out yet.
+            Notification::assertNothingSent();
+        });
+
+        // The outer transaction committed: the alert is now delivered exactly once.
+        Notification::assertSentToTimes($admin, LowStockNotification::class, 1);
+        $this->assertEquals(4, $product->fresh()->quantity_on_hand);
+    }
+
+    public function test_low_stock_notification_not_sent_when_enclosing_transaction_rolls_back(): void
+    {
+        User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['quantity_on_hand' => 6, 'low_stock_threshold' => 5]);
+        $user    = User::factory()->create();
+
+        try {
+            DB::transaction(function () use ($product, $user): void {
+                // Crosses below the threshold (6 -> 4), which on its own would alert.
+                $this->service->recordMovement($product, StockMovementType::Out, 2, null, null, $user);
+
+                // A later step in the same transaction fails, rolling everything back.
+                throw new \RuntimeException('forced rollback');
+            });
+        } catch (\RuntimeException) {
+        }
+
+        // Stock change reverted, and crucially no false low-stock alert was dispatched.
+        $this->assertEquals(6, $product->fresh()->quantity_on_hand);
         Notification::assertNothingSent();
     }
 

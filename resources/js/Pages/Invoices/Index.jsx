@@ -1,4 +1,20 @@
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -10,7 +26,7 @@ const TYPE_STYLES = {
 const TYPE_LABELS = { invoice: 'Facture', quote: 'Devis' };
 
 const STATUS_STYLES = {
-    draft: 'bg-gray-100 text-gray-700',
+    draft: 'bg-muted text-foreground',
     issued: 'bg-blue-100 text-blue-700',
     paid: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
@@ -20,7 +36,7 @@ const STATUS_LABELS = { draft: 'Brouillon', issued: 'Émise', paid: 'Payée', ca
 function Badge({ value, styleMap, labelMap }) {
     return (
         <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${styleMap[value] ?? 'bg-gray-100 text-gray-600'}`}
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${styleMap[value] ?? 'bg-muted text-foreground'}`}
         >
             {labelMap[value] ?? value}
         </span>
@@ -79,27 +95,28 @@ export default function Index({ invoices, filters, types, statuses, can }) {
         });
     }
 
+    const hasFilters =
+        search || filters?.type || filters?.status || filters?.date_from || filters?.date_to;
+
     return (
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    <h2 className="text-xl font-semibold leading-tight text-foreground">
                         Factures &amp; Devis
                     </h2>
                     {can.create && (
                         <div className="flex items-center gap-2">
-                            <Link
-                                href={route('invoices.create', { type: 'invoice' })}
-                                className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                            >
-                                + Nouvelle facture
-                            </Link>
-                            <Link
-                                href={route('invoices.create', { type: 'quote' })}
-                                className="inline-flex min-h-[44px] items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                            >
-                                + Nouveau devis
-                            </Link>
+                            <Button asChild>
+                                <Link href={route('invoices.create', { type: 'invoice' })}>
+                                    + Nouvelle facture
+                                </Link>
+                            </Button>
+                            <Button variant="outline" asChild>
+                                <Link href={route('invoices.create', { type: 'quote' })}>
+                                    + Nouveau devis
+                                </Link>
+                            </Button>
                         </div>
                     )}
                 </div>
@@ -109,9 +126,9 @@ export default function Index({ invoices, filters, types, statuses, can }) {
 
             <div className="py-8">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         {/* TOOLBAR */}
-                        <div className="flex flex-wrap items-end gap-3 border-b p-4">
+                        <div className="flex flex-wrap items-end gap-3 border-b border-border p-4">
                             <TextInput
                                 id="search"
                                 name="search"
@@ -121,128 +138,118 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
 
-                            <select
-                                id="type"
-                                name="type"
-                                className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                value={filters?.type || ''}
-                                onChange={(e) => setFilter('type', e.target.value)}
+                            <Select
+                                value={filters?.type || '__all__'}
+                                onValueChange={(v) => setFilter('type', v === '__all__' ? '' : v)}
                             >
-                                <option value="">Tous les types</option>
-                                {types.map((t) => (
-                                    <option key={t.value} value={t.value}>
-                                        {t.label}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger className="min-h-[44px] w-44">
+                                    <SelectValue placeholder="Tous les types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__all__">Tous les types</SelectItem>
+                                    {types.map((t) => (
+                                        <SelectItem key={t.value} value={t.value}>
+                                            {t.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
 
-                            <select
-                                id="status"
-                                name="status"
-                                className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                value={filters?.status || ''}
-                                onChange={(e) => setFilter('status', e.target.value)}
+                            <Select
+                                value={filters?.status || '__all__'}
+                                onValueChange={(v) => setFilter('status', v === '__all__' ? '' : v)}
                             >
-                                <option value="">Tous les statuts</option>
-                                {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>
-                                        {s.label}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger className="min-h-[44px] w-44">
+                                    <SelectValue placeholder="Tous les statuts" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__all__">Tous les statuts</SelectItem>
+                                    {statuses.map((s) => (
+                                        <SelectItem key={s.value} value={s.value}>
+                                            {s.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
 
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <label htmlFor="date_from" className="whitespace-nowrap">
                                     Du
                                 </label>
-                                <input
+                                <TextInput
                                     id="date_from"
                                     type="date"
                                     name="date_from"
                                     value={filters?.date_from || ''}
                                     onChange={(e) => setFilter('date_from', e.target.value)}
-                                    className="min-h-[44px] rounded-md border border-gray-300 px-2 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px]"
                                 />
                                 <label htmlFor="date_to" className="whitespace-nowrap">
                                     au
                                 </label>
-                                <input
+                                <TextInput
                                     id="date_to"
                                     type="date"
                                     name="date_to"
                                     value={filters?.date_to || ''}
                                     onChange={(e) => setFilter('date_to', e.target.value)}
-                                    className="min-h-[44px] rounded-md border border-gray-300 px-2 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="min-h-[44px]"
                                 />
                             </div>
 
-                            {(search ||
-                                filters?.type ||
-                                filters?.status ||
-                                filters?.date_from ||
-                                filters?.date_to) && (
-                                <button
+                            {hasFilters && (
+                                <Button
                                     type="button"
+                                    variant="outline"
                                     onClick={() => {
                                         setSearch('');
                                         navigate({});
                                     }}
-                                    className="min-h-[44px] rounded-md border px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
                                 >
                                     Réinitialiser
-                                </button>
+                                </Button>
                             )}
                         </div>
 
                         {/* TABLE */}
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            N°
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Type
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Statut
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Client
-                                        </th>
-                                        <th className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Date
-                                        </th>
-                                        <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Total TTC
-                                        </th>
-                                        <th className="px-6 py-3" />
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>
+                                            <span dir="ltr">N°</span>
+                                        </TableHead>
+                                        <TableHead className="hidden sm:table-cell">Type</TableHead>
+                                        <TableHead>Statut</TableHead>
+                                        <TableHead>Client</TableHead>
+                                        <TableHead className="hidden sm:table-cell">Date</TableHead>
+                                        <TableHead className="text-end">Total TTC</TableHead>
+                                        <TableHead />
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {invoices.data.map((inv) => (
-                                        <tr key={inv.id} className="hover:bg-gray-50">
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-primary">
+                                        <TableRow key={inv.id}>
+                                            <TableCell className="whitespace-nowrap font-medium text-primary">
                                                 <Link href={route('invoices.show', inv.id)}>
                                                     {inv.number}
                                                 </Link>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm">
+                                            </TableCell>
+                                            <TableCell className="hidden whitespace-nowrap sm:table-cell">
                                                 <Badge
                                                     value={inv.type}
                                                     styleMap={TYPE_STYLES}
                                                     labelMap={TYPE_LABELS}
                                                 />
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm">
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap">
                                                 <Badge
                                                     value={inv.status}
                                                     styleMap={STATUS_STYLES}
                                                     labelMap={STATUS_LABELS}
                                                 />
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-foreground">
                                                 {inv.customer ? (
                                                     <Link
                                                         href={route(
@@ -256,53 +263,53 @@ export default function Index({ invoices, filters, types, statuses, can }) {
                                                 ) : (
                                                     '—'
                                                 )}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                            </TableCell>
+                                            <TableCell className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
                                                 {inv.issue_date}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm font-medium text-gray-900">
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-end font-medium text-foreground">
                                                 {Number(inv.total_ttc).toFixed(2)} DH
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-end text-sm">
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-end">
                                                 <Link
                                                     href={route('invoices.show', inv.id)}
                                                     className="inline-flex min-h-[44px] items-center text-primary hover:underline"
                                                 >
                                                     Voir
                                                 </Link>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))}
                                     {invoices.data.length === 0 && (
-                                        <tr>
-                                            <td
+                                        <TableRow>
+                                            <TableCell
                                                 colSpan={7}
-                                                className="px-6 py-10 text-center text-sm text-gray-500"
+                                                className="py-10 text-center text-muted-foreground"
                                             >
                                                 Aucun document trouvé.
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     )}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
 
                         {/* PAGINATION */}
                         {invoices.links.length > 3 && (
-                            <div className="flex items-center justify-between border-t border-gray-200 px-6 py-3">
+                            <div className="flex items-center justify-between border-t border-border px-6 py-3">
                                 {invoices.links.map((link, i) =>
                                     link.url ? (
                                         <Link
                                             key={i}
                                             href={link.url}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            className={`inline-flex min-h-[44px] items-center px-3 text-sm ${link.active ? 'font-bold text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                                         />
                                     ) : (
                                         <span
                                             key={i}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-gray-300"
+                                            className="inline-flex min-h-[44px] items-center px-3 text-sm text-muted-foreground/40"
                                         />
                                     ),
                                 )}

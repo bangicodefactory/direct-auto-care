@@ -39,7 +39,7 @@ export default function BottomNav({ onMenuOpen }) {
     ];
 
     return (
-        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-200 bg-white md:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background md:hidden">
             <div className="flex h-14">
                 {navItems.map(({ label, icon: Icon, href, match }) => {
                     const active = route().current(match);
@@ -49,7 +49,9 @@ export default function BottomNav({ onMenuOpen }) {
                             href={href}
                             aria-current={active ? 'page' : undefined}
                             className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors ${
-                                active ? 'text-primary' : 'text-gray-500 hover:text-gray-700'
+                                active
+                                    ? 'text-primary'
+                                    : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
                             <Icon className="h-5 w-5" />
@@ -61,7 +63,7 @@ export default function BottomNav({ onMenuOpen }) {
                 <button
                     type="button"
                     onClick={onMenuOpen}
-                    className="flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium text-gray-500 hover:text-gray-700"
+                    className="flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium text-muted-foreground hover:text-foreground"
                     aria-label={t('ui.open_menu')}
                 >
                     <Menu className="h-5 w-5" />

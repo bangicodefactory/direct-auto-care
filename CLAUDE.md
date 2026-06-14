@@ -97,7 +97,7 @@ Before claiming any task complete:
 ## Claude Code + MCP allowlist
 
 - **Do not run Claude Code inside CI runners.** Dev machines only.
-- MCP server allowlist: first-party (Anthropic) + verified maintainers (Linear, GitHub, Playwright/Microsoft). Do not add unknown MCP servers.
+- MCP server allowlist: first-party (Anthropic) + verified maintainers (Linear, GitHub, Playwright/Microsoft, Google Stitch, shadcn). Do not add unknown MCP servers.
 - If anything unfamiliar appears under `~/.claude/` or `%APPDATA%\claude-code\`, flag it to Ahmed before proceeding.
 
 ## Open ADRs awaiting decision

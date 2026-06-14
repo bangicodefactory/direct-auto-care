@@ -1,4 +1,4 @@
-import PrimaryButton from '@/Components/PrimaryButton';
+import { Button } from '@/Components/ui/button';
 import { useTranslation } from '@/helpers/i18n';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -17,7 +17,7 @@ export default function VerifyEmail({ status }) {
         <GuestLayout>
             <Head title={t('ui.verify_email')} />
 
-            <div className="mb-4 text-sm text-gray-600">{t('ui.verify_email_desc')}</div>
+            <div className="mb-4 text-sm text-muted-foreground">{t('ui.verify_email_desc')}</div>
 
             {status === 'verification-link-sent' && (
                 <div className="mb-4 text-sm font-medium text-green-600">
@@ -27,15 +27,13 @@ export default function VerifyEmail({ status }) {
 
             <form onSubmit={submit}>
                 <div className="mt-4 flex items-center justify-between">
-                    <PrimaryButton disabled={processing}>
-                        {t('ui.resend_verification')}
-                    </PrimaryButton>
+                    <Button disabled={processing}>{t('ui.resend_verification')}</Button>
 
                     <Link
                         href={route('logout')}
                         method="post"
                         as="button"
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="rounded-md text-sm text-muted-foreground underline hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     >
                         {t('ui.logout')}
                     </Link>

@@ -1,6 +1,6 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
+import { Button } from '@/Components/ui/button';
 import TextInput from '@/Components/TextInput';
 import { useTranslation } from '@/helpers/i18n';
 import GuestLayout from '@/Layouts/GuestLayout';
@@ -24,7 +24,9 @@ export default function ConfirmPassword() {
         <GuestLayout>
             <Head title={t('ui.confirm_password')} />
 
-            <div className="mb-4 text-sm text-gray-600">{t('ui.confirm_password_desc')}</div>
+            <div className="mb-4 text-sm text-muted-foreground">
+                {t('ui.confirm_password_desc')}
+            </div>
 
             <form onSubmit={submit}>
                 <div className="mt-4">
@@ -44,9 +46,9 @@ export default function ConfirmPassword() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    <Button className="ms-4" disabled={processing}>
                         {t('ui.confirm')}
-                    </PrimaryButton>
+                    </Button>
                 </div>
             </form>
         </GuestLayout>

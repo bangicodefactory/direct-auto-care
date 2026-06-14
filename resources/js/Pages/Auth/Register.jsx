@@ -1,6 +1,6 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
+import { Button } from '@/Components/ui/button';
 import TextInput from '@/Components/TextInput';
 import { useTranslation } from '@/helpers/i18n';
 import GuestLayout from '@/Layouts/GuestLayout';
@@ -99,14 +99,14 @@ export default function Register() {
                 <div className="mt-4 flex items-center justify-end">
                     <Link
                         href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="rounded-md text-sm text-muted-foreground underline hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     >
                         {t('ui.already_registered')}
                     </Link>
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    <Button className="ms-4" disabled={processing}>
                         {t('ui.register_submit')}
-                    </PrimaryButton>
+                    </Button>
                 </div>
             </form>
         </GuestLayout>

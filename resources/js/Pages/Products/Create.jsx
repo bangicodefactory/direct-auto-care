@@ -1,7 +1,14 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -25,7 +32,7 @@ export default function Create({ categories }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                <h2 className="text-xl font-semibold leading-tight text-foreground">
                     Ajouter un produit
                 </h2>
             }
@@ -34,22 +41,27 @@ export default function Create({ categories }) {
 
             <div className="py-8">
                 <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-                    <form onSubmit={submit} className="space-y-5 rounded-lg bg-white p-6 shadow">
+                    <form
+                        onSubmit={submit}
+                        className="space-y-5 rounded-lg border border-border bg-card p-6 shadow-sm"
+                    >
                         <div>
                             <InputLabel htmlFor="category" value="Catégorie *" />
-                            <select
-                                id="category"
-                                className="mt-1 block w-full rounded border-gray-300 text-sm"
+                            <Select
                                 value={data.category}
-                                onChange={(e) => setData('category', e.target.value)}
+                                onValueChange={(v) => setData('category', v)}
                             >
-                                <option value="">— Choisir —</option>
-                                {categories.map((c) => (
-                                    <option key={c.value} value={c.value}>
-                                        {c.label}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger id="category" className="mt-1 min-h-[44px] w-full">
+                                    <SelectValue placeholder="— Choisir —" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map((c) => (
+                                        <SelectItem key={c.value} value={c.value}>
+                                            {c.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                             <InputError message={errors.category} className="mt-1" />
                         </div>
 
@@ -152,11 +164,11 @@ export default function Create({ categories }) {
                         <div className="flex items-center justify-between pt-2">
                             <Link
                                 href={route('products.index')}
-                                className="text-sm text-gray-600 hover:underline"
+                                className="text-sm text-muted-foreground hover:underline"
                             >
                                 Annuler
                             </Link>
-                            <PrimaryButton disabled={processing}>Créer</PrimaryButton>
+                            <Button disabled={processing}>Créer</Button>
                         </div>
                     </form>
                 </div>

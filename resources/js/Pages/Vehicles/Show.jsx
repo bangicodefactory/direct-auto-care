@@ -1,6 +1,5 @@
-import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
+import { Button } from '@/Components/ui/button';
 import { FUEL_LABELS } from '@/constants/fuelTypes';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
@@ -13,19 +12,19 @@ const TABS = [
 ];
 
 function EmptyState({ message }) {
-    return <p className="text-sm text-gray-500">{message}</p>;
+    return <p className="text-sm text-muted-foreground">{message}</p>;
 }
 
 function ServiceHistoryTab({ records, onDeleteRecord }) {
     if (!records.length) return <EmptyState message="Aucun historique de service enregistré." />;
 
     return (
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-border">
             {records.map((r) => (
                 <li key={r.id} className="py-4">
                     <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 space-y-1">
-                            <p className="text-sm font-semibold text-gray-900">{r.serviced_at}</p>
+                            <p className="text-sm font-semibold text-foreground">{r.serviced_at}</p>
 
                             {r.service_types.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
@@ -41,20 +40,22 @@ function ServiceHistoryTab({ records, onDeleteRecord }) {
                             )}
 
                             {r.mileage_at_service != null && (
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-muted-foreground">
                                     {r.mileage_at_service.toLocaleString('fr-MA')} km
                                 </p>
                             )}
 
                             {r.notes && (
-                                <p className="line-clamp-2 text-sm text-gray-500">{r.notes}</p>
+                                <p className="line-clamp-2 text-sm text-muted-foreground">
+                                    {r.notes}
+                                </p>
                             )}
                         </div>
 
                         <div className="flex shrink-0 gap-3">
                             <Link
                                 href={route('service-records.show', r.id)}
-                                className="text-sm text-gray-600 hover:underline"
+                                className="text-sm text-muted-foreground hover:underline"
                             >
                                 Voir
                             </Link>
@@ -70,7 +71,7 @@ function ServiceHistoryTab({ records, onDeleteRecord }) {
                                 <button
                                     type="button"
                                     onClick={() => onDeleteRecord(r)}
-                                    className="text-sm text-red-600 hover:text-red-700"
+                                    className="text-sm text-destructive hover:text-destructive/80"
                                 >
                                     Supprimer
                                 </button>
@@ -86,9 +87,9 @@ function ServiceHistoryTab({ records, onDeleteRecord }) {
 function AppointmentsTab({ appointments }) {
     if (!appointments.length) return <EmptyState message="Aucun rendez-vous enregistré." />;
     return (
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-border">
             {appointments.map((a) => (
-                <li key={a.id} className="py-3 text-sm text-gray-700">
+                <li key={a.id} className="py-3 text-sm text-foreground">
                     Rendez-vous du {a.created_at}
                 </li>
             ))}
@@ -131,33 +132,28 @@ export default function Show({ vehicle, can }) {
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    <h2 className="text-xl font-semibold leading-tight text-foreground">
                         {vehicle.make} {vehicle.model}{' '}
-                        <span className="font-normal text-gray-500">({vehicle.year})</span>
+                        <span className="font-normal text-muted-foreground">({vehicle.year})</span>
                     </h2>
                     <div className="flex gap-2">
                         {can.create_service_record && (
-                            <Link
-                                href={route('vehicles.service-records.create', vehicle.id)}
-                                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                            >
-                                Nouveau compte rendu
-                            </Link>
+                            <Button asChild>
+                                <Link href={route('vehicles.service-records.create', vehicle.id)}>
+                                    Nouveau compte rendu
+                                </Link>
+                            </Button>
                         )}
-                        <Link
-                            href={route('vehicles.edit', vehicle.id)}
-                            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            Modifier
-                        </Link>
+                        <Button variant="outline" asChild>
+                            <Link href={route('vehicles.edit', vehicle.id)}>Modifier</Link>
+                        </Button>
                         {can.delete && (
-                            <button
-                                type="button"
+                            <Button
+                                variant="destructive"
                                 onClick={() => setConfirmingDeletion(true)}
-                                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                             >
                                 Supprimer
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
@@ -168,60 +164,72 @@ export default function Show({ vehicle, can }) {
             <div className="py-12">
                 <div className="mx-auto max-w-4xl space-y-6 sm:px-6 lg:px-8">
                     {/* INFO CARD */}
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="border-b p-6">
-                            <h3 className="text-base font-semibold text-gray-900">Informations</h3>
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border p-6">
+                            <h3 className="text-base font-semibold text-foreground">
+                                Informations
+                            </h3>
                         </div>
-                        <dl className="divide-y divide-gray-100 p-6">
+                        <dl className="divide-y divide-border p-6">
                             <div className="grid grid-cols-2 gap-4 py-3">
-                                <dt className="text-sm font-medium text-gray-500">Plaque</dt>
-                                <dd className="font-mono text-sm text-gray-900">
+                                <dt className="text-sm font-medium text-muted-foreground">
+                                    Plaque
+                                </dt>
+                                <dd className="font-mono text-sm text-foreground">
                                     {vehicle.license_plate}
                                 </dd>
                             </div>
                             <div className="grid grid-cols-2 gap-4 py-3">
-                                <dt className="text-sm font-medium text-gray-500">
+                                <dt className="text-sm font-medium text-muted-foreground">
                                     Marque / Modèle
                                 </dt>
-                                <dd className="text-sm text-gray-900">
+                                <dd className="text-sm text-foreground">
                                     {vehicle.make} {vehicle.model}
                                 </dd>
                             </div>
                             <div className="grid grid-cols-2 gap-4 py-3">
-                                <dt className="text-sm font-medium text-gray-500">Année</dt>
-                                <dd className="text-sm text-gray-900">{vehicle.year}</dd>
+                                <dt className="text-sm font-medium text-muted-foreground">Année</dt>
+                                <dd className="text-sm text-foreground">{vehicle.year}</dd>
                             </div>
                             <div className="grid grid-cols-2 gap-4 py-3">
-                                <dt className="text-sm font-medium text-gray-500">Carburant</dt>
-                                <dd className="text-sm text-gray-900">
+                                <dt className="text-sm font-medium text-muted-foreground">
+                                    Carburant
+                                </dt>
+                                <dd className="text-sm text-foreground">
                                     {FUEL_LABELS[vehicle.fuel_type] ?? vehicle.fuel_type}
                                 </dd>
                             </div>
                             <div className="grid grid-cols-2 gap-4 py-3">
-                                <dt className="text-sm font-medium text-gray-500">Kilométrage</dt>
-                                <dd className="text-sm text-gray-900">
+                                <dt className="text-sm font-medium text-muted-foreground">
+                                    Kilométrage
+                                </dt>
+                                <dd className="text-sm text-foreground">
                                     {vehicle.mileage.toLocaleString('fr-MA')} km
                                 </dd>
                             </div>
                             {vehicle.color && (
                                 <div className="grid grid-cols-2 gap-4 py-3">
-                                    <dt className="text-sm font-medium text-gray-500">Couleur</dt>
-                                    <dd className="text-sm text-gray-900">{vehicle.color}</dd>
+                                    <dt className="text-sm font-medium text-muted-foreground">
+                                        Couleur
+                                    </dt>
+                                    <dd className="text-sm text-foreground">{vehicle.color}</dd>
                                 </div>
                             )}
                             {vehicle.vin && (
                                 <div className="grid grid-cols-2 gap-4 py-3">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                    <dt className="text-sm font-medium text-muted-foreground">
                                         Numéro de châssis
                                     </dt>
-                                    <dd className="font-mono text-sm text-gray-900">
+                                    <dd className="font-mono text-sm text-foreground">
                                         {vehicle.vin}
                                     </dd>
                                 </div>
                             )}
                             <div className="grid grid-cols-2 gap-4 py-3">
-                                <dt className="text-sm font-medium text-gray-500">Propriétaire</dt>
-                                <dd className="text-sm text-gray-900">
+                                <dt className="text-sm font-medium text-muted-foreground">
+                                    Propriétaire
+                                </dt>
+                                <dd className="text-sm">
                                     <Link
                                         href={route('customers.show', vehicle.customer.id)}
                                         className="text-primary hover:underline"
@@ -234,8 +242,8 @@ export default function Show({ vehicle, can }) {
                     </div>
 
                     {/* TABS */}
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="border-b border-gray-200">
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border">
                             <nav
                                 className="-mb-px flex overflow-x-auto"
                                 role="tablist"
@@ -253,7 +261,7 @@ export default function Show({ vehicle, can }) {
                                         className={`whitespace-nowrap border-b-2 px-6 py-4 text-sm font-medium transition-colors ${
                                             activeTab === tab.key
                                                 ? 'border-primary text-primary'
-                                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                                : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
                                         }`}
                                     >
                                         {tab.label}
@@ -282,56 +290,58 @@ export default function Show({ vehicle, can }) {
 
                     <Link
                         href={route('vehicles.index')}
-                        className="text-sm text-gray-600 hover:text-gray-900"
+                        className="text-sm text-muted-foreground hover:text-foreground"
                     >
                         ← Retour à la liste
                     </Link>
                 </div>
             </div>
 
-            {/* Vehicle delete modal */}
             <Modal
                 show={confirmingDeletion}
                 maxWidth="sm"
                 onClose={() => setConfirmingDeletion(false)}
             >
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">Supprimer ce véhicule ?</h2>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <h2 className="text-lg font-medium text-foreground">Supprimer ce véhicule ?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
                         <span className="font-medium">
                             {vehicle.make} {vehicle.model} — {vehicle.license_plate}
                         </span>{' '}
                         sera supprimé. Cette action est irréversible.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setConfirmingDeletion(false)}>
+                        <Button variant="secondary" onClick={() => setConfirmingDeletion(false)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={destroy} disabled={processing}>
+                        </Button>
+                        <Button variant="destructive" onClick={destroy} disabled={processing}>
                             Supprimer définitivement
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>
 
-            {/* Service record delete modal */}
             <Modal show={!!deletingRecord} maxWidth="sm" onClose={() => setDeletingRecord(null)}>
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
+                    <h2 className="text-lg font-medium text-foreground">
                         Supprimer ce compte rendu ?
                     </h2>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Le compte rendu du{' '}
                         <span className="font-medium">{deletingRecord?.serviced_at}</span> sera
                         supprimé définitivement.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setDeletingRecord(null)}>
+                        <Button variant="secondary" onClick={() => setDeletingRecord(null)}>
                             Annuler
-                        </SecondaryButton>
-                        <DangerButton onClick={destroyRecord} disabled={processingRecord}>
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={destroyRecord}
+                            disabled={processingRecord}
+                        >
                             Supprimer
-                        </DangerButton>
+                        </Button>
                     </div>
                 </div>
             </Modal>

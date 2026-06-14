@@ -1,70 +1,62 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@config "../../tailwind.config.js";
+@plugin "@tailwindcss/forms";
 
 @layer base {
     :root {
-        --background: 0 0% 100%;
-        --foreground: 218 86% 12%;
+        /* shadcn-standard tokens — HSL space-separated */
+        --background: 218 100% 98%;         /* #f7f9ff surface */
+        --foreground: 207 71% 11%;          /* #091d2e on-surface */
 
-        --card: 0 0% 100%;
-        --card-foreground: 218 86% 12%;
+        --card: 0 0% 100%;                  /* #ffffff surface-container-lowest */
+        --card-foreground: 207 71% 11%;
 
         --popover: 0 0% 100%;
-        --popover-foreground: 218 86% 12%;
+        --popover-foreground: 207 71% 11%;
 
-        /* Brand primary: #0B3D91 → hsl(218, 86%, 31%) */
-        --primary: 218 86% 31%;
-        --primary-foreground: 0 0% 100%;
+        --primary: 219 100% 17%;            /* #002058 primary (Navy) */
+        --primary-foreground: 0 0% 100%;    /* on-primary */
 
-        --secondary: 218 30% 94%;
-        --secondary-foreground: 218 86% 31%;
+        --secondary: 202 100% 30%;          /* #006397 secondary (Sky Blue) */
+        --secondary-foreground: 0 0% 100%;
 
-        --muted: 218 20% 94%;
-        --muted-foreground: 218 20% 46%;
+        --muted: 215 67% 87%;               /* #c9dcf3 surface-dim */
+        --muted-foreground: 230 8% 30%;     /* #444650 on-surface-variant */
 
-        /* Brand accent: #E63946 → hsl(356, 78%, 56%) */
-        --accent: 356 78% 56%;
+        --accent: 6 100% 16%;               /* #500000 tertiary (tech red) */
         --accent-foreground: 0 0% 100%;
 
-        --destructive: 0 84% 60%;
+        --destructive: 0 75% 41%;           /* #ba1a1a error */
         --destructive-foreground: 0 0% 100%;
 
-        --border: 218 20% 88%;
-        --input: 218 20% 88%;
-        --ring: 218 86% 31%;
+        --border: 232 22% 79%;              /* #c4c6d1 outline-variant */
+        --input: 232 22% 79%;
+        --ring: 202 100% 30%;               /* #006397 — focus ring (Sky Blue) */
 
-        --radius: 0.5rem;
-    }
+        --radius: 0.25rem;                  /* 4px per design.md */
 
-    .dark {
-        --background: 218 86% 8%;
-        --foreground: 210 40% 98%;
+        /* Bangicode M3 extensions */
+        --surface: 218 100% 98%;
+        --surface-container-low: 213 100% 95%;
+        --surface-container: 213 100% 92%;
+        --surface-container-high: 211 100% 90%;
+        --surface-container-highest: 209 92% 87%;
+        --primary-container: 222 64% 28%;
+        --on-primary-container: 222 64% 72%;
+        --secondary-container: 204 96% 67%;
+        --tertiary: 6 100% 16%;
+        --tertiary-container: 0 100% 24%;
 
-        --card: 218 86% 10%;
-        --card-foreground: 210 40% 98%;
-
-        --popover: 218 86% 10%;
-        --popover-foreground: 210 40% 98%;
-
-        --primary: 218 86% 55%;
-        --primary-foreground: 0 0% 100%;
-
-        --secondary: 218 30% 18%;
-        --secondary-foreground: 210 40% 98%;
-
-        --muted: 218 30% 18%;
-        --muted-foreground: 218 20% 65%;
-
-        --accent: 356 78% 60%;
-        --accent-foreground: 0 0% 100%;
-
-        --destructive: 0 62% 40%;
-        --destructive-foreground: 210 40% 98%;
-
-        --border: 218 30% 20%;
-        --input: 218 30% 20%;
-        --ring: 218 86% 55%;
+        /* Sidebar tokens — aligned with Bangicode M3 palette */
+        --sidebar-background: 0 0% 100%;             /* same as card */
+        --sidebar-foreground: 207 71% 11%;
+        --sidebar-primary: 219 100% 17%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 215 67% 93%;               /* light blue tint for hover */
+        --sidebar-accent-foreground: 207 71% 11%;
+        --sidebar-border: 232 22% 79%;
+        --sidebar-ring: 202 100% 30%;
     }
 }
 

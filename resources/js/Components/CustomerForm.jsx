@@ -1,8 +1,9 @@
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import { Button } from '@/Components/ui/button';
+import { Textarea } from '@/Components/ui/textarea';
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
 
@@ -95,19 +96,19 @@ export default function CustomerForm({
 
             <div>
                 <InputLabel htmlFor="notes" value="Notes" />
-                <textarea
+                <Textarea
                     id="notes"
                     ref={(el) => (inputRefs.current.notes = el)}
                     value={data.notes}
                     rows={3}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    className="mt-1"
                     onChange={(e) => setData('notes', e.target.value)}
                 />
                 <InputError message={errors.notes} className="mt-2" />
             </div>
 
             <fieldset>
-                <legend className="text-sm font-medium text-gray-700">Notifications</legend>
+                <legend className="text-sm font-medium text-foreground">Notifications</legend>
                 <div className="mt-2 space-y-2">
                     <label className="flex items-center gap-2">
                         <Checkbox
@@ -115,7 +116,7 @@ export default function CustomerForm({
                             checked={data.notify_whatsapp}
                             onChange={(e) => setData('notify_whatsapp', e.target.checked)}
                         />
-                        <span className="text-sm text-gray-700">Rappels WhatsApp</span>
+                        <span className="text-sm text-foreground">Rappels WhatsApp</span>
                     </label>
                     <label className="flex items-center gap-2">
                         <Checkbox
@@ -123,16 +124,16 @@ export default function CustomerForm({
                             checked={data.notify_email}
                             onChange={(e) => setData('notify_email', e.target.checked)}
                         />
-                        <span className="text-sm text-gray-700">Rappels par e-mail</span>
+                        <span className="text-sm text-foreground">Rappels par e-mail</span>
                     </label>
                 </div>
             </fieldset>
 
             <div className="flex items-center justify-end gap-4">
-                <Link href={cancelHref} className="text-sm text-gray-600 hover:text-gray-900">
-                    Annuler
-                </Link>
-                <PrimaryButton disabled={processing}>Enregistrer</PrimaryButton>
+                <Button variant="ghost" asChild>
+                    <Link href={cancelHref}>Annuler</Link>
+                </Button>
+                <Button disabled={processing}>Enregistrer</Button>
             </div>
         </form>
     );

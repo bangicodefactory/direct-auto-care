@@ -564,6 +564,77 @@ class InvoicesControllerTest extends TestCase
         $this->assertEquals(150, (float) $first->unit_price_ht);
     }
 
+    public function test_cannot_convert_the_same_quote_twice(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        // First conversion succeeds.
+        $this->actingAs($admin)
+            ->post(route('invoices.convert', $quote))
+            ->assertRedirect();
+
+        // Second conversion is forbidden — the quote is already converted.
+        $this->actingAs($admin)
+            ->post(route('invoices.convert', $quote))
+            ->assertForbidden();
+
+        // Exactly one invoice was ever created from the quote.
+        $this->assertSame(1, Invoice::where('converted_from_quote_id', $quote->id)->count());
+    }
+
+    public function test_converting_a_quote_twice_does_not_double_decrement_stock(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['quantity_on_hand' => 10]);
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+        $quote->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Filtre à huile',
+            'quantity'      => 3,
+            'unit_price_ht' => 80,
+            'line_total_ht' => 240,
+        ]);
+
+        // First conversion creates the invoice and decrements stock 10 -> 7.
+        $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertRedirect();
+        $this->assertEquals(7, $product->fresh()->quantity_on_hand);
+
+        // A second attempt is rejected, so stock stays at 7 (not 4).
+        $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertForbidden();
+        $this->assertEquals(7, $product->fresh()->quantity_on_hand);
+    }
+
+    public function test_a_freshly_converted_quote_reports_convert_capability_as_false(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertRedirect();
+
+        // The Show page must no longer offer the convert action for an already-converted quote.
+        $this->actingAs($admin)
+            ->get(route('invoices.show', $quote))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Invoices/Show')
+                ->where('can.convert', false));
+    }
+
     // =========================================================================
     // InsufficientStock — surface as validation error, not 500
     // =========================================================================
@@ -585,6 +656,223 @@ class InvoicesControllerTest extends TestCase
         $this->actingAs($admin)
             ->post(route('invoices.store'), $payload)
             ->assertSessionHasErrors('items');
+    }
+
+    // =========================================================================
+    // Issue — draft invoice → issued
+    // =========================================================================
+
+    public function test_guest_is_redirected_from_issue(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+        $this->post(route('invoices.issue', $invoice))->assertRedirect(route('login'));
+    }
+
+    public function test_employee_can_issue_a_draft_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Draft->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Issued->value]);
+    }
+
+    public function test_employee_cannot_issue_a_quote(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $quote    = Invoice::factory()->create([
+            'type'   => InvoiceType::Quote->value,
+            'status' => InvoiceStatus::Draft->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $quote))
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_issue_an_already_issued_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Issued->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_issue_a_paid_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Paid->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_issue_a_cancelled_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Cancelled->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.issue', $invoice))
+            ->assertForbidden();
+    }
+
+    // =========================================================================
+    // Mark paid — issued invoice → paid
+    // =========================================================================
+
+    public function test_guest_is_redirected_from_pay(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Issued->value]);
+        $this->post(route('invoices.pay', $invoice))->assertRedirect(route('login'));
+    }
+
+    public function test_employee_can_mark_issued_invoice_as_paid(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Issued->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.pay', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Paid->value]);
+    }
+
+    public function test_employee_cannot_mark_draft_invoice_as_paid(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Draft->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.pay', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_employee_cannot_mark_already_paid_invoice_as_paid(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Paid->value,
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.pay', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_mark_issued_invoice_as_paid(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create([
+            'type'   => InvoiceType::Invoice->value,
+            'status' => InvoiceStatus::Issued->value,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.pay', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Paid->value]);
+    }
+
+    // =========================================================================
+    // Cancel — admin only, draft or issued
+    // =========================================================================
+
+    public function test_guest_is_redirected_from_cancel(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+        $this->post(route('invoices.cancel', $invoice))->assertRedirect(route('login'));
+    }
+
+    public function test_admin_can_cancel_a_draft_invoice(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Cancelled->value]);
+    }
+
+    public function test_admin_can_cancel_an_issued_invoice(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Issued->value]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => InvoiceStatus::Cancelled->value]);
+    }
+
+    public function test_employee_cannot_cancel_an_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $invoice  = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+
+        $this->actingAs($employee)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_admin_cannot_cancel_a_paid_invoice(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Paid->value]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_admin_cannot_cancel_an_already_cancelled_invoice(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Cancelled->value]);
+
+        $this->actingAs($admin)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertForbidden();
+    }
+
+    public function test_roleless_user_cannot_cancel_an_invoice(): void
+    {
+        $user    = User::factory()->create();
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
+
+        $this->actingAs($user)
+            ->post(route('invoices.cancel', $invoice))
+            ->assertForbidden();
     }
 
     // =========================================================================
