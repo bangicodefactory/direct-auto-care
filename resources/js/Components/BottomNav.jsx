@@ -1,6 +1,6 @@
 import { useTranslation } from '@/helpers/i18n';
 import { Link } from '@inertiajs/react';
-import { CalendarDays, FileText, LayoutDashboard, Menu, Users } from 'lucide-react';
+import { CalendarDays, FileText, LayoutDashboard, Menu, Users, Wrench } from 'lucide-react';
 
 export default function BottomNav({ onMenuOpen }) {
     const { t } = useTranslation();
@@ -29,6 +29,12 @@ export default function BottomNav({ onMenuOpen }) {
             icon: CalendarDays,
             href: route('appointments.today-page'),
             match: 'appointments.today-page',
+        },
+        {
+            label: t('ui.nav_workshop'),
+            icon: Wrench,
+            href: route('workshop.index'),
+            match: 'workshop.*',
         },
     ];
 

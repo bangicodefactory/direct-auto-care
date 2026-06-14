@@ -21,17 +21,50 @@ class ServiceOrderController extends Controller
     {
         $this->authorize('viewAny', ServiceOrder::class);
 
+        $status = $request->string('status')->toString();
+        $search = $request->string('q')->trim()->toString();
+
         $orders = ServiceOrder::query()
             ->active()
             ->with(['customer', 'vehicle'])
-            ->latest('received_at')
-            ->get()
-            ->map(fn (ServiceOrder $o) => $this->summary($o));
+            ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', fn ($c) => $c
+                            ->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%"))
+                        ->orWhereHas('vehicle', fn ($v) => $v->where('license_plate', 'like', "%{$search}%"));
+                });
+            })
+            ->orderByDesc('updated_at')
+            ->paginate(50)
+            ->withQueryString()
+            ->through(fn (ServiceOrder $o) => $this->summary($o));
+
+        // Counts span the full active set (unfiltered) so the chips always show
+        // true per-phase totals regardless of the current filter.
+        $counts = ServiceOrder::query()
+            ->active()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
         return Inertia::render('Workshop/Index', [
             'orders'   => $orders,
+            // Active-phase statuses only (Closed/Cancelled are excluded from the board),
+            // each with its live count for the filter chips.
             'statuses' => collect(ServiceOrderStatus::cases())
-                ->map(fn ($s) => ['value' => $s->value, 'label' => $s->label(), 'color' => $s->color()]),
+                ->reject(fn ($s) => in_array($s, [ServiceOrderStatus::Closed, ServiceOrderStatus::Cancelled], true))
+                ->map(fn ($s) => [
+                    'value' => $s->value,
+                    'label' => $s->label(),
+                    'color' => $s->color(),
+                    'count' => (int) ($counts[$s->value] ?? 0),
+                ])
+                ->values(),
+            'total'    => (int) $counts->sum(),
+            'filters'  => ['status' => $status, 'q' => $search],
             'can'      => ['create' => $request->user()->can('create', ServiceOrder::class)],
         ]);
     }
@@ -106,6 +139,7 @@ class ServiceOrderController extends Controller
             'vehicle'      => $order->vehicle
                 ? trim($order->vehicle->license_plate . ' — ' . $order->vehicle->make . ' ' . $order->vehicle->model)
                 : null,
+            'updated_at'   => $order->updated_at?->format('d/m/Y H:i'),
         ];
     }
 }

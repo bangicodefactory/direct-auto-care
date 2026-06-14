@@ -16,6 +16,7 @@ return [
     'nav_customers' => 'العملاء',
     'nav_invoices'  => 'الفواتير',
     'nav_today'     => 'اليوم',
+    'nav_workshop'  => 'الورشة',
     'nav_more'      => 'المزيد',
 
     // Notifications
