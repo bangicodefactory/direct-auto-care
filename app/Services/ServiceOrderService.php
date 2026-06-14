@@ -92,6 +92,22 @@ class ServiceOrderService
     }
 
     /**
+     * Create a service order from a confirmed appointment (the check-in flow).
+     *
+     * Reuses create(), which generates the number, marks the linked appointment
+     * Completed, and runs everything in one transaction. The caller must ensure the
+     * appointment is Confirmed and has a vehicle (a service order requires one).
+     */
+    public function createFromAppointment(Appointment $appointment, User $user): ServiceOrder
+    {
+        return $this->create([
+            'appointment_id' => $appointment->id,
+            'customer_id'    => $appointment->customer_id,
+            'vehicle_id'     => $appointment->vehicle_id,
+        ], $user);
+    }
+
+    /**
      * Add a part / labour line to a service order.
      *
      * When a product is linked, its stock is decremented in the same transaction as
