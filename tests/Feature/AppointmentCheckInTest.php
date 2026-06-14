@@ -112,6 +112,25 @@ class AppointmentCheckInTest extends TestCase
         $this->assertSame(1, ServiceOrder::where('appointment_id', $appointment->id)->count());
     }
 
+    public function test_check_in_is_rejected_when_an_order_already_exists_for_the_appointment(): void
+    {
+        // A still-Confirmed appointment that already has a service order — simulates the
+        // concurrent check-in race that slips past the status guard. The unique index
+        // must reject the second order and the controller must degrade to a 422.
+        $appointment = $this->confirmedAppointment();
+        ServiceOrder::factory()->create([
+            'appointment_id' => $appointment->id,
+            'customer_id'    => $appointment->customer_id,
+            'vehicle_id'     => $appointment->vehicle_id,
+        ]);
+
+        $this->actingAs($this->employee())
+            ->post(route('appointments.check-in', $appointment))
+            ->assertStatus(422);
+
+        $this->assertSame(1, ServiceOrder::where('appointment_id', $appointment->id)->count());
+    }
+
     public function test_guest_cannot_check_in(): void
     {
         $appointment = $this->confirmedAppointment();

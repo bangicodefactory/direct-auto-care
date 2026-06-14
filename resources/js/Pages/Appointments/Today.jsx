@@ -98,8 +98,7 @@ function AppointmentRow({ apt, now }) {
     // hasn't already been turned into a service order.
     const canCheckIn = apt.status === 'confirmed' && apt.vehicle && !apt.service_order_id;
 
-    function checkIn(e) {
-        e.preventDefault();
+    function checkIn() {
         router.post(
             route('appointments.check-in', apt.id),
             {},

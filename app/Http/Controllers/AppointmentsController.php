@@ -14,6 +14,7 @@ use App\Models\Vehicle;
 use App\Notifications\NewAppointmentNotification;
 use App\Services\AppointmentService;
 use App\Services\ServiceOrderService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -267,7 +268,14 @@ class AppointmentsController extends Controller implements HasMiddleware
             'Ce rendez-vous n\'a pas de véhicule associé : impossible de créer un ordre de service.',
         );
 
-        $order = $service->createFromAppointment($appointment, $request->user());
+        try {
+            $order = $service->createFromAppointment($appointment, $request->user());
+        } catch (UniqueConstraintViolationException) {
+            // Backstop for a concurrent double check-in: two requests both clear the
+            // status guard, but the unique index on appointment_id rejects the second
+            // insert. Degrade to a 422 instead of a 500.
+            abort(422, 'Ce rendez-vous a déjà fait l\'objet d\'un check-in.');
+        }
 
         return redirect()->route('workshop.show', $order)
             ->with('success', "Ordre de service {$order->number} créé.");
