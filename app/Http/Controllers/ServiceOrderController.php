@@ -11,12 +11,13 @@ use App\Models\ServiceOrder;
 use App\Models\Vehicle;
 use App\Services\ServiceOrderService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ServiceOrderController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', ServiceOrder::class);
 
@@ -31,7 +32,7 @@ class ServiceOrderController extends Controller
             'orders'   => $orders,
             'statuses' => collect(ServiceOrderStatus::cases())
                 ->map(fn ($s) => ['value' => $s->value, 'label' => $s->label(), 'color' => $s->color()]),
-            'can'      => ['create' => auth()->user()->can('create', ServiceOrder::class)],
+            'can'      => ['create' => $request->user()->can('create', ServiceOrder::class)],
         ]);
     }
 

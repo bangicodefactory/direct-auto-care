@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const SVG_URL = '/diagrams/vehicle-top.svg';
 
@@ -25,10 +25,22 @@ function formatPart(id) {
  * `value` is a controlled { PART_ID: "#hexcolor" } map. `onChange` receives the
  * updated map. When `readOnly`, the diagram only renders the marks.
  */
-export default function VehicleConditionDiagram({ value = {}, onChange, readOnly = false }) {
+export default function VehicleConditionDiagram({ value, onChange, readOnly = false }) {
+    const marksMap = useMemo(() => value ?? {}, [value]);
     const containerRef = useRef(null);
     const [loaded, setLoaded] = useState(false);
     const [selected, setSelected] = useState(DAMAGE_TYPES[0].color);
+
+    // Keep the latest value/selection/handler in refs so the delegated click
+    // listener (bound once) doesn't need re-attaching on every mark.
+    const valueRef = useRef(marksMap);
+    const selectedRef = useRef(selected);
+    const onChangeRef = useRef(onChange);
+    useEffect(() => {
+        valueRef.current = marksMap;
+        selectedRef.current = selected;
+        onChangeRef.current = onChange;
+    });
 
     // Inject the SVG once.
     useEffect(() => {
@@ -58,14 +70,14 @@ export default function VehicleConditionDiagram({ value = {}, onChange, readOnly
         if (!loaded || !root) return;
 
         root.querySelectorAll('g[id]').forEach((group) => {
-            const color = value[group.id];
+            const color = marksMap[group.id];
             group.querySelectorAll('path, polygon, rect, circle, ellipse').forEach((shape) => {
                 shape.style.fill = color ?? '';
             });
         });
-    }, [value, loaded]);
+    }, [marksMap, loaded]);
 
-    // Wire click handling (delegated) once loaded.
+    // Wire click handling (delegated) once loaded — reads live state via refs.
     useEffect(() => {
         const root = containerRef.current;
         if (!loaded || !root || readOnly) return;
@@ -75,20 +87,20 @@ export default function VehicleConditionDiagram({ value = {}, onChange, readOnly
             const group = e.target.closest('g[id]');
             if (!group || !root.contains(group)) return;
 
-            const next = { ...value };
-            if (selected === 'clear') {
+            const next = { ...valueRef.current };
+            if (selectedRef.current === 'clear') {
                 delete next[group.id];
             } else {
-                next[group.id] = selected;
+                next[group.id] = selectedRef.current;
             }
-            onChange?.(next);
+            onChangeRef.current?.(next);
         }
 
         root.addEventListener('click', handleClick);
         return () => root.removeEventListener('click', handleClick);
-    }, [loaded, readOnly, selected, value, onChange]);
+    }, [loaded, readOnly]);
 
-    const marks = Object.entries(value);
+    const marks = Object.entries(marksMap);
 
     return (
         <div className="space-y-3">

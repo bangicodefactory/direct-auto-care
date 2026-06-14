@@ -24,9 +24,30 @@ class StoreServiceOrderRequest extends FormRequest
             'appointment_id'        => ['nullable', 'integer', Rule::exists('appointments', 'id')->where('customer_id', $this->integer('customer_id'))],
             'mileage_in'            => ['nullable', 'integer', 'min:0', 'max:9999999'],
             'internal_notes'        => ['nullable', 'string', 'max:2000'],
-            'reception_condition'   => ['nullable', 'array'],
+            'reception_condition'   => ['nullable', 'array', $this->conditionKeysAreValid()],
             'reception_condition.*' => ['string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ];
+    }
+
+    /**
+     * Body-part ids are SVG group ids (e.g. FRONT_BONNET) — constrain the map keys
+     * so arbitrary data can't be persisted.
+     */
+    private function conditionKeysAreValid(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if (! is_array($value)) {
+                return;
+            }
+
+            foreach (array_keys($value) as $key) {
+                if (! is_string($key) || ! preg_match('/^[A-Z0-9_]+$/', $key)) {
+                    $fail('Le schéma de l\'état du véhicule est invalide.');
+
+                    return;
+                }
+            }
+        };
     }
 
     /**

@@ -47,7 +47,10 @@ class ServiceOrderService
             ]);
 
             if (! empty($data['appointment_id'])) {
+                // Only a still-confirmed appointment is completed by check-in;
+                // never resurrect a cancelled/already-completed one.
                 Appointment::where('id', $data['appointment_id'])
+                    ->where('status', AppointmentStatus::Confirmed->value)
                     ->update(['status' => AppointmentStatus::Completed->value]);
             }
 

@@ -67,6 +67,26 @@ class ServiceOrderStoreTest extends TestCase
         $this->assertSame(AppointmentStatus::Completed, $appointment->fresh()->status);
     }
 
+    public function test_a_non_confirmed_linked_appointment_is_not_completed(): void
+    {
+        $customer = Customer::factory()->create();
+        $vehicle  = Vehicle::factory()->create(['customer_id' => $customer->id]);
+        $appointment = Appointment::factory()->create([
+            'customer_id' => $customer->id,
+            'vehicle_id'  => $vehicle->id,
+            'status'      => AppointmentStatus::Cancelled->value,
+        ]);
+
+        $this->actingAs($this->employee())->post(route('workshop.store'), [
+            'customer_id'    => $customer->id,
+            'vehicle_id'     => $vehicle->id,
+            'appointment_id' => $appointment->id,
+        ])->assertRedirect();
+
+        // The cancelled appointment must stay cancelled.
+        $this->assertSame(AppointmentStatus::Cancelled, $appointment->fresh()->status);
+    }
+
     public function test_vehicle_must_belong_to_the_customer(): void
     {
         $customer = Customer::factory()->create();
@@ -98,6 +118,20 @@ class ServiceOrderStoreTest extends TestCase
         $order = \App\Models\ServiceOrder::first();
         $this->assertSame('#FF1A1A', $order->reception_condition['FRONT_BONNET']);
         $this->assertSame('#E65100', $order->reception_condition['LEFT_SIDE_DRIVER_DOOR']);
+    }
+
+    public function test_invalid_condition_key_is_rejected(): void
+    {
+        $customer = Customer::factory()->create();
+        $vehicle  = Vehicle::factory()->create(['customer_id' => $customer->id]);
+
+        $this->actingAs($this->employee())->post(route('workshop.store'), [
+            'customer_id'         => $customer->id,
+            'vehicle_id'          => $vehicle->id,
+            'reception_condition' => ['not a valid part!' => '#FFFFFF'],
+        ])->assertSessionHasErrors('reception_condition');
+
+        $this->assertDatabaseCount('service_orders', 0);
     }
 
     public function test_invalid_condition_colour_is_rejected(): void
