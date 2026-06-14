@@ -21,13 +21,29 @@ class ServiceOrderController extends Controller
     {
         $this->authorize('viewAny', ServiceOrder::class);
 
+        $status = $request->string('status')->toString();
+        $search = $request->string('q')->trim()->toString();
+
         $orders = ServiceOrder::query()
             ->active()
             ->with(['customer', 'vehicle'])
+            ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', fn ($c) => $c
+                            ->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%"))
+                        ->orWhereHas('vehicle', fn ($v) => $v->where('license_plate', 'like', "%{$search}%"));
+                });
+            })
             ->orderByDesc('updated_at')
-            ->get()
-            ->map(fn (ServiceOrder $o) => $this->summary($o));
+            ->paginate(50)
+            ->withQueryString()
+            ->through(fn (ServiceOrder $o) => $this->summary($o));
 
+        // Counts span the full active set (unfiltered) so the chips always show
+        // true per-phase totals regardless of the current filter.
         $counts = ServiceOrder::query()
             ->active()
             ->selectRaw('status, count(*) as total')
@@ -47,7 +63,8 @@ class ServiceOrderController extends Controller
                     'count' => (int) ($counts[$s->value] ?? 0),
                 ])
                 ->values(),
-            'total'    => $orders->count(),
+            'total'    => (int) $counts->sum(),
+            'filters'  => ['status' => $status, 'q' => $search],
             'can'      => ['create' => $request->user()->can('create', ServiceOrder::class)],
         ]);
     }
@@ -122,7 +139,6 @@ class ServiceOrderController extends Controller
             'vehicle'      => $order->vehicle
                 ? trim($order->vehicle->license_plate . ' — ' . $order->vehicle->make . ' ' . $order->vehicle->model)
                 : null,
-            'plate'        => $order->vehicle?->license_plate,
             'updated_at'   => $order->updated_at?->format('d/m/Y H:i'),
         ];
     }

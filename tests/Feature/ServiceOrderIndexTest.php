@@ -37,10 +37,39 @@ class ServiceOrderIndexTest extends TestCase
             ->assertOk()
             ->assertInertia(
                 fn (Assert $page) => $page
-                ->component('Workshop/Index')
-                ->has('orders', 2)
-                ->where('total', 2)
-                ->has('statuses')
+                    ->component('Workshop/Index')
+                    ->has('orders.data', 2)
+                    ->where('total', 2)
+                    ->has('statuses')
+            );
+    }
+
+    public function test_status_filter_narrows_the_list(): void
+    {
+        ServiceOrder::factory()->create(); // reception
+        ServiceOrder::factory()->inProgress()->create();
+
+        $this->actingAs($this->employee())
+            ->get(route('workshop.index', ['status' => ServiceOrderStatus::InProgress->value]))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                    ->has('orders.data', 1)
+                    ->where('orders.data.0.status', ServiceOrderStatus::InProgress->value)
+                    ->where('total', 2) // chip total is unfiltered
+            );
+    }
+
+    public function test_search_matches_the_order_number(): void
+    {
+        $target = ServiceOrder::factory()->create(['number' => 'OS-2026-09999']);
+        ServiceOrder::factory()->create(['number' => 'OS-2026-11111']);
+
+        $this->actingAs($this->employee())
+            ->get(route('workshop.index', ['q' => '09999']))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                    ->has('orders.data', 1)
+                    ->where('orders.data.0.id', $target->id)
             );
     }
 

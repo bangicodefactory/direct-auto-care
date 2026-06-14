@@ -1,8 +1,8 @@
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 
 const BADGE = {
     gray: 'bg-muted text-foreground',
@@ -13,6 +13,18 @@ const BADGE = {
     cyan: 'bg-cyan-100 text-cyan-700',
     green: 'bg-green-100 text-green-700',
     red: 'bg-red-100 text-red-700',
+};
+
+// Vivid solid dot for the filter chips.
+const DOT = {
+    gray: 'bg-gray-400',
+    blue: 'bg-blue-500',
+    yellow: 'bg-yellow-400',
+    orange: 'bg-orange-500',
+    purple: 'bg-purple-500',
+    cyan: 'bg-cyan-500',
+    green: 'bg-green-500',
+    red: 'bg-red-500',
 };
 
 function Chip({ active, color, children, onClick }) {
@@ -27,29 +39,46 @@ function Chip({ active, color, children, onClick }) {
             }`}
         >
             {color && !active && (
-                <span className={`h-2 w-2 rounded-full ${BADGE[color] ?? BADGE.gray}`} />
+                <span className={`h-2 w-2 rounded-full ${DOT[color] ?? DOT.gray}`} />
             )}
             {children}
         </button>
     );
 }
 
-export default function Index({ orders, statuses, total, can }) {
-    const [status, setStatus] = useState('all');
-    const [query, setQuery] = useState('');
+export default function Index({ orders, statuses, total, filters, can }) {
+    const [search, setSearch] = useState(filters?.q ?? '');
+    const isFirstRender = useRef(true);
+    const filtersRef = useRef(filters);
 
-    const filtered = useMemo(() => {
-        const q = query.trim().toLowerCase();
-        return orders.filter((o) => {
-            if (status !== 'all' && o.status !== status) return false;
-            if (!q) return true;
-            return (
-                o.number.toLowerCase().includes(q) ||
-                (o.customer ?? '').toLowerCase().includes(q) ||
-                (o.vehicle ?? '').toLowerCase().includes(q)
-            );
+    useEffect(() => {
+        filtersRef.current = filters;
+    });
+
+    // Server-driven filtering. Navigate with the current status + debounced search.
+    function visit(next) {
+        const params = {
+            status: (next.status ?? filtersRef.current?.status) || undefined,
+            q: (next.q ?? filtersRef.current?.q) || undefined,
+        };
+        router.get(route('workshop.index'), params, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
         });
-    }, [orders, status, query]);
+    }
+
+    // Debounce the search box.
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        const timer = setTimeout(() => visit({ q: search }), 300);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    const activeStatus = filters?.status ?? '';
 
     return (
         <AuthenticatedLayout
@@ -70,15 +99,15 @@ export default function Index({ orders, statuses, total, can }) {
                 <div className="mx-auto max-w-5xl space-y-5 px-4 sm:px-6 lg:px-8">
                     {/* Phase counters / filters */}
                     <div className="flex flex-wrap gap-2">
-                        <Chip active={status === 'all'} onClick={() => setStatus('all')}>
+                        <Chip active={activeStatus === ''} onClick={() => visit({ status: '' })}>
                             Tous ({total})
                         </Chip>
                         {statuses.map((s) => (
                             <Chip
                                 key={s.value}
-                                active={status === s.value}
+                                active={activeStatus === s.value}
                                 color={s.color}
-                                onClick={() => setStatus(s.value)}
+                                onClick={() => visit({ status: s.value })}
                             >
                                 {s.label} ({s.count})
                             </Chip>
@@ -90,8 +119,8 @@ export default function Index({ orders, statuses, total, can }) {
                         id="workshop-search"
                         name="search"
                         type="search"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
                         placeholder="Rechercher par n°, client ou immatriculation…"
                         className="block w-full"
                         aria-label="Rechercher un ordre de service"
@@ -99,15 +128,15 @@ export default function Index({ orders, statuses, total, can }) {
 
                     {/* List */}
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-                        {filtered.length === 0 ? (
+                        {orders.data.length === 0 ? (
                             <p className="p-6 text-sm text-muted-foreground">
-                                {orders.length === 0
+                                {activeStatus === '' && !filters?.q
                                     ? 'Aucun ordre de service actif.'
                                     : 'Aucun résultat pour ce filtre.'}
                             </p>
                         ) : (
                             <ul className="divide-y divide-border">
-                                {filtered.map((o) => (
+                                {orders.data.map((o) => (
                                     <li key={o.id}>
                                         <Link
                                             href={route('workshop.show', o.id)}
@@ -137,6 +166,33 @@ export default function Index({ orders, statuses, total, can }) {
                                     </li>
                                 ))}
                             </ul>
+                        )}
+
+                        {/* Pagination */}
+                        {orders.links.length > 3 && (
+                            <div className="flex flex-wrap items-center justify-center gap-1 border-t border-border px-4 py-3">
+                                {orders.links.map((link, i) =>
+                                    link.url ? (
+                                        <Link
+                                            key={i}
+                                            href={link.url}
+                                            preserveScroll
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                            className={`inline-flex min-h-[40px] items-center rounded px-3 text-sm ${
+                                                link.active
+                                                    ? 'bg-primary font-semibold text-primary-foreground'
+                                                    : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                        />
+                                    ) : (
+                                        <span
+                                            key={i}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                            className="inline-flex min-h-[40px] items-center px-3 text-sm text-muted-foreground/40"
+                                        />
+                                    ),
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>
