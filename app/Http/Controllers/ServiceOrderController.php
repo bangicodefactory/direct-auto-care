@@ -107,7 +107,7 @@ class ServiceOrderController extends Controller
     {
         $this->authorize('view', $serviceOrder);
 
-        $serviceOrder->load(['customer', 'vehicle', 'items.product', 'quote', 'invoice']);
+        $serviceOrder->load(['customer', 'vehicle', 'items', 'quote', 'invoice']);
 
         $next = $serviceOrder->status->nextStatus();
 
@@ -175,6 +175,12 @@ class ServiceOrderController extends Controller
     public function cancel(ServiceOrder $serviceOrder): RedirectResponse
     {
         $this->authorize('update', $serviceOrder);
+
+        // A closed or already-cancelled order is terminal — can't be (re-)cancelled.
+        abort_if(in_array($serviceOrder->status, [
+            ServiceOrderStatus::Closed,
+            ServiceOrderStatus::Cancelled,
+        ], true), 422, 'Cet ordre ne peut plus être annulé.');
 
         $serviceOrder->update([
             'status'       => ServiceOrderStatus::Cancelled->value,

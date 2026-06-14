@@ -85,6 +85,17 @@ class ServiceOrderAdvanceTest extends TestCase
         $this->assertNotNull($order->cancelled_at);
     }
 
+    public function test_cancel_on_a_closed_order_is_rejected(): void
+    {
+        $order = ServiceOrder::factory()->closed()->create();
+
+        $this->actingAs($this->employee())
+            ->patch(route('workshop.cancel', $order))
+            ->assertStatus(422);
+
+        $this->assertSame(ServiceOrderStatus::Closed, $order->refresh()->status);
+    }
+
     public function test_update_saves_notes_and_mileage(): void
     {
         $order = ServiceOrder::factory()->create(['status' => ServiceOrderStatus::Diagnosis->value]);

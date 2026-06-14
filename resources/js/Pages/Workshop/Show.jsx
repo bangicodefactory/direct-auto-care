@@ -99,6 +99,7 @@ export default function Show({ order, phases, next, can }) {
     });
 
     const [confirm, setConfirm] = useState(null); // { kind: 'advance'|'cancel' }
+    const [busy, setBusy] = useState(false); // a phase transition (advance/cancel) is in flight
     const hasCondition =
         order.reception_condition && Object.keys(order.reception_condition).length > 0;
 
@@ -108,12 +109,28 @@ export default function Show({ order, phases, next, can }) {
     }
 
     function doAdvance() {
-        router.patch(route('workshop.advance', order.id), {}, { preserveScroll: true });
+        router.patch(
+            route('workshop.advance', order.id),
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setBusy(true),
+                onFinish: () => setBusy(false),
+            },
+        );
         setConfirm(null);
     }
 
     function doCancel() {
-        router.patch(route('workshop.cancel', order.id), {}, { preserveScroll: true });
+        router.patch(
+            route('workshop.cancel', order.id),
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setBusy(true),
+                onFinish: () => setBusy(false),
+            },
+        );
         setConfirm(null);
     }
 
@@ -145,7 +162,7 @@ export default function Show({ order, phases, next, can }) {
                             <Link href={route('workshop.index')}>← Atelier</Link>
                         </Button>
                         {can.update && next && !isCancelled && (
-                            <Button onClick={handleAdvanceClick} disabled={processing}>
+                            <Button onClick={handleAdvanceClick} disabled={busy}>
                                 Passer à : {next.label}
                             </Button>
                         )}
@@ -153,7 +170,7 @@ export default function Show({ order, phases, next, can }) {
                             <Button
                                 variant="destructive"
                                 onClick={() => setConfirm({ kind: 'cancel' })}
-                                disabled={processing}
+                                disabled={busy}
                             >
                                 Annuler
                             </Button>
