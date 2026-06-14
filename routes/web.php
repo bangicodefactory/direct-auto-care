@@ -10,6 +10,7 @@ use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RemindersController;
+use App\Http\Controllers\ServiceOrderController;
 use App\Http\Controllers\ServiceRecordsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiclesController;
@@ -38,6 +39,14 @@ Route::resource('products', ProductsController::class)
 Route::post('products/{product}/adjust-stock', [ProductsController::class, 'adjustStock'])
     ->middleware(['auth', 'verified'])
     ->name('products.adjust-stock');
+
+// Workshop — service orders (Module 12). `create` before `{serviceOrder}` binding.
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('workshop', [ServiceOrderController::class, 'index'])->name('workshop.index');
+    Route::get('workshop/create', [ServiceOrderController::class, 'create'])->name('workshop.create');
+    Route::post('workshop', [ServiceOrderController::class, 'store'])->name('workshop.store');
+    Route::get('workshop/{serviceOrder}', [ServiceOrderController::class, 'show'])->name('workshop.show');
+});
 
 Route::resource('invoices', InvoicesController::class)
     ->middleware(['auth', 'verified']);

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceOrder extends Model
 {
@@ -21,6 +22,10 @@ class ServiceOrder extends Model
         'customer_id',
         'vehicle_id',
         'mileage_in',
+        'reception_condition',
+        'reception_photos',
+        'fuel_level',
+        'signature_path',
         'status',
         'diagnosis_notes',
         'internal_notes',
@@ -41,17 +46,20 @@ class ServiceOrder extends Model
     protected function casts(): array
     {
         return [
-            'status'             => ServiceOrderStatus::class,
-            'mileage_in'         => 'integer',
-            'received_at'        => 'datetime',
-            'diagnosed_at'       => 'datetime',
-            'quote_sent_at'      => 'datetime',
-            'in_progress_at'     => 'datetime',
-            'quality_control_at' => 'datetime',
-            'notified_at'        => 'datetime',
-            'ready_pickup_at'    => 'datetime',
-            'closed_at'          => 'datetime',
-            'cancelled_at'       => 'datetime',
+            'status'              => ServiceOrderStatus::class,
+            'mileage_in'          => 'integer',
+            'reception_condition' => 'array',
+            'reception_photos'    => 'array',
+            'fuel_level'          => 'integer',
+            'received_at'         => 'datetime',
+            'diagnosed_at'        => 'datetime',
+            'quote_sent_at'       => 'datetime',
+            'in_progress_at'      => 'datetime',
+            'quality_control_at'  => 'datetime',
+            'notified_at'         => 'datetime',
+            'ready_pickup_at'     => 'datetime',
+            'closed_at'           => 'datetime',
+            'cancelled_at'        => 'datetime',
         ];
     }
 
@@ -64,6 +72,23 @@ class ServiceOrder extends Model
             ServiceOrderStatus::Closed->value,
             ServiceOrderStatus::Cancelled->value,
         ]);
+    }
+
+    /**
+     * Public URLs for the reception photos (empty when none).
+     *
+     * @return array<int, string>
+     */
+    public function receptionPhotoUrls(): array
+    {
+        return collect($this->reception_photos ?? [])
+            ->map(fn (string $path) => Storage::disk('public')->url($path))
+            ->all();
+    }
+
+    public function signatureUrl(): ?string
+    {
+        return $this->signature_path ? Storage::disk('public')->url($this->signature_path) : null;
     }
 
     public function customer(): BelongsTo
