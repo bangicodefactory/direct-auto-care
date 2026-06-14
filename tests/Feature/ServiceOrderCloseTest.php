@@ -146,6 +146,26 @@ class ServiceOrderCloseTest extends TestCase
         $this->assertDatabaseCount('invoices', 0);
     }
 
+    public function test_closing_creates_a_service_record_for_the_vehicle(): void
+    {
+        $order = $this->orderReadyForPickup();
+        $order->update(['mileage_in' => 123456, 'diagnosis_notes' => 'Vidange + plaquettes']);
+
+        $this->actingAs($this->employee())
+            ->patch(route('workshop.advance', $order));
+
+        $order->refresh();
+        $this->assertDatabaseHas('service_records', [
+            'vehicle_id'         => $order->vehicle_id,
+            'invoice_id'         => $order->invoice_id,
+            'mileage_at_service' => 123456,
+            'notes'              => 'Vidange + plaquettes',
+            'serviced_at'        => now()->toDateString(),
+        ]);
+        // Exactly one record — the close path is idempotent (firstOrCreate on invoice_id).
+        $this->assertDatabaseCount('service_records', 1);
+    }
+
     public function test_closing_an_order_without_items_is_rejected(): void
     {
         $order = ServiceOrder::factory()->readyPickup()->create();

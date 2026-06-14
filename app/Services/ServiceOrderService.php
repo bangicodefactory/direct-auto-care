@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderItem;
+use App\Models\ServiceRecord;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -172,6 +173,18 @@ class ServiceOrderService
             }
 
             $invoice->recomputeTotals()->save();
+
+            // Feed the vehicle's maintenance history. Keyed on invoice_id so a retry
+            // never creates a duplicate record (idempotent).
+            ServiceRecord::firstOrCreate(
+                ['invoice_id' => $invoice->id],
+                [
+                    'vehicle_id'         => $order->vehicle_id,
+                    'mileage_at_service' => $order->mileage_in,
+                    'notes'              => $order->diagnosis_notes,
+                    'serviced_at'        => $now->toDateString(),
+                ],
+            );
 
             $order->update([
                 'invoice_id' => $invoice->id,
