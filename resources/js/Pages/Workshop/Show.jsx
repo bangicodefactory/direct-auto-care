@@ -65,6 +65,10 @@ export default function Show({ order }) {
                                 label="Kilométrage"
                                 value={order.mileage_in ? `${order.mileage_in} km` : null}
                             />
+                            <Field
+                                label="Carburant"
+                                value={order.fuel_level != null ? `${order.fuel_level} %` : null}
+                            />
                             <Field label="Reçu le" value={order.received_at} />
                         </div>
                         {order.internal_notes && (
@@ -89,6 +93,52 @@ export default function Show({ order }) {
                             ) : (
                                 <p className="text-sm text-muted-foreground">
                                     Aucun dommage marqué à la réception.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border px-6 py-4">
+                            <h3 className="text-sm font-semibold text-foreground">
+                                Photos du véhicule
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            {order.reception_photos?.length ? (
+                                <div className="flex flex-wrap gap-3">
+                                    {order.reception_photos.map((url) => (
+                                        <a key={url} href={url} target="_blank" rel="noreferrer">
+                                            <img
+                                                src={url}
+                                                alt="Photo du véhicule"
+                                                className="h-32 w-44 rounded-md border border-border object-cover transition hover:opacity-90"
+                                            />
+                                        </a>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">Aucune photo.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                        <div className="border-b border-border px-6 py-4">
+                            <h3 className="text-sm font-semibold text-foreground">
+                                Signature du client
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            {order.signature_url ? (
+                                <img
+                                    src={order.signature_url}
+                                    alt="Signature du client"
+                                    className="max-h-44 rounded-md border border-border bg-white"
+                                />
+                            ) : (
+                                <p className="text-sm text-muted-foreground">
+                                    Aucune signature enregistrée.
                                 </p>
                             )}
                         </div>

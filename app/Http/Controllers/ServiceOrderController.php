@@ -58,7 +58,12 @@ class ServiceOrderController extends Controller
 
     public function store(StoreServiceOrderRequest $request, ServiceOrderService $service): RedirectResponse
     {
-        $order = $service->create($request->validated(), $request->user());
+        $order = $service->create(
+            $request->safe()->except(['photos', 'signature']),
+            $request->user(),
+            $request->file('photos', []),
+            $request->file('signature'),
+        );
 
         return redirect()->route('workshop.show', $order)
             ->with('success', "Ordre de service {$order->number} créé.");
@@ -74,7 +79,10 @@ class ServiceOrderController extends Controller
             'order' => [
                 ...$this->summary($serviceOrder),
                 'mileage_in'          => $serviceOrder->mileage_in,
+                'fuel_level'          => $serviceOrder->fuel_level,
                 'reception_condition' => $serviceOrder->reception_condition,
+                'reception_photos'    => $serviceOrder->receptionPhotoUrls(),
+                'signature_url'       => $serviceOrder->signatureUrl(),
                 'internal_notes'      => $serviceOrder->internal_notes,
                 'received_at'         => $serviceOrder->received_at?->format('d/m/Y H:i'),
             ],

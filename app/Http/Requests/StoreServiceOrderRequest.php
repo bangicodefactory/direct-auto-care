@@ -26,6 +26,10 @@ class StoreServiceOrderRequest extends FormRequest
             'internal_notes'        => ['nullable', 'string', 'max:2000'],
             'reception_condition'   => ['nullable', 'array', $this->conditionKeysAreValid()],
             'reception_condition.*' => ['string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'fuel_level'            => ['nullable', 'integer', 'between:0,100'],
+            'photos'                => ['required', 'array', 'min:1', 'max:3'],
+            'photos.*'              => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'signature'             => ['required', 'file', 'mimes:png', 'max:2048'],
         ];
     }
 
@@ -57,6 +61,13 @@ class StoreServiceOrderRequest extends FormRequest
     {
         return [
             'vehicle_id.exists' => 'Le véhicule sélectionné doit appartenir au client.',
+            'photos.required'   => 'Ajoutez au moins une photo du véhicule.',
+            'photos.min'        => 'Ajoutez au moins une photo du véhicule.',
+            'photos.max'        => 'Trois photos au maximum.',
+            'photos.*.image'    => 'Chaque fichier doit être une image.',
+            'photos.*.max'      => 'Chaque photo ne doit pas dépasser 2 Mo.',
+            'signature.required' => 'La signature du client est obligatoire.',
+            'signature.mimes'   => 'La signature doit être une image PNG.',
         ];
     }
 }

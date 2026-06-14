@@ -1,6 +1,9 @@
 import CustomerCombobox from '@/Components/CustomerCombobox';
+import FuelSlider from '@/Components/FuelSlider';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
+import ReceptionPhotosInput from '@/Components/ReceptionPhotosInput';
+import SignaturePad from '@/Components/SignaturePad';
 import TextInput from '@/Components/TextInput';
 import VehicleConditionDiagram from '@/Components/VehicleConditionDiagram';
 import { Button } from '@/Components/ui/button';
@@ -26,12 +29,15 @@ function Card({ title, description, children }) {
 }
 
 export default function Create({ customers, vehicles, todayAppointments }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, progress, errors } = useForm({
         customer_id: '',
         vehicle_id: '',
         appointment_id: '',
         mileage_in: '',
         reception_condition: {},
+        fuel_level: 50,
+        photos: [],
+        signature: null,
         internal_notes: '',
     });
 
@@ -51,7 +57,7 @@ export default function Create({ customers, vehicles, todayAppointments }) {
 
     function submit(e) {
         e.preventDefault();
-        post(route('workshop.store'));
+        post(route('workshop.store'), { forceFormData: true });
     }
 
     return (
@@ -159,6 +165,35 @@ export default function Create({ customers, vehicles, todayAppointments }) {
                         <InputError message={errors.reception_condition} className="mt-2" />
                     </Card>
 
+                    <Card
+                        title="Photos du véhicule"
+                        description="Au moins une photo, trois au maximum."
+                    >
+                        <ReceptionPhotosInput
+                            value={data.photos}
+                            onChange={(files) => setData('photos', files)}
+                            error={errors.photos ?? errors['photos.0']}
+                        />
+                    </Card>
+
+                    <Card title="Niveau de carburant">
+                        <FuelSlider
+                            value={data.fuel_level}
+                            onChange={(v) => setData('fuel_level', v)}
+                        />
+                        <InputError message={errors.fuel_level} className="mt-1" />
+                    </Card>
+
+                    <Card
+                        title="Signature du client"
+                        description="Le client signe pour accepter l'état du véhicule à la réception."
+                    >
+                        <SignaturePad
+                            onChange={(file) => setData('signature', file)}
+                            error={errors.signature}
+                        />
+                    </Card>
+
                     <Card title="Notes internes">
                         <textarea
                             id="internal_notes"
@@ -171,13 +206,25 @@ export default function Create({ customers, vehicles, todayAppointments }) {
                         <InputError message={errors.internal_notes} className="mt-1" />
                     </Card>
 
+                    {progress && (
+                        <progress value={progress.percentage} max="100" className="w-full">
+                            {progress.percentage}%
+                        </progress>
+                    )}
+
                     <div className="flex items-center justify-end gap-3">
                         <Button variant="outline" asChild>
                             <Link href={route('workshop.index')}>Annuler</Link>
                         </Button>
                         <Button
                             type="submit"
-                            disabled={processing || !data.customer_id || !data.vehicle_id}
+                            disabled={
+                                processing ||
+                                !data.customer_id ||
+                                !data.vehicle_id ||
+                                data.photos.length === 0 ||
+                                !data.signature
+                            }
                         >
                             {processing ? 'Création…' : 'Créer la fiche de réception'}
                         </Button>
