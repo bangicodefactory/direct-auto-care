@@ -46,6 +46,23 @@ class ServiceOrderFactory extends Factory
     }
 
     /**
+     * An order awaiting pickup — the phase just before it is closed (and invoiced).
+     */
+    public function readyPickup(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'status'             => ServiceOrderStatus::ReadyPickup->value,
+            'diagnosis_notes'    => fake()->sentence(),
+            'diagnosed_at'       => fake()->dateTimeBetween('-3 weeks', '-2 weeks'),
+            'quote_sent_at'      => fake()->dateTimeBetween('-2 weeks', '-12 days'),
+            'in_progress_at'     => fake()->dateTimeBetween('-12 days', '-1 week'),
+            'quality_control_at' => fake()->dateTimeBetween('-1 week', '-3 days'),
+            'notified_at'        => fake()->dateTimeBetween('-3 days', '-1 day'),
+            'ready_pickup_at'    => fake()->dateTimeBetween('-1 day', 'now'),
+        ]);
+    }
+
+    /**
      * A fully closed order with every phase timestamp populated.
      */
     public function closed(): static

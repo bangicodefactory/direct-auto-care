@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Enums\AppointmentStatus;
+use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
 use App\Enums\ServiceOrderStatus;
 use App\Enums\StockMovementType;
 use App\Models\Appointment;
+use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderItem;
@@ -19,6 +22,7 @@ class ServiceOrderService
 {
     public function __construct(
         private readonly ServiceOrderNumberingService $numbering,
+        private readonly InvoiceNumberingService $invoiceNumbering,
         private readonly StockService $stock,
     ) {
     }
@@ -105,6 +109,78 @@ class ServiceOrderService
             'customer_id'    => $appointment->customer_id,
             'vehicle_id'     => $appointment->vehicle_id,
         ], $user);
+    }
+
+    /**
+     * Close a service order (ReadyPickup → Closed) and generate its invoice.
+     *
+     * The invoice is built directly from the service_order_items — NOT via
+     * InvoiceService — because their stock was already decremented when the parts
+     * were added (IST-113). Re-running the InvoiceService decrement here would
+     * double-count stock. A linked quote (quote_id) stays as a reference; it is not
+     * "converted" — the invoice reflects the parts actually consumed.
+     */
+    public function close(ServiceOrder $order, User $user): ServiceOrder
+    {
+        return DB::transaction(function () use ($order, $user): ServiceOrder {
+            // Lock the row and re-read its status: a concurrent close (two tabs, a
+            // replay) must not slip past the guard and mint a second fiscal invoice.
+            $order = ServiceOrder::lockForUpdate()->findOrFail($order->id);
+
+            abort_unless(
+                $order->status === ServiceOrderStatus::ReadyPickup,
+                422,
+                'Seul un ordre « Prêt à récupérer » peut être clôturé.',
+            );
+
+            abort_if(
+                $order->items()->count() === 0,
+                422,
+                'Cet ordre ne contient aucune ligne à facturer.',
+            );
+
+            $now        = Carbon::now();
+            $fiscalYear = $now->year;
+
+            $invoice = Invoice::create([
+                'type'        => InvoiceType::Invoice->value,
+                'number'      => $this->invoiceNumbering->next(InvoiceType::Invoice, $fiscalYear),
+                'customer_id' => $order->customer_id,
+                'vehicle_id'  => $order->vehicle_id,
+                'issue_date'  => $now->toDateString(),
+                'due_date'    => $now->copy()->addDays(30)->toDateString(),
+                'fiscal_year' => $fiscalYear,
+                'discount'    => 0,
+                'tva_rate'    => 20,
+                'status'      => InvoiceStatus::Issued->value,
+                'created_by'  => $user->id,
+                // Overwritten by recomputeTotals() once the items are in.
+                'subtotal_ht' => 0,
+                'tva_amount'  => 0,
+                'total_ttc'   => 0,
+            ]);
+
+            // Copy the lines verbatim — no stock movement (already done in IST-113).
+            foreach ($order->items as $item) {
+                $invoice->items()->create([
+                    'product_id'    => $item->product_id,
+                    'description'   => $item->description,
+                    'quantity'      => $item->quantity,
+                    'unit_price_ht' => $item->unit_price_ht,
+                    'line_total_ht' => $item->line_total_ht,
+                ]);
+            }
+
+            $invoice->recomputeTotals()->save();
+
+            $order->update([
+                'invoice_id' => $invoice->id,
+                'status'     => ServiceOrderStatus::Closed->value,
+                'closed_at'  => $now,
+            ]);
+
+            return $order;
+        });
     }
 
     /**
