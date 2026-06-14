@@ -169,6 +169,8 @@ const PHASE_DOT = {
 };
 
 function WorkshopSection({ workshop }) {
+    const workshopUrl = route('workshop.index');
+
     return (
         <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">
             <div className="mb-4 flex items-center justify-between">
@@ -179,7 +181,7 @@ function WorkshopSection({ workshop }) {
                     </span>
                 </h3>
                 <Link
-                    href={route('workshop.index')}
+                    href={workshopUrl}
                     className="inline-flex min-h-[44px] items-center text-xs font-medium text-primary hover:underline"
                 >
                     Voir l'atelier →
@@ -191,7 +193,7 @@ function WorkshopSection({ workshop }) {
                 {workshop.by_status.map((phase) => (
                     <Link
                         key={phase.value}
-                        href={`${route('workshop.index')}?status=${phase.value}`}
+                        href={`${workshopUrl}?status=${phase.value}`}
                         className="rounded-lg border border-gray-100 bg-gray-50 p-3 transition hover:bg-gray-100"
                     >
                         <div className="flex items-center gap-2">

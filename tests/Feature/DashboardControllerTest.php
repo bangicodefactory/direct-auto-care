@@ -222,6 +222,22 @@ class DashboardControllerTest extends TestCase
             );
     }
 
+    public function test_workshop_by_status_entry_carries_label_color_and_count(): void
+    {
+        // Reception is the first active phase, so it lands at by_status.0.
+        ServiceOrder::factory()->create(['status' => ServiceOrderStatus::Reception->value]);
+
+        $this->actingAs($this->admin)
+            ->get(route('dashboard'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('kpis.workshop.by_status.0.value', ServiceOrderStatus::Reception->value)
+                ->where('kpis.workshop.by_status.0.label', ServiceOrderStatus::Reception->label())
+                ->where('kpis.workshop.by_status.0.color', ServiceOrderStatus::Reception->color())
+                ->where('kpis.workshop.by_status.0.count', 1)
+            );
+    }
+
     public function test_workshop_closed_today_counts_only_today(): void
     {
         ServiceOrder::factory()->create([
