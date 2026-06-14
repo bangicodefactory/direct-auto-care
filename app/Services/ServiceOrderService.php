@@ -123,10 +123,20 @@ class ServiceOrderService
     public function close(ServiceOrder $order, User $user): ServiceOrder
     {
         return DB::transaction(function () use ($order, $user): ServiceOrder {
+            // Lock the row and re-read its status: a concurrent close (two tabs, a
+            // replay) must not slip past the guard and mint a second fiscal invoice.
+            $order = ServiceOrder::lockForUpdate()->findOrFail($order->id);
+
             abort_unless(
                 $order->status === ServiceOrderStatus::ReadyPickup,
                 422,
                 'Seul un ordre « Prêt à récupérer » peut être clôturé.',
+            );
+
+            abort_if(
+                $order->items()->count() === 0,
+                422,
+                'Cet ordre ne contient aucune ligne à facturer.',
             );
 
             $now        = Carbon::now();

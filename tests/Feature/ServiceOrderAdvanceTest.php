@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ServiceOrderStatus;
 use App\Models\ServiceOrder;
+use App\Models\ServiceOrderItem;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,6 +44,8 @@ class ServiceOrderAdvanceTest extends TestCase
     public function test_advance_chains_through_each_phase(): void
     {
         $order = ServiceOrder::factory()->create(['status' => ServiceOrderStatus::Reception->value]);
+        // The final ReadyPickup → Closed step invoices the order, which needs a billable line.
+        ServiceOrderItem::factory()->create(['service_order_id' => $order->id]);
         $employee = $this->employee();
 
         $expected = [

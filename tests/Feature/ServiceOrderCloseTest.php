@@ -10,8 +10,10 @@ use App\Models\Product;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderItem;
 use App\Models\User;
+use App\Services\ServiceOrderService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class ServiceOrderCloseTest extends TestCase
@@ -142,6 +144,38 @@ class ServiceOrderCloseTest extends TestCase
         $this->assertSame(ServiceOrderStatus::QualityControl, $order->status);
         $this->assertNull($order->invoice_id);
         $this->assertDatabaseCount('invoices', 0);
+    }
+
+    public function test_closing_an_order_without_items_is_rejected(): void
+    {
+        $order = ServiceOrder::factory()->readyPickup()->create();
+
+        $this->actingAs($this->employee())
+            ->patch(route('workshop.advance', $order))
+            ->assertStatus(422);
+
+        $order->refresh();
+        $this->assertSame(ServiceOrderStatus::ReadyPickup, $order->status);
+        $this->assertNull($order->invoice_id);
+        $this->assertDatabaseCount('invoices', 0);
+    }
+
+    public function test_close_rejects_an_order_not_ready_for_pickup(): void
+    {
+        // The controller never calls close() outside ReadyPickup, but the service
+        // guards it anyway — exercise that contract directly.
+        $order = ServiceOrder::factory()->inProgress()->create();
+        ServiceOrderItem::factory()->create(['service_order_id' => $order->id]);
+
+        try {
+            app(ServiceOrderService::class)->close($order, $this->employee());
+            $this->fail('Expected an HttpException for a non-ready order.');
+        } catch (HttpException $e) {
+            $this->assertSame(422, $e->getStatusCode());
+        }
+
+        $this->assertDatabaseCount('invoices', 0);
+        $this->assertNull($order->refresh()->invoice_id);
     }
 
     public function test_each_close_produces_a_distinct_invoice_number(): void
