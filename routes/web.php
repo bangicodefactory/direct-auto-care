@@ -46,6 +46,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('workshop/create', [ServiceOrderController::class, 'create'])->name('workshop.create');
     Route::post('workshop', [ServiceOrderController::class, 'store'])->name('workshop.store');
     Route::get('workshop/{serviceOrder}', [ServiceOrderController::class, 'show'])->name('workshop.show');
+    Route::put('workshop/{serviceOrder}', [ServiceOrderController::class, 'update'])->name('workshop.update');
+    Route::patch('workshop/{serviceOrder}/advance', [ServiceOrderController::class, 'advance'])->name('workshop.advance');
+    Route::patch('workshop/{serviceOrder}/cancel', [ServiceOrderController::class, 'cancel'])->name('workshop.cancel');
 });
 
 Route::resource('invoices', InvoicesController::class)
