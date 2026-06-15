@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "jsx": "react-jsx",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "allowJs": true,
+        "checkJs": false,
+        "noEmit": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "paths": {
+            "@/*": ["./resources/js/*"],
+            "ziggy-js": ["./vendor/tightenco/ziggy"]
+        },
+        "types": ["node", "vite/client"]
+    },
+    "include": ["resources/js"],
+    "exclude": ["node_modules", "public", "vendor"]
+}

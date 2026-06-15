@@ -17,7 +17,8 @@
         <!-- Scripts -->
         @routes
         @viteReactRefresh
-        @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
+        {{-- Page preload hint stays .jsx until pages convert (Phase 5); the entry is now app.tsx. --}}
+        @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

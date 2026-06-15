@@ -1,7 +1,7 @@
 import '../css/app.css';
 import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from 'sonner';
@@ -11,11 +11,14 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) =>
-        resolvePageComponent(`./Pages/${name}.jsx`, import.meta.glob('./Pages/**/*.jsx')),
+        resolvePageComponent<ResolvedComponent>(
+            [`./Pages/${name}.tsx`, `./Pages/${name}.jsx`],
+            import.meta.glob<ResolvedComponent>('./Pages/**/*.{jsx,tsx}'),
+        ),
     setup({ el, App, props }) {
         const root = createRoot(el);
 
-        const locale = props.initialPage.props.locale ?? 'fr';
+        const locale = (props.initialPage.props.locale as string | undefined) ?? 'fr';
         document.documentElement.lang = locale;
         document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
 
