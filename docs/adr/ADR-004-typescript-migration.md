@@ -1,14 +1,14 @@
 # ADR-004 — Migrate the frontend from JSX to TypeScript (TSX)
 
-- **Status:** Proposed — awaiting Ahmed's sign-off (stack deviation per `CLAUDE.md`)
+- **Status:** Accepted — signed off by Ahmed 2026-06-15 (stack deviation + dev deps both approved)
 - **Date:** 2026-06-15
 - **Deciders:** Ahmed (owner)
 - **Supersedes / relates to:** IST-118 (shadcn migration — see `docs/shadcn-migration-audit.md`)
 
 > This is a **stack deviation**. `CLAUDE.md` pins the frontend to "React 18 + Inertia.js" with
-> no TypeScript, and forbids changing the stack without ADR sign-off. Nothing in this ADR is
-> actioned until Ahmed approves. It also adds dev dependencies, which `CLAUDE.md` requires
-> Ahmed to approve separately.
+> no TypeScript, and forbids changing the stack without ADR sign-off. Ahmed has approved both the
+> deviation and the 4 new dev dependencies (2026-06-15). **Decision: run TSX as its own pass,
+> separate from the IST-118 shadcn migration** — the two are not interleaved.
 
 ---
 
@@ -159,11 +159,10 @@ Rough order-of-magnitude, not a commitment:
 | 6 — Cleanup | gates + glob narrow | 0.5 day |
 | **Total** | **98 files** | **~6–9 days**, spread across the sprint |
 
-## Open questions for sign-off
+## Sign-off decisions (2026-06-15)
 
-1. **Approve the deviation + the 4 dev deps?** (Both need your yes per `CLAUDE.md`.)
-2. **`strict` from day one** (recommended) vs. loosen-then-tighten?
-3. **Sequencing vs. IST-118** — interleave TSX with the shadcn migration (type each component as
-   it's migrated to shadcn — one touch per file), or run TSX as a separate pass afterward?
-4. If a full migration is a "not now": do we want **alternative 3 (JSDoc)** as a low-cost interim,
-   or stay plain JSX?
+1. **Deviation + 4 dev deps** — **approved.**
+2. **`strict` from day one** — adopted (the recommended default).
+3. **Sequencing vs. IST-118** — **TSX and the shadcn migration run as separate passes**, not
+   interleaved.
+4. Alternative 3 (JSDoc interim) — not needed; the full migration is approved.
