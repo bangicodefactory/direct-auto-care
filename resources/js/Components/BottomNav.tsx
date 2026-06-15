@@ -2,7 +2,11 @@ import { useTranslation } from '@/helpers/i18n';
 import { Link } from '@inertiajs/react';
 import { CalendarDays, FileText, LayoutDashboard, Menu, Users, Wrench } from 'lucide-react';
 
-export default function BottomNav({ onMenuOpen }) {
+interface BottomNavProps {
+    onMenuOpen: () => void;
+}
+
+export default function BottomNav({ onMenuOpen }: BottomNavProps) {
     const { t } = useTranslation();
 
     const navItems = [

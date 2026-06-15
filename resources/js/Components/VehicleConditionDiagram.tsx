@@ -10,7 +10,7 @@ const DAMAGE_TYPES = [
     { color: '#111111', label: 'Cassé / manquant' },
 ];
 
-function formatPart(id) {
+function formatPart(id: string) {
     return id
         .toLowerCase()
         .replace(/_/g, ' ')
@@ -25,17 +25,29 @@ function formatPart(id) {
  * `value` is a controlled { PART_ID: "#hexcolor" } map. `onChange` receives the
  * updated map. When `readOnly`, the diagram only renders the marks.
  */
-export default function VehicleConditionDiagram({ value, onChange, readOnly = false }) {
-    const marksMap = useMemo(() => value ?? {}, [value]);
-    const containerRef = useRef(null);
+type ConditionMarks = Record<string, string>;
+
+interface VehicleConditionDiagramProps {
+    value?: ConditionMarks | null;
+    onChange?: (next: ConditionMarks) => void;
+    readOnly?: boolean;
+}
+
+export default function VehicleConditionDiagram({
+    value,
+    onChange,
+    readOnly = false,
+}: VehicleConditionDiagramProps) {
+    const marksMap = useMemo<ConditionMarks>(() => value ?? {}, [value]);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [loaded, setLoaded] = useState(false);
     const [selected, setSelected] = useState(DAMAGE_TYPES[0].color);
 
     // Keep the latest value/selection/handler in refs so the delegated click
     // listener (bound once) doesn't need re-attaching on every mark.
-    const valueRef = useRef(marksMap);
-    const selectedRef = useRef(selected);
-    const onChangeRef = useRef(onChange);
+    const valueRef = useRef<ConditionMarks>(marksMap);
+    const selectedRef = useRef<string>(selected);
+    const onChangeRef = useRef<VehicleConditionDiagramProps['onChange']>(onChange);
     useEffect(() => {
         valueRef.current = marksMap;
         selectedRef.current = selected;
@@ -51,7 +63,7 @@ export default function VehicleConditionDiagram({ value, onChange, readOnly = fa
             .then((svg) => {
                 if (cancelled || !containerRef.current) return;
                 containerRef.current.innerHTML = svg;
-                const el = containerRef.current.querySelector('svg');
+                const el = containerRef.current.querySelector<SVGSVGElement>('svg');
                 if (el) {
                     el.style.width = '100%';
                     el.style.height = 'auto';
@@ -69,11 +81,13 @@ export default function VehicleConditionDiagram({ value, onChange, readOnly = fa
         const root = containerRef.current;
         if (!loaded || !root) return;
 
-        root.querySelectorAll('g[id]').forEach((group) => {
+        root.querySelectorAll<SVGGElement>('g[id]').forEach((group) => {
             const color = marksMap[group.id];
-            group.querySelectorAll('path, polygon, rect, circle, ellipse').forEach((shape) => {
-                shape.style.fill = color ?? '';
-            });
+            group
+                .querySelectorAll<SVGElement>('path, polygon, rect, circle, ellipse')
+                .forEach((shape) => {
+                    shape.style.fill = color ?? '';
+                });
         });
     }, [marksMap, loaded]);
 
@@ -82,10 +96,10 @@ export default function VehicleConditionDiagram({ value, onChange, readOnly = fa
         const root = containerRef.current;
         if (!loaded || !root || readOnly) return;
 
-        function handleClick(e) {
+        function handleClick(e: MouseEvent) {
             e.preventDefault(); // SVG parts are wrapped in <a> — stop navigation.
-            const group = e.target.closest('g[id]');
-            if (!group || !root.contains(group)) return;
+            const group = (e.target as Element).closest('g[id]');
+            if (!group || !root!.contains(group)) return;
 
             const next = { ...valueRef.current };
             if (selectedRef.current === 'clear') {

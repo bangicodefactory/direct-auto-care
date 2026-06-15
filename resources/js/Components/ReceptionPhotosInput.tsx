@@ -7,18 +7,30 @@ import { useEffect, useMemo } from 'react';
  * `onChange` receives the next File[]. Previews use object URLs that are revoked
  * on change/unmount to avoid leaks.
  */
-export default function ReceptionPhotosInput({ value = [], onChange, error, max = 3 }) {
+interface ReceptionPhotosInputProps {
+    value?: File[];
+    onChange: (next: File[]) => void;
+    error?: string;
+    max?: number;
+}
+
+export default function ReceptionPhotosInput({
+    value = [],
+    onChange,
+    error,
+    max = 3,
+}: ReceptionPhotosInputProps) {
     const previews = useMemo(() => value.map((file) => window.URL.createObjectURL(file)), [value]);
 
     useEffect(() => () => previews.forEach((url) => window.URL.revokeObjectURL(url)), [previews]);
 
-    function handleAdd(e) {
+    function handleAdd(e: React.ChangeEvent<HTMLInputElement>) {
         const incoming = Array.from(e.target.files ?? []);
         onChange([...value, ...incoming].slice(0, max));
         e.target.value = ''; // allow re-selecting the same file after removal
     }
 
-    function remove(index) {
+    function remove(index: number) {
         onChange(value.filter((_, i) => i !== index));
     }
 

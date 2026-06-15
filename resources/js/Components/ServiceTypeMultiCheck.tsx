@@ -1,6 +1,20 @@
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 
+interface ServiceType {
+    id: number;
+    name: string;
+}
+
+interface ServiceTypeMultiCheckProps {
+    serviceTypes: ServiceType[];
+    selected: number[];
+    onChange: (next: number[]) => void;
+    error?: string;
+    label?: string;
+    disabled?: boolean;
+}
+
 export default function ServiceTypeMultiCheck({
     serviceTypes,
     selected,
@@ -8,8 +22,8 @@ export default function ServiceTypeMultiCheck({
     error,
     label = 'Types de service',
     disabled = false,
-}) {
-    function toggle(id) {
+}: ServiceTypeMultiCheckProps) {
+    function toggle(id: number) {
         if (disabled) return;
         onChange(selected.includes(id) ? selected.filter((t) => t !== id) : [...selected, id]);
     }

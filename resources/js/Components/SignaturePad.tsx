@@ -11,9 +11,14 @@ import SignatureCanvas from 'react-signature-canvas';
  * The canvas is sized to its container width (react-signature-canvas does not
  * rescale a CSS-stretched canvas, which would offset the pointer coordinates).
  */
-export default function SignaturePad({ onChange, error }) {
-    const wrapRef = useRef(null);
-    const padRef = useRef(null);
+interface SignaturePadProps {
+    onChange: (file: File | null) => void;
+    error?: string;
+}
+
+export default function SignaturePad({ onChange, error }: SignaturePadProps) {
+    const wrapRef = useRef<HTMLDivElement>(null);
+    const padRef = useRef<SignatureCanvas>(null);
     const [width, setWidth] = useState(0);
 
     useEffect(() => {
@@ -29,7 +34,7 @@ export default function SignaturePad({ onChange, error }) {
             onChange(null);
             return;
         }
-        pad.getCanvas().toBlob((blob) => {
+        pad.getCanvas().toBlob((blob: Blob | null) => {
             onChange(blob ? new window.File([blob], 'signature.png', { type: 'image/png' }) : null);
         }, 'image/png');
     }

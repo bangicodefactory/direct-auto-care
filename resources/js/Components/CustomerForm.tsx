@@ -9,6 +9,27 @@ import { useEffect, useRef } from 'react';
 
 const FIELD_ORDER = ['first_name', 'last_name', 'phone', 'email', 'address', 'notes'];
 
+interface CustomerFormData {
+    first_name: string;
+    last_name: string;
+    phone: string;
+    email: string;
+    address: string;
+    notes: string;
+    notify_whatsapp: boolean;
+    notify_email: boolean;
+}
+
+interface CustomerFormProps {
+    data: CustomerFormData;
+    setData: (key: string, value: string | boolean) => void;
+    errors: Record<string, string>;
+    processing: boolean;
+    onSubmit: (e: React.FormEvent) => void;
+    cancelHref: string;
+    autoFocus?: boolean;
+}
+
 export default function CustomerForm({
     data,
     setData,
@@ -17,8 +38,8 @@ export default function CustomerForm({
     onSubmit,
     cancelHref,
     autoFocus = true,
-}) {
-    const inputRefs = useRef({});
+}: CustomerFormProps) {
+    const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
 
     useEffect(() => {
         const firstErrorField = FIELD_ORDER.find((field) => errors[field]);
@@ -34,7 +55,9 @@ export default function CustomerForm({
                     <InputLabel htmlFor="first_name" value="Prénom" />
                     <TextInput
                         id="first_name"
-                        ref={(el) => (inputRefs.current.first_name = el)}
+                        ref={(el) => {
+                            inputRefs.current.first_name = el;
+                        }}
                         value={data.first_name}
                         className="mt-1 block w-full"
                         isFocused={autoFocus}
@@ -47,7 +70,9 @@ export default function CustomerForm({
                     <InputLabel htmlFor="last_name" value="Nom de famille" />
                     <TextInput
                         id="last_name"
-                        ref={(el) => (inputRefs.current.last_name = el)}
+                        ref={(el) => {
+                            inputRefs.current.last_name = el;
+                        }}
                         value={data.last_name}
                         className="mt-1 block w-full"
                         onChange={(e) => setData('last_name', e.target.value)}
@@ -60,7 +85,9 @@ export default function CustomerForm({
                 <InputLabel htmlFor="phone" value="Téléphone" />
                 <TextInput
                     id="phone"
-                    ref={(el) => (inputRefs.current.phone = el)}
+                    ref={(el) => {
+                        inputRefs.current.phone = el;
+                    }}
                     value={data.phone}
                     className="mt-1 block w-full"
                     placeholder="0612345678"
@@ -74,7 +101,9 @@ export default function CustomerForm({
                 <TextInput
                     id="email"
                     type="email"
-                    ref={(el) => (inputRefs.current.email = el)}
+                    ref={(el) => {
+                        inputRefs.current.email = el;
+                    }}
                     value={data.email}
                     className="mt-1 block w-full"
                     onChange={(e) => setData('email', e.target.value)}
@@ -86,7 +115,9 @@ export default function CustomerForm({
                 <InputLabel htmlFor="address" value="Adresse" />
                 <TextInput
                     id="address"
-                    ref={(el) => (inputRefs.current.address = el)}
+                    ref={(el) => {
+                        inputRefs.current.address = el;
+                    }}
                     value={data.address}
                     className="mt-1 block w-full"
                     onChange={(e) => setData('address', e.target.value)}
@@ -98,7 +129,9 @@ export default function CustomerForm({
                 <InputLabel htmlFor="notes" value="Notes" />
                 <Textarea
                     id="notes"
-                    ref={(el) => (inputRefs.current.notes = el)}
+                    ref={(el) => {
+                        inputRefs.current.notes = el;
+                    }}
                     value={data.notes}
                     rows={3}
                     className="mt-1"

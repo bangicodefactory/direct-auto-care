@@ -7,7 +7,12 @@ import { router, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-export default function AuthenticatedLayout({ header, children }) {
+interface AuthenticatedLayoutProps {
+    header?: React.ReactNode;
+    children?: React.ReactNode;
+}
+
+export default function AuthenticatedLayout({ header, children }: AuthenticatedLayoutProps) {
     return (
         <SidebarProvider>
             <AuthenticatedLayoutInner header={header}>{children}</AuthenticatedLayoutInner>
@@ -15,7 +20,7 @@ export default function AuthenticatedLayout({ header, children }) {
     );
 }
 
-function AuthenticatedLayoutInner({ header, children }) {
+function AuthenticatedLayoutInner({ header, children }: AuthenticatedLayoutProps) {
     const { setOpenMobile, toggleSidebar } = useSidebar();
     const { user, role } = usePage().props.auth;
     const flash = usePage().props.flash;
