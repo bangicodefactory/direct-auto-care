@@ -96,8 +96,8 @@ priority order already established in `docs/shadcn-migration-audit.md`.
 
 1. **Toolchain bootstrap** — add deps, `tsconfig.json`, `app.tsx`, glob widen, ESLint, `types`
    script. Convert `lib/utils.js` + one trivial component to prove the pipeline. CI/`tsc` green.
-2. **shadcn primitives** — flip `components.json` `tsx:true`, re-pull the 28 `ui/` primitives as
-   `.tsx`. Generated code, low-risk, exercises the type setup broadly.
+2. **shadcn primitives** — convert the 28 `ui/` primitives to `.tsx`. **Method revised during
+   implementation (see Amendment 1): manual in-place conversion, NOT a registry re-pull.**
 3. **Shared components** — `CustomerForm`, `VehicleForm`, layouts, `BottomNav`, `AppSidebar`,
    comboboxes. Highest reuse; typing these makes every consuming page partially inferred.
 4. **Core types** — add `types/` domain models + Inertia `PageProps` augmentation + Ziggy types.
@@ -152,7 +152,7 @@ Rough order-of-magnitude, not a commitment:
 | Phase | Scope | Est. |
 |---|---|---|
 | 1 — Bootstrap | config + 2 files | 0.5 day |
-| 2 — Primitives | 28 `ui/` files (re-pulled) | 0.5 day |
+| 2 — Primitives | 28 `ui/` files (manual, see Amendment 1) | ~1 day |
 | 3 — Shared components | ~21 files | 1–2 days |
 | 4 — Core types | `types/` + augmentation | 0.5–1 day |
 | 5 — Pages | 46 pages | 3–5 days |
@@ -166,3 +166,28 @@ Rough order-of-magnitude, not a commitment:
 3. **Sequencing vs. IST-118** — **TSX and the shadcn migration run as separate passes**, not
    interleaved.
 4. Alternative 3 (JSDoc interim) — not needed; the full migration is approved.
+
+## Amendments
+
+### Amendment 1 — Phase 2 method: manual conversion, not registry re-pull (2026-06-15, IST-204)
+
+The original plan (Phase 2 above) assumed re-pulling the 28 `ui/` primitives from the shadcn
+registry as freshly generated `.tsx` — "generated code, low-risk." Implementation showed that
+assumption is wrong for this repo:
+
+- The primitives carry **local customizations** a re-pull would clobber: **French UI strings**
+  and RTL logic in `sidebar.tsx` (e.g. "Basculer la barre latérale", "Navigation principale."),
+  a hand-added `forwardRef` wrap in `button.tsx`, and IST-118 design-token work. Overwriting the
+  French strings would violate the French-default-UI rule.
+- Current **shadcn v4 generates a different structure** (`data-slot`, no `forwardRef`) than our
+  installed primitives. A re-pull would change component APIs and ripple breakage into consumers
+  (e.g. `sidebar.tsx` passing a `ref` to `Button`).
+- A re-pull can silently **bump or add Radix npm deps**, which the supply-chain policy forbids
+  without sign-off.
+
+**Revised decision (approved by Ahmed):** convert the 28 primitives **manually in place** —
+`git mv .jsx → .tsx`, add type annotations only, preserve every string / className / API exactly.
+`components.json` `tsx` is still flipped to `true` so *future* `shadcn add` emits `.tsx`, but we do
+**not** re-pull existing primitives. One PR. (The only non-type change was deleting a dead,
+type-invalid `table` key from `calendar.tsx`'s `classNames` — react-day-picker v10 ignores it at
+runtime, and the `calendar` primitive is currently unused.)
