@@ -1,12 +1,17 @@
 import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import prettierConfig from 'eslint-config-prettier';
 
-export default [
+export default tseslint.config(
     js.configs.recommended,
     {
-        files: ['resources/js/**/*.{js,jsx}'],
+        files: ['resources/js/**/*.{ts,tsx}'],
+        extends: [tseslint.configs.recommended],
+    },
+    {
+        files: ['resources/js/**/*.{js,jsx,ts,tsx}'],
         plugins: {
             react: reactPlugin,
             'react-hooks': reactHooksPlugin,
@@ -42,4 +47,4 @@ export default [
         },
     },
     prettierConfig,
-];
+);
