@@ -49,6 +49,9 @@ export default function Dashboard({ kpis, isAdmin }) {
                         )}
                     </div>
 
+                    {/* ── Atelier — active service orders per phase ── */}
+                    <WorkshopSection workshop={kpis.workshop} />
+
                     {/* ── Lists — 1 col mobile, 2 col desktop ── */}
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         <Section title="RDV du jour" href={route('appointments.today-page')}>
@@ -154,6 +157,73 @@ function Delta({ value }) {
             {positive ? '+' : ''}
             {value} ce mois
         </span>
+    );
+}
+
+// Phase colour → dot classes, matching ServiceOrderStatus::color().
+const PHASE_DOT = {
+    gray: 'bg-gray-400',
+    blue: 'bg-blue-500',
+    yellow: 'bg-yellow-500',
+    orange: 'bg-orange-500',
+    purple: 'bg-purple-500',
+    cyan: 'bg-cyan-500',
+    green: 'bg-green-500',
+    red: 'bg-red-500',
+};
+
+function WorkshopSection({ workshop }) {
+    const workshopUrl = route('workshop.index');
+
+    return (
+        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    Atelier
+                    <span className="ms-2 text-muted-foreground/70">
+                        {workshop.active} actif{workshop.active > 1 ? 's' : ''}
+                    </span>
+                </h3>
+                <Link
+                    href={workshopUrl}
+                    className="inline-flex min-h-[44px] items-center text-xs font-medium text-primary hover:underline"
+                >
+                    Voir l'atelier →
+                </Link>
+            </div>
+
+            {/* 2 col mobile/tablet, 4 col desktop */}
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {workshop.by_status.map((phase) => (
+                    <Link
+                        key={phase.value}
+                        href={`${workshopUrl}?status=${phase.value}`}
+                        className="rounded-lg border border-border bg-muted/40 p-3 transition hover:bg-muted"
+                    >
+                        <div className="flex items-center gap-2">
+                            <span
+                                className={`h-2 w-2 flex-shrink-0 rounded-full ${PHASE_DOT[phase.color] ?? PHASE_DOT.gray}`}
+                            />
+                            <span className="truncate text-xs font-medium text-muted-foreground">
+                                {phase.label}
+                            </span>
+                        </div>
+                        <p className="mt-1 text-2xl font-bold text-foreground">{phase.count}</p>
+                    </Link>
+                ))}
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-900 dark:bg-green-950">
+                    <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 flex-shrink-0 rounded-full bg-green-500" />
+                        <span className="truncate text-xs font-medium text-green-700 dark:text-green-400">
+                            Clôturés aujourd'hui
+                        </span>
+                    </div>
+                    <p className="mt-1 text-2xl font-bold text-foreground">
+                        {workshop.closed_today}
+                    </p>
+                </div>
+            </div>
+        </div>
     );
 }
 

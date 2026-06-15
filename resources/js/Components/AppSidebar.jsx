@@ -34,6 +34,7 @@ import {
     Settings,
     UserCog,
     Users,
+    Wrench,
 } from 'lucide-react';
 
 const navMain = [
@@ -69,6 +70,7 @@ const navMain = [
         icon: CalendarDays,
         match: 'appointments.today-page',
     },
+    { labelKey: 'ui.nav_workshop', routeName: 'workshop.index', icon: Wrench, match: 'workshop.*' },
 ];
 
 const navAdmin = [

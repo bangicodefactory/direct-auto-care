@@ -5,11 +5,13 @@ namespace Tests\Feature;
 use App\Enums\AppointmentStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\ReminderStatus;
+use App\Enums\ServiceOrderStatus;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Reminder;
+use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
 use Database\Seeders\RoleSeeder;
@@ -185,6 +187,73 @@ class DashboardControllerTest extends TestCase
             ->assertInertia(
                 fn (Assert $page) => $page
                 ->has('kpis.appointments_today', 1)
+            );
+    }
+
+    // -------------------------------------------------------------------------
+    // Workshop stats (both roles)
+    // -------------------------------------------------------------------------
+
+    public function test_dashboard_exposes_workshop_stats(): void
+    {
+        $this->actingAs($this->employee)
+            ->get(route('dashboard'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->has('kpis.workshop.active')
+                ->has('kpis.workshop.closed_today')
+                // 7 active phases — Closed and Cancelled are excluded.
+                ->has('kpis.workshop.by_status', 7)
+            );
+    }
+
+    public function test_workshop_active_count_excludes_closed_and_cancelled(): void
+    {
+        ServiceOrder::factory()->create(['status' => ServiceOrderStatus::Reception->value]);
+        ServiceOrder::factory()->inProgress()->create();
+        ServiceOrder::factory()->closed()->create();
+        ServiceOrder::factory()->create(['status' => ServiceOrderStatus::Cancelled->value]);
+
+        $this->actingAs($this->admin)
+            ->get(route('dashboard'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('kpis.workshop.active', 2)
+            );
+    }
+
+    public function test_workshop_by_status_entry_carries_label_color_and_count(): void
+    {
+        // Reception is the first active phase, so it lands at by_status.0.
+        ServiceOrder::factory()->create(['status' => ServiceOrderStatus::Reception->value]);
+
+        $this->actingAs($this->admin)
+            ->get(route('dashboard'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('kpis.workshop.by_status.0.value', ServiceOrderStatus::Reception->value)
+                ->where('kpis.workshop.by_status.0.label', ServiceOrderStatus::Reception->label())
+                ->where('kpis.workshop.by_status.0.color', ServiceOrderStatus::Reception->color())
+                ->where('kpis.workshop.by_status.0.count', 1)
+            );
+    }
+
+    public function test_workshop_closed_today_counts_only_today(): void
+    {
+        ServiceOrder::factory()->create([
+            'status'    => ServiceOrderStatus::Closed->value,
+            'closed_at' => now(),
+        ]);
+        ServiceOrder::factory()->create([
+            'status'    => ServiceOrderStatus::Closed->value,
+            'closed_at' => now()->subDays(2),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('dashboard'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('kpis.workshop.closed_today', 1)
             );
     }
 

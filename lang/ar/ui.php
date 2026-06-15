@@ -19,6 +19,7 @@ return [
     'nav_products'     => 'المنتجات',
     'nav_appointments' => 'المواعيد',
     'nav_today'        => 'اليوم',
+    'nav_workshop'     => 'الورشة',
     'nav_reminders'    => 'التذكيرات',
     'nav_users'        => 'المستخدمون',
     'nav_settings'     => 'الإعدادات',

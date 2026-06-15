@@ -13,6 +13,8 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Notifications\NewAppointmentNotification;
 use App\Services\AppointmentService;
+use App\Services\ServiceOrderService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +31,7 @@ class AppointmentsController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('can:create,' . Appointment::class, only: ['create', 'store']),
-            new Middleware('can:update,appointment', only: ['edit', 'update']),
+            new Middleware('can:update,appointment', only: ['edit', 'update', 'checkIn']),
             new Middleware('can:cancel,appointment', only: ['cancel']),
             new Middleware('can:complete,appointment', only: ['complete']),
             new Middleware('can:delete,appointment', only: ['destroy']),
@@ -251,35 +253,66 @@ class AppointmentsController extends Controller implements HasMiddleware
             ->with('success', 'Rendez-vous marqué comme terminé.');
     }
 
+    public function checkIn(Request $request, Appointment $appointment, ServiceOrderService $service): RedirectResponse
+    {
+        abort_unless(
+            $appointment->status === AppointmentStatus::Confirmed,
+            422,
+            'Seul un rendez-vous confirmé peut faire l\'objet d\'un check-in.',
+        );
+
+        // A service order requires a vehicle; an appointment without one can't be checked in.
+        abort_if(
+            $appointment->vehicle_id === null,
+            422,
+            'Ce rendez-vous n\'a pas de véhicule associé : impossible de créer un ordre de service.',
+        );
+
+        try {
+            $order = $service->createFromAppointment($appointment, $request->user());
+        } catch (UniqueConstraintViolationException) {
+            // Backstop for a concurrent double check-in: two requests both clear the
+            // status guard, but the unique index on appointment_id rejects the second
+            // insert. Degrade to a 422 instead of a 500.
+            abort(422, 'Ce rendez-vous a déjà fait l\'objet d\'un check-in.');
+        }
+
+        return redirect()->route('workshop.show', $order)
+            ->with('success', "Ordre de service {$order->number} créé.");
+    }
+
     public function todayPage(): Response
     {
         $this->authorize('viewAny', Appointment::class);
 
         return Inertia::render('Appointments/Today', [
             'todayList' => fn () => Appointment::query()
-                ->with('customer:id,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name')
+                ->with('customer:id,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name', 'serviceOrder:id,appointment_id')
                 ->whereDate('scheduled_at', today())
                 ->orderBy('scheduled_at')
                 ->get()
                 ->map(fn ($apt) => [
-                    'id'           => $apt->id,
-                    'scheduled_at' => $apt->scheduled_at->format('H:i'),
-                    'ends_at'      => $apt->ends_at?->format('H:i'),
-                    'duration'     => $apt->duration,
-                    'status'       => $apt->status->value,
-                    'status_label' => $apt->status->label(),
-                    'notes'        => $apt->notes,
-                    'customer'     => [
+                    'id'               => $apt->id,
+                    'scheduled_at'     => $apt->scheduled_at->format('H:i'),
+                    'ends_at'          => $apt->ends_at?->format('H:i'),
+                    'duration'         => $apt->duration,
+                    'status'           => $apt->status->value,
+                    'status_label'     => $apt->status->label(),
+                    'notes'            => $apt->notes,
+                    'customer'         => [
                         'id'   => $apt->customer->id,
                         'name' => $apt->customer->first_name . ' ' . $apt->customer->last_name,
                     ],
-                    'vehicle'      => $apt->vehicle ? [
+                    'vehicle'          => $apt->vehicle ? [
                         'id'    => $apt->vehicle->id,
                         'plate' => $apt->vehicle->license_plate,
                         'make'  => $apt->vehicle->make,
                         'model' => $apt->vehicle->model,
                     ] : null,
-                    'services'     => $apt->expectedServices,
+                    'services'         => $apt->expectedServices,
+                    // Drives the Check-in button: shown only for a Confirmed appointment that
+                    // has a vehicle and hasn't already been turned into a service order.
+                    'service_order_id' => $apt->serviceOrder?->id,
                 ]),
         ]);
     }

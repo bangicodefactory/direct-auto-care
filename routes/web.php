@@ -10,6 +10,8 @@ use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RemindersController;
+use App\Http\Controllers\ServiceOrderController;
+use App\Http\Controllers\ServiceOrderItemController;
 use App\Http\Controllers\ServiceRecordsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiclesController;
@@ -38,6 +40,19 @@ Route::resource('products', ProductsController::class)
 Route::post('products/{product}/adjust-stock', [ProductsController::class, 'adjustStock'])
     ->middleware(['auth', 'verified'])
     ->name('products.adjust-stock');
+
+// Workshop — service orders (Module 12). `create` before `{serviceOrder}` binding.
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('workshop', [ServiceOrderController::class, 'index'])->name('workshop.index');
+    Route::get('workshop/create', [ServiceOrderController::class, 'create'])->name('workshop.create');
+    Route::post('workshop', [ServiceOrderController::class, 'store'])->name('workshop.store');
+    Route::get('workshop/{serviceOrder}', [ServiceOrderController::class, 'show'])->name('workshop.show');
+    Route::put('workshop/{serviceOrder}', [ServiceOrderController::class, 'update'])->name('workshop.update');
+    Route::patch('workshop/{serviceOrder}/advance', [ServiceOrderController::class, 'advance'])->name('workshop.advance');
+    Route::patch('workshop/{serviceOrder}/cancel', [ServiceOrderController::class, 'cancel'])->name('workshop.cancel');
+    Route::post('workshop/{serviceOrder}/items', [ServiceOrderItemController::class, 'store'])->name('workshop.items.store');
+    Route::delete('workshop/{serviceOrder}/items/{item}', [ServiceOrderItemController::class, 'destroy'])->name('workshop.items.destroy');
+});
 
 Route::resource('invoices', InvoicesController::class)
     ->middleware(['auth', 'verified']);
@@ -81,6 +96,10 @@ Route::post('appointments/{appointment}/cancel', [AppointmentsController::class,
 Route::post('appointments/{appointment}/complete', [AppointmentsController::class, 'complete'])
     ->middleware(['auth', 'verified'])
     ->name('appointments.complete');
+
+Route::post('appointments/{appointment}/check-in', [AppointmentsController::class, 'checkIn'])
+    ->middleware(['auth', 'verified'])
+    ->name('appointments.check-in');
 
 Route::get('appointments-today', [AppointmentsController::class, 'today'])
     ->middleware(['auth', 'verified'])
