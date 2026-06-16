@@ -1,21 +1,24 @@
 import Modal from '@/Components/Modal';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Appointment, Customer, Invoice, Vehicle } from '@/types/models';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-const TABS = [
+type TabKey = 'vehicles' | 'history' | 'invoices' | 'appointments';
+
+const TABS: { key: TabKey; label: string }[] = [
     { key: 'vehicles', label: 'Véhicules' },
     { key: 'history', label: 'Historique' },
     { key: 'invoices', label: 'Factures' },
     { key: 'appointments', label: 'Rendez-vous' },
 ];
 
-function EmptyState({ message }) {
+function EmptyState({ message }: { message: string }) {
     return <p className="text-sm text-muted-foreground">{message}</p>;
 }
 
-function VehiclesTab({ vehicles }) {
+function VehiclesTab({ vehicles }: { vehicles: Vehicle[] }) {
     if (!vehicles?.length) return <EmptyState message="Aucun véhicule enregistré." />;
     return (
         <ul className="divide-y divide-border">
@@ -33,7 +36,7 @@ function HistoryTab() {
     return <EmptyState message="Aucun historique d'intervention." />;
 }
 
-function InvoicesTab({ invoices }) {
+function InvoicesTab({ invoices }: { invoices: Invoice[] }) {
     if (!invoices?.length) return <EmptyState message="Aucune facture." />;
     return (
         <ul className="divide-y divide-border">
@@ -46,7 +49,7 @@ function InvoicesTab({ invoices }) {
     );
 }
 
-function AppointmentsTab({ appointments }) {
+function AppointmentsTab({ appointments }: { appointments: Appointment[] }) {
     if (!appointments?.length) return <EmptyState message="Aucun rendez-vous." />;
     return (
         <ul className="divide-y divide-border">
@@ -59,8 +62,17 @@ function AppointmentsTab({ appointments }) {
     );
 }
 
-export default function Show({ customer, can }) {
-    const [activeTab, setActiveTab] = useState('vehicles');
+interface ShowProps {
+    customer: Customer & {
+        vehicles: Vehicle[];
+        invoices: Invoice[];
+        appointments: Appointment[];
+    };
+    can: { delete: boolean };
+}
+
+export default function Show({ customer, can }: ShowProps) {
+    const [activeTab, setActiveTab] = useState<TabKey>('vehicles');
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);
     const [processing, setProcessing] = useState(false);
 

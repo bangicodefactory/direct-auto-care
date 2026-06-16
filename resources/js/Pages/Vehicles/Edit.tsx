@@ -1,8 +1,31 @@
 import VehicleForm from '@/Components/VehicleForm';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { FuelType } from '@/types/models';
 import { Head, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 
-export default function Edit({ vehicle }) {
+interface EditVehicle {
+    id: number;
+    make: string;
+    model: string;
+    year: number;
+    license_plate: string;
+    vin: string | null;
+    mileage: number;
+    fuel_type: FuelType;
+    color: string | null;
+    customer: {
+        id: number;
+        first_name: string;
+        last_name: string;
+    };
+}
+
+interface EditProps {
+    vehicle: EditVehicle;
+}
+
+export default function Edit({ vehicle }: EditProps) {
     const { data, setData, put, processing, errors } = useForm({
         make: vehicle.make,
         model: vehicle.model,
@@ -14,7 +37,7 @@ export default function Edit({ vehicle }) {
         color: vehicle.color ?? '',
     });
 
-    function submit(e) {
+    function submit(e: FormEvent) {
         e.preventDefault();
         put(route('vehicles.update', vehicle.id));
     }

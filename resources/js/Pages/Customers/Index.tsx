@@ -23,13 +23,29 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Customer } from '@/types/models';
+import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-export default function Index({ customers, filters, can }) {
+type CustomerRow = Pick<Customer, 'id' | 'first_name' | 'last_name' | 'phone' | 'email'>;
+
+interface CustomerFilters {
+    search?: string;
+    sort?: string;
+    direction?: string;
+}
+
+interface IndexProps {
+    customers: Paginated<CustomerRow>;
+    filters: CustomerFilters;
+    can: { delete: boolean };
+}
+
+export default function Index({ customers, filters, can }: IndexProps) {
     const [search, setSearch] = useState(filters?.search ?? '');
-    const [deletingCustomer, setDeletingCustomer] = useState(null);
+    const [deletingCustomer, setDeletingCustomer] = useState<CustomerRow | null>(null);
     const [processing, setProcessing] = useState(false);
     const isFirstRender = useRef(true);
     const filtersRef = useRef(filters);
@@ -54,18 +70,18 @@ export default function Index({ customers, filters, can }) {
         return () => clearTimeout(timer);
     }, [search]);
 
-    function sortLink(field) {
+    function sortLink(field: string) {
         const isCurrent = filters?.sort === field;
         const direction = isCurrent && filters?.direction === 'asc' ? 'desc' : 'asc';
         return route('customers.index', { search: filters?.search ?? '', sort: field, direction });
     }
 
-    function sortIcon(field) {
+    function sortIcon(field: string) {
         if (filters?.sort !== field) return null;
         return filters?.direction === 'asc' ? ' ↑' : ' ↓';
     }
 
-    function handleSortChange(value) {
+    function handleSortChange(value: string) {
         router.get(
             route('customers.index'),
             { search: filters?.search ?? '', sort: value, direction: 'asc' },
@@ -75,7 +91,7 @@ export default function Index({ customers, filters, can }) {
 
     function destroy() {
         setProcessing(true);
-        router.delete(route('customers.destroy', deletingCustomer.id), {
+        router.delete(route('customers.destroy', deletingCustomer!.id), {
             onFinish: () => {
                 setProcessing(false);
                 setDeletingCustomer(null);

@@ -14,6 +14,7 @@ import {
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { AppointmentStatus, Customer, ServiceType, Vehicle } from '@/types/models';
 import { Deferred, Head, Link, router, useForm } from '@inertiajs/react';
 import { format, getDay, parse, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -25,10 +26,68 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
+/** A calendar event as projected by AppointmentsController@index. */
+interface CalendarEvent {
+    id: number;
+    title: string;
+    start: string;
+    end: string;
+    duration: number;
+    status: AppointmentStatus;
+    status_label: string;
+    notes: string | null;
+    customer: { id: number; name: string };
+    vehicle_id: number | null;
+    vehicle: { id: number; plate: string } | null;
+    service_type_ids: number[];
+}
+
+/** The same event after start/end have been parsed to Date for react-big-calendar. */
+interface CalendarEventDate extends Omit<CalendarEvent, 'start' | 'end'> {
+    start: Date;
+    end: Date;
+}
+
+interface StatusOption {
+    value: AppointmentStatus;
+    label: string;
+}
+
+interface IndexFilters {
+    status?: string;
+    start?: string;
+    end?: string;
+}
+
+/** Props for the Appointments/Index page (AppointmentsController@index). */
+interface AppointmentsIndexProps {
+    events: CalendarEvent[];
+    statuses: StatusOption[];
+    filters: IndexFilters;
+    // Deferred props (Inertia::defer) — undefined until the 'modal' group loads.
+    customers?: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    vehicles?: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
+    serviceTypes?: Pick<ServiceType, 'id' | 'name'>[];
+    can: { create: boolean; delete: boolean };
+}
+
+interface CreateModalState {
+    scheduled_at: string;
+}
+
+interface CreateModalProps {
+    show: boolean;
+    initialData: CreateModalState | null;
+    customers?: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    vehicles?: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
+    serviceTypes?: Pick<ServiceType, 'id' | 'name'>[];
+    onClose: () => void;
+}
+
 const localizer = dateFnsLocalizer({
     format,
     parse,
-    startOfWeek: (date) => startOfWeek(date, { locale: fr }),
+    startOfWeek: (date: Date) => startOfWeek(date, { locale: fr }),
     getDay,
     locales: { fr },
 });
@@ -36,7 +95,10 @@ const localizer = dateFnsLocalizer({
 const withDragAndDrop = _withDragAndDrop.default ?? _withDragAndDrop;
 const DnDCalendar = withDragAndDrop(Calendar);
 
-const STATUS_STYLES = {
+const STATUS_STYLES: Record<
+    AppointmentStatus,
+    { backgroundColor: string; borderColor: string; color: string }
+> = {
     pending: { backgroundColor: '#fef9c3', borderColor: '#ca8a04', color: '#713f12' },
     confirmed: { backgroundColor: '#dbeafe', borderColor: '#2563eb', color: '#1e3a8a' },
     completed: { backgroundColor: '#dcfce7', borderColor: '#16a34a', color: '#14532d' },
@@ -56,15 +118,20 @@ const MESSAGES = {
     time: 'Heure',
     event: 'Événement',
     noEventsInRange: 'Aucun rendez-vous sur cette période.',
-    showMore: (n) => `+ ${n} de plus`,
+    showMore: (n: number) => `+ ${n} de plus`,
 };
 
-function toDate(iso) {
+function toDate(iso: string): Date {
     return new Date(iso);
 }
 
-function buildReschedulePayload(event, start, end, fallbackDuration = false) {
-    const durationMin = Math.round((end - start) / 60000);
+function buildReschedulePayload(
+    event: CalendarEventDate,
+    start: Date,
+    end: Date,
+    fallbackDuration = false,
+) {
+    const durationMin = Math.round((end.getTime() - start.getTime()) / 60000);
     return {
         customer_id: event.customer.id,
         vehicle_id: event.vehicle_id ?? null,
@@ -86,17 +153,17 @@ export default function AppointmentsIndex({
     vehicles,
     serviceTypes,
     can,
-}) {
+}: AppointmentsIndexProps) {
     const [view, setView] = useState(Views.MONTH);
     const [date, setDate] = useState(new Date());
-    const [createModal, setCreateModal] = useState(null);
+    const [createModal, setCreateModal] = useState<CreateModalState | null>(null);
 
     const calendarEvents = useMemo(
         () => events.map((e) => ({ ...e, start: toDate(e.start), end: toDate(e.end) })),
         [events],
     );
 
-    const eventPropGetter = useCallback((event) => {
+    const eventPropGetter = useCallback((event: CalendarEventDate) => {
         const s = STATUS_STYLES[event.status] ?? {};
         return {
             style: {
@@ -109,8 +176,8 @@ export default function AppointmentsIndex({
         };
     }, []);
 
-    function onRangeChange(range) {
-        let start, end;
+    function onRangeChange(range: Date[] | { start: Date; end: Date }) {
+        let start: Date, end: Date;
         if (Array.isArray(range)) {
             start = range[0];
             end = range[range.length - 1];
@@ -126,32 +193,38 @@ export default function AppointmentsIndex({
     }
 
     const onSelectSlot = useCallback(
-        ({ start }) => {
+        ({ start }: { start: Date }) => {
             if (!can.create) return;
             setCreateModal({ scheduled_at: format(start, "yyyy-MM-dd'T'HH:mm") });
         },
         [can.create],
     );
 
-    const onSelectEvent = useCallback((event) => {
+    const onSelectEvent = useCallback((event: CalendarEventDate) => {
         router.visit(route('appointments.show', event.id));
     }, []);
 
-    const onEventDrop = useCallback(({ event, start, end }) => {
-        router.put(
-            route('appointments.update', event.id),
-            buildReschedulePayload(event, start, end, true),
-            { preserveState: false },
-        );
-    }, []);
+    const onEventDrop = useCallback(
+        ({ event, start, end }: { event: CalendarEventDate; start: Date; end: Date }) => {
+            router.put(
+                route('appointments.update', event.id),
+                buildReschedulePayload(event, start, end, true),
+                { preserveState: false },
+            );
+        },
+        [],
+    );
 
-    const onEventResize = useCallback(({ event, start, end }) => {
-        router.put(
-            route('appointments.update', event.id),
-            buildReschedulePayload(event, start, end),
-            { preserveState: false },
-        );
-    }, []);
+    const onEventResize = useCallback(
+        ({ event, start, end }: { event: CalendarEventDate; start: Date; end: Date }) => {
+            router.put(
+                route('appointments.update', event.id),
+                buildReschedulePayload(event, start, end),
+                { preserveState: false },
+            );
+        },
+        [],
+    );
 
     return (
         <AuthenticatedLayout
@@ -238,8 +311,22 @@ export default function AppointmentsIndex({
     );
 }
 
-function CreateModal({ show, initialData, customers, vehicles, serviceTypes, onClose }) {
-    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
+function CreateModal({
+    show,
+    initialData,
+    customers,
+    vehicles,
+    serviceTypes,
+    onClose,
+}: CreateModalProps) {
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm<{
+        customer_id: number | string;
+        vehicle_id: number | string;
+        scheduled_at: string;
+        duration: number | string;
+        service_type_ids: number[];
+        notes: string;
+    }>({
         customer_id: '',
         vehicle_id: '',
         scheduled_at: '',
@@ -255,11 +342,11 @@ function CreateModal({ show, initialData, customers, vehicles, serviceTypes, onC
     }, [show, initialData?.scheduled_at, setData]);
 
     const filteredVehicles = useMemo(
-        () => vehicles.filter((v) => String(v.customer_id) === String(data.customer_id)),
+        () => vehicles!.filter((v) => String(v.customer_id) === String(data.customer_id)),
         [vehicles, data.customer_id],
     );
 
-    function submit(e) {
+    function submit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         post(route('appointments.store'), {
             onSuccess: () => {
@@ -283,7 +370,7 @@ function CreateModal({ show, initialData, customers, vehicles, serviceTypes, onC
                 <div className="mb-4">
                     <InputLabel value="Client *" />
                     <CustomerCombobox
-                        customers={customers}
+                        customers={customers!}
                         value={data.customer_id}
                         onChange={(id) =>
                             setData((prev) => ({ ...prev, customer_id: id, vehicle_id: '' }))
@@ -344,7 +431,7 @@ function CreateModal({ show, initialData, customers, vehicles, serviceTypes, onC
 
                 <div className="mb-4">
                     <ServiceTypeMultiCheck
-                        serviceTypes={serviceTypes}
+                        serviceTypes={serviceTypes!}
                         selected={data.service_type_ids}
                         onChange={(ids) => setData('service_type_ids', ids)}
                         error={errors.service_type_ids}

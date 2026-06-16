@@ -13,24 +13,42 @@ import {
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { AppointmentStatus, Customer, ServiceType, Vehicle } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
 
-export default function AppointmentsEdit({
-    appointment,
+interface StatusOption {
+    value: AppointmentStatus;
+    label: string;
+}
+
+/** Props for the Appointments/Create page (AppointmentsController@create). */
+interface AppointmentsCreateProps {
+    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
+    serviceTypes: Pick<ServiceType, 'id' | 'name'>[];
+    statuses: StatusOption[];
+}
+
+export default function AppointmentsCreate({
     customers,
     vehicles,
     serviceTypes,
-    statuses,
-}) {
-    const { data, setData, put, processing, errors } = useForm({
-        customer_id: appointment.customer_id ?? '',
-        vehicle_id: appointment.vehicle_id ?? '',
-        scheduled_at: appointment.scheduled_at ?? '',
-        duration: appointment.duration ?? 60,
-        status: appointment.status ?? '',
-        service_type_ids: appointment.service_type_ids ?? [],
-        notes: appointment.notes ?? '',
+}: AppointmentsCreateProps) {
+    const { data, setData, post, processing, errors } = useForm<{
+        customer_id: number | string;
+        vehicle_id: number | string;
+        scheduled_at: string;
+        duration: number | string;
+        service_type_ids: number[];
+        notes: string;
+    }>({
+        customer_id: '',
+        vehicle_id: '',
+        scheduled_at: '',
+        duration: 60,
+        service_type_ids: [],
+        notes: '',
     });
 
     const filteredVehicles = useMemo(
@@ -38,9 +56,9 @@ export default function AppointmentsEdit({
         [vehicles, data.customer_id],
     );
 
-    function submit(e) {
+    function submit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        put(route('appointments.update', appointment.id));
+        post(route('appointments.store'));
     }
 
     return (
@@ -48,15 +66,15 @@ export default function AppointmentsEdit({
             header={
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold leading-tight text-foreground">
-                        Modifier le rendez-vous #{appointment.id}
+                        Nouveau rendez-vous
                     </h2>
                     <Button variant="outline" asChild>
-                        <Link href={route('appointments.show', appointment.id)}>← Retour</Link>
+                        <Link href={route('appointments.index')}>← Retour</Link>
                     </Button>
                 </div>
             }
         >
-            <Head title={`Modifier RDV #${appointment.id}`} />
+            <Head title="Nouveau rendez-vous" />
 
             <div className="py-8">
                 <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
@@ -145,29 +163,6 @@ export default function AppointmentsEdit({
                                     </div>
                                 </div>
 
-                                <div>
-                                    <InputLabel htmlFor="status" value="Statut *" />
-                                    <Select
-                                        value={data.status}
-                                        onValueChange={(v) => setData('status', v)}
-                                    >
-                                        <SelectTrigger
-                                            id="status"
-                                            className="mt-1 min-h-[44px] w-full"
-                                        >
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {statuses.map((s) => (
-                                                <SelectItem key={s.value} value={s.value}>
-                                                    {s.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <InputError message={errors.status} className="mt-1" />
-                                </div>
-
                                 <ServiceTypeMultiCheck
                                     serviceTypes={serviceTypes}
                                     selected={data.service_type_ids}
@@ -191,14 +186,10 @@ export default function AppointmentsEdit({
 
                             <div className="flex justify-end gap-3 px-6 py-4">
                                 <Button variant="outline" asChild>
-                                    <Link href={route('appointments.show', appointment.id)}>
-                                        Annuler
-                                    </Link>
+                                    <Link href={route('appointments.index')}>Annuler</Link>
                                 </Button>
                                 <Button disabled={processing}>
-                                    {processing
-                                        ? 'Enregistrement…'
-                                        : 'Enregistrer les modifications'}
+                                    {processing ? 'Enregistrement…' : 'Confirmer le rendez-vous'}
                                 </Button>
                             </div>
                         </form>

@@ -2,8 +2,51 @@ import Modal from '@/Components/Modal';
 import { Button } from '@/Components/ui/button';
 import { FUEL_LABELS } from '@/constants/fuelTypes';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { FuelType } from '@/types/models';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+
+interface ServiceRecordRow {
+    id: number;
+    serviced_at: string;
+    mileage_at_service: number | null;
+    notes: string | null;
+    service_types: string[];
+    can_edit: boolean;
+    can_delete: boolean;
+}
+
+interface AppointmentRow {
+    id: number;
+    created_at: string;
+}
+
+interface ShowVehicle {
+    id: number;
+    make: string;
+    model: string;
+    year: number;
+    license_plate: string;
+    vin: string | null;
+    mileage: number;
+    fuel_type: FuelType;
+    color: string | null;
+    customer: {
+        id: number;
+        first_name: string;
+        last_name: string;
+    };
+    service_records: ServiceRecordRow[];
+    appointments: AppointmentRow[];
+}
+
+interface ShowProps {
+    vehicle: ShowVehicle;
+    can: {
+        delete: boolean;
+        create_service_record: boolean;
+    };
+}
 
 const TABS = [
     { key: 'history', label: 'Historique de service' },
@@ -11,11 +54,17 @@ const TABS = [
     { key: 'documents', label: 'Documents' },
 ];
 
-function EmptyState({ message }) {
+function EmptyState({ message }: { message: string }) {
     return <p className="text-sm text-muted-foreground">{message}</p>;
 }
 
-function ServiceHistoryTab({ records, onDeleteRecord }) {
+function ServiceHistoryTab({
+    records,
+    onDeleteRecord,
+}: {
+    records: ServiceRecordRow[];
+    onDeleteRecord: (record: ServiceRecordRow) => void;
+}) {
     if (!records.length) return <EmptyState message="Aucun historique de service enregistré." />;
 
     return (
@@ -84,7 +133,7 @@ function ServiceHistoryTab({ records, onDeleteRecord }) {
     );
 }
 
-function AppointmentsTab({ appointments }) {
+function AppointmentsTab({ appointments }: { appointments: AppointmentRow[] }) {
     if (!appointments.length) return <EmptyState message="Aucun rendez-vous enregistré." />;
     return (
         <ul className="divide-y divide-border">
@@ -101,11 +150,11 @@ function DocumentsTab() {
     return <EmptyState message="Module documents à venir." />;
 }
 
-export default function Show({ vehicle, can }) {
+export default function Show({ vehicle, can }: ShowProps) {
     const [activeTab, setActiveTab] = useState('history');
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);
     const [processing, setProcessing] = useState(false);
-    const [deletingRecord, setDeletingRecord] = useState(null);
+    const [deletingRecord, setDeletingRecord] = useState<ServiceRecordRow | null>(null);
     const [processingRecord, setProcessingRecord] = useState(false);
 
     function destroy() {
@@ -120,7 +169,7 @@ export default function Show({ vehicle, can }) {
 
     function destroyRecord() {
         setProcessingRecord(true);
-        router.delete(route('service-records.destroy', deletingRecord.id), {
+        router.delete(route('service-records.destroy', deletingRecord!.id), {
             onFinish: () => {
                 setProcessingRecord(false);
                 setDeletingRecord(null);

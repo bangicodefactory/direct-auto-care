@@ -2,32 +2,32 @@ import CustomerForm from '@/Components/CustomerForm';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 
-export default function Edit({ customer }) {
-    const { data, setData, put, processing, errors } = useForm({
-        first_name: customer.first_name,
-        last_name: customer.last_name,
-        phone: customer.phone,
-        email: customer.email ?? '',
-        address: customer.address ?? '',
-        notes: customer.notes ?? '',
-        notify_whatsapp: customer.notify_whatsapp,
-        notify_email: customer.notify_email,
+export default function Create() {
+    const { data, setData, post, processing, errors } = useForm({
+        first_name: '',
+        last_name: '',
+        phone: '',
+        email: '',
+        address: '',
+        notes: '',
+        notify_whatsapp: true,
+        notify_email: true,
     });
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
-        put(route('customers.update', customer.id));
+        post(route('customers.store'));
     }
 
     return (
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Modifier le client
+                    Nouveau client
                 </h2>
             }
         >
-            <Head title="Modifier le client" />
+            <Head title="Nouveau client" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-2xl sm:px-6 lg:px-8">
@@ -38,8 +38,7 @@ export default function Edit({ customer }) {
                             errors={errors}
                             processing={processing}
                             onSubmit={submit}
-                            cancelHref={route('customers.show', customer.id)}
-                            autoFocus={false}
+                            cancelHref={route('customers.index')}
                         />
                     </div>
                 </div>
