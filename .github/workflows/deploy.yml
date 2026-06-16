@@ -1,0 +1,100 @@
+name: Deploy (garage.bangicode.ma)
+
+# Demo/staging deploy to the Namecheap cPanel account over SSH.
+# Runs automatically after the CI workflow succeeds on `main`, and can be run
+# manually. It is GATED by the `DEPLOY_ENABLED` repository variable, so nothing
+# deploys until you have (a) done the cPanel setup, (b) added the secrets/vars
+# below, and (c) set `DEPLOY_ENABLED=true`. See deploy/garage/README.md.
+#
+# Required repo SECRETS:  CPANEL_SSH_HOST, CPANEL_SSH_PORT, CPANEL_SSH_USER,
+#                         CPANEL_SSH_KEY (private key), CPANEL_DEPLOY_PATH
+# Required repo VARIABLES: DEPLOY_ENABLED ("true"), CPANEL_PHP_BIN (optional,
+#                         e.g. /opt/cpanel/ea-php83/root/usr/bin/php)
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+# No write scopes needed — this only reads the repo and pushes over SSH.
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-garage
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & deploy to cPanel
+    runs-on: ubuntu-latest
+    # Only when explicitly enabled, AND (manual run OR CI succeeded on main).
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' ||
+       github.event.workflow_run.conclusion == 'success')
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # On a workflow_run trigger, deploy the exact commit CI validated.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      # ---- Build the front-end (shared hosting has no Node) ----
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+
+      # ---- Production PHP deps (no dev tooling — no Boost/PHPUnit on the host) ----
+      - name: Set up PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+      - run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      # ---- SSH ----
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+          SSH_PORT: ${{ secrets.CPANEL_SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      # ---- Upload (rsync). Excludes protect the server's .env and storage/. ----
+      # No --delete: avoids ever removing server-side runtime files. Re-enable
+      # later (carefully) once the pipeline is proven if you want a pristine sync.
+      - name: Deploy with rsync
+        env:
+          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+          SSH_PORT: ${{ secrets.CPANEL_SSH_PORT }}
+          SSH_USER: ${{ secrets.CPANEL_SSH_USER }}
+          DEPLOY_PATH: ${{ secrets.CPANEL_DEPLOY_PATH }}
+        run: |
+          rsync -rlzv --no-perms --no-owner --no-group --omit-dir-times \
+            -e "ssh -i ~/.ssh/id_deploy -p $SSH_PORT" \
+            --exclude-from=deploy/garage/rsync-exclude.txt \
+            ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+
+      # ---- Migrate (additive) + cache, on the server ----
+      - name: Post-deploy (migrate + cache)
+        env:
+          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+          SSH_PORT: ${{ secrets.CPANEL_SSH_PORT }}
+          SSH_USER: ${{ secrets.CPANEL_SSH_USER }}
+          DEPLOY_PATH: ${{ secrets.CPANEL_DEPLOY_PATH }}
+          PHP_BIN: ${{ vars.CPANEL_PHP_BIN }}
+        run: |
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "cd '$DEPLOY_PATH' && PHP_BIN='${PHP_BIN:-php}' bash deploy/garage/post-deploy.sh"
