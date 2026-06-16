@@ -11,19 +11,46 @@ import {
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Customer, Invoice, InvoiceItem, Product, Vehicle } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
 
-const TYPE_LABELS = { invoice: 'Facture', quote: 'Devis' };
+const TYPE_LABELS: Record<string, string> = { invoice: 'Facture', quote: 'Devis' };
+
+interface LineItem {
+    _key: number;
+    product_id: string | number | null;
+    description: string;
+    quantity: string | number;
+    unit_price_ht: string | number;
+}
+
+interface EditForm {
+    customer_id: string | number;
+    vehicle_id: string | number;
+    issue_date: string;
+    due_date: string;
+    discount: string | number;
+    tva_rate: string | number;
+    notes: string;
+    items: LineItem[];
+}
+
+interface EditProps {
+    invoice: Invoice & { items: InvoiceItem[] };
+    customers: Customer[];
+    products: Product[];
+    vehicles: Vehicle[];
+}
 
 let _nextKey = 0;
-function withKey(item) {
+function withKey<T>(item: T): T & { _key: number } {
     return { ...item, _key: _nextKey++ };
 }
 
-export default function Edit({ invoice, customers, products, vehicles }) {
-    const { data, setData, put, processing, errors } = useForm({
+export default function Edit({ invoice, customers, products, vehicles }: EditProps) {
+    const { data, setData, put, processing, errors } = useForm<EditForm>({
         customer_id: invoice.customer_id ?? '',
         vehicle_id: invoice.vehicle_id ?? '',
         issue_date: invoice.issue_date,
@@ -39,22 +66,22 @@ export default function Edit({ invoice, customers, products, vehicles }) {
         [vehicles, data.customer_id],
     );
 
-    const subtotalHt = data.items.reduce((sum, it) => {
-        const qty = parseFloat(it.quantity) || 0;
-        const price = parseFloat(it.unit_price_ht) || 0;
+    const subtotalHt = data.items.reduce((sum: number, it: LineItem) => {
+        const qty = parseFloat(it.quantity as string) || 0;
+        const price = parseFloat(it.unit_price_ht as string) || 0;
         return sum + qty * price;
     }, 0);
 
-    const discount = parseFloat(data.discount) || 0;
-    const tvaRate = parseFloat(data.tva_rate) || 0;
+    const discount = parseFloat(data.discount as string) || 0;
+    const tvaRate = parseFloat(data.tva_rate as string) || 0;
     const tvaAmount = Math.round((((subtotalHt - discount) * tvaRate) / 100) * 100) / 100;
     const totalTtc = subtotalHt - discount + tvaAmount;
 
-    function handleCustomerChange(id) {
+    function handleCustomerChange(id: string) {
         setData((prev) => ({ ...prev, customer_id: id, vehicle_id: '' }));
     }
 
-    function handleProductChange(index, productId) {
+    function handleProductChange(index: number, productId: string) {
         const product = products.find((p) => String(p.id) === String(productId));
         setData(
             'items',
@@ -71,7 +98,7 @@ export default function Edit({ invoice, customers, products, vehicles }) {
         );
     }
 
-    function updateItem(index, field, value) {
+    function updateItem(index: number, field: keyof LineItem, value: string) {
         setData(
             'items',
             data.items.map((it, i) => (i === index ? { ...it, [field]: value } : it)),
@@ -85,14 +112,14 @@ export default function Edit({ invoice, customers, products, vehicles }) {
         ]);
     }
 
-    function removeItem(index) {
+    function removeItem(index: number) {
         setData(
             'items',
             data.items.filter((_, i) => i !== index),
         );
     }
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
         put(route('invoices.update', invoice.id));
     }
@@ -260,8 +287,8 @@ export default function Edit({ invoice, customers, products, vehicles }) {
                                         <tbody className="divide-y divide-border">
                                             {data.items.map((item, index) => {
                                                 const lineTotal =
-                                                    (parseFloat(item.quantity) || 0) *
-                                                    (parseFloat(item.unit_price_ht) || 0);
+                                                    (parseFloat(item.quantity as string) || 0) *
+                                                    (parseFloat(item.unit_price_ht as string) || 0);
                                                 return (
                                                     <tr key={item._key}>
                                                         <td className="py-2 pe-3">

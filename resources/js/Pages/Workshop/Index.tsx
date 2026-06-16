@@ -1,10 +1,14 @@
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { ServiceOrderStatus } from '@/types/models';
+import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
-const BADGE = {
+type BadgeColor = 'gray' | 'blue' | 'yellow' | 'orange' | 'purple' | 'cyan' | 'green' | 'red';
+
+const BADGE: Record<BadgeColor, string> = {
     gray: 'bg-muted text-foreground',
     blue: 'bg-blue-100 text-blue-700',
     yellow: 'bg-yellow-100 text-yellow-800',
@@ -16,7 +20,7 @@ const BADGE = {
 };
 
 // Vivid solid dot for the filter chips.
-const DOT = {
+const DOT: Record<BadgeColor, string> = {
     gray: 'bg-gray-400',
     blue: 'bg-blue-500',
     yellow: 'bg-yellow-400',
@@ -27,7 +31,14 @@ const DOT = {
     red: 'bg-red-500',
 };
 
-function Chip({ active, color, children, onClick }) {
+interface ChipProps {
+    active: boolean;
+    color?: BadgeColor;
+    children: React.ReactNode;
+    onClick: () => void;
+}
+
+function Chip({ active, color, children, onClick }: ChipProps) {
     return (
         <button
             type="button"
@@ -46,7 +57,37 @@ function Chip({ active, color, children, onClick }) {
     );
 }
 
-export default function Index({ orders, statuses, total, filters, can }) {
+interface WorkshopOrderRow {
+    id: number;
+    number: string;
+    customer: string;
+    vehicle: string;
+    status_color: BadgeColor;
+    status_label: string;
+    updated_at: string | null;
+}
+
+interface StatusFilter {
+    value: ServiceOrderStatus;
+    label: string;
+    count: number;
+    color: BadgeColor;
+}
+
+interface WorkshopFilters {
+    q?: string;
+    status?: ServiceOrderStatus | '';
+}
+
+interface IndexProps {
+    orders: Paginated<WorkshopOrderRow>;
+    statuses: StatusFilter[];
+    total: number;
+    filters?: WorkshopFilters;
+    can: { create: boolean };
+}
+
+export default function Index({ orders, statuses, total, filters, can }: IndexProps) {
     const [search, setSearch] = useState(filters?.q ?? '');
     const isFirstRender = useRef(true);
     const filtersRef = useRef(filters);
@@ -56,7 +97,7 @@ export default function Index({ orders, statuses, total, filters, can }) {
     });
 
     // Server-driven filtering. Navigate with the current status + debounced search.
-    function visit(next) {
+    function visit(next: { status?: ServiceOrderStatus | ''; q?: string }) {
         const params = {
             status: (next.status ?? filtersRef.current?.status) || undefined,
             q: (next.q ?? filtersRef.current?.q) || undefined,

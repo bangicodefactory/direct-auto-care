@@ -16,24 +16,77 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { InvoiceStatus, InvoiceType } from '@/types/models';
+import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
-const TYPE_STYLES = {
+const TYPE_STYLES: Record<string, string> = {
     invoice: 'bg-blue-100 text-blue-700',
     quote: 'bg-purple-100 text-purple-700',
 };
-const TYPE_LABELS = { invoice: 'Facture', quote: 'Devis' };
+const TYPE_LABELS: Record<string, string> = { invoice: 'Facture', quote: 'Devis' };
 
-const STATUS_STYLES = {
+const STATUS_STYLES: Record<string, string> = {
     draft: 'bg-muted text-foreground',
     issued: 'bg-blue-100 text-blue-700',
     paid: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
 };
-const STATUS_LABELS = { draft: 'Brouillon', issued: 'Émise', paid: 'Payée', cancelled: 'Annulée' };
+const STATUS_LABELS: Record<string, string> = {
+    draft: 'Brouillon',
+    issued: 'Émise',
+    paid: 'Payée',
+    cancelled: 'Annulée',
+};
 
-function Badge({ value, styleMap, labelMap }) {
+interface BadgeProps {
+    value: string;
+    styleMap: Record<string, string>;
+    labelMap: Record<string, string>;
+}
+
+interface SelectOption {
+    value: string;
+    label: string;
+}
+
+interface IndexFilters {
+    search?: string;
+    type?: InvoiceType | '';
+    status?: InvoiceStatus | '';
+    date_from?: string;
+    date_to?: string;
+}
+
+interface NavigateParams {
+    search?: string;
+    type?: string;
+    status?: string;
+    date_from?: string;
+    date_to?: string;
+}
+
+/** Row shape from InvoicesController@index (paginated `through()` projection). */
+interface InvoiceRow {
+    id: number;
+    number: string;
+    type: InvoiceType;
+    status: InvoiceStatus;
+    issue_date: string;
+    total_ttc: string;
+    customer: { id: number; name: string } | null;
+}
+
+interface IndexProps {
+    invoices: Paginated<InvoiceRow>;
+    filters: IndexFilters;
+    types: SelectOption[];
+    statuses: SelectOption[];
+    can: { create: boolean };
+}
+
+function Badge({ value, styleMap, labelMap }: BadgeProps) {
     return (
         <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${styleMap[value] ?? 'bg-muted text-foreground'}`}
@@ -43,7 +96,7 @@ function Badge({ value, styleMap, labelMap }) {
     );
 }
 
-export default function Index({ invoices, filters, types, statuses, can }) {
+export default function Index({ invoices, filters, types, statuses, can }: IndexProps) {
     const [search, setSearch] = useState(filters?.search ?? '');
     const isFirstRender = useRef(true);
     const filtersRef = useRef(filters);
@@ -70,7 +123,7 @@ export default function Index({ invoices, filters, types, statuses, can }) {
         return () => clearTimeout(timer);
     }, [search]);
 
-    function navigate(params) {
+    function navigate(params: NavigateParams) {
         router.get(
             route('invoices.index'),
             {
@@ -84,7 +137,7 @@ export default function Index({ invoices, filters, types, statuses, can }) {
         );
     }
 
-    function setFilter(key, value) {
+    function setFilter(key: keyof IndexFilters, value: string) {
         navigate({
             search: search || undefined,
             type: filters?.type,
