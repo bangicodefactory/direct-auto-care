@@ -1,4 +1,9 @@
 import { route as routeFn } from 'ziggy-js';
+import type { User } from './models';
+
+// Single source of truth for the entity lives in `./models`; re-exported here so
+// `@/types/inertia` consumers (e.g. the shared layout/sidebar) keep one import path.
+export type { User };
 
 declare global {
     /**
@@ -6,14 +11,6 @@ declare global {
      * Typed from the generated Ziggy definitions in `vendor/tightenco/ziggy`.
      */
     const route: typeof routeFn;
-}
-
-/** The authenticated user as shared on every Inertia response. */
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    email_verified_at?: string | null;
 }
 
 /** A database notification as shared with the notification bell. */
