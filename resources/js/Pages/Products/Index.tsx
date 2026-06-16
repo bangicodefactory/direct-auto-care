@@ -23,13 +23,45 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Product, ProductCategory } from '@/types/models';
+import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-export default function Index({ products, filters, categories, can }) {
+interface ProductRow {
+    id: number;
+    category: ProductCategory;
+    name: string;
+    sku: Product['sku'];
+    unit: string;
+    price_sell: string;
+    quantity_on_hand: number;
+    low_stock_threshold: number;
+    is_low_stock: boolean;
+}
+
+interface ProductFilters {
+    category?: string;
+    low_stock?: string;
+    search?: string;
+}
+
+interface CategoryOption {
+    value: ProductCategory;
+    label: string;
+}
+
+interface IndexProps {
+    products: Paginated<ProductRow>;
+    filters: ProductFilters;
+    categories: CategoryOption[];
+    can: { create: boolean; edit: boolean; delete: boolean };
+}
+
+export default function Index({ products, filters, categories, can }: IndexProps) {
     const [search, setSearch] = useState(filters?.search ?? '');
-    const [deletingProduct, setDeletingProduct] = useState(null);
+    const [deletingProduct, setDeletingProduct] = useState<ProductRow | null>(null);
     const [processing, setProcessing] = useState(false);
     const isFirstRender = useRef(true);
     const filtersRef = useRef(filters);
@@ -58,7 +90,7 @@ export default function Index({ products, filters, categories, can }) {
         return () => clearTimeout(timer);
     }, [search]);
 
-    function filterCategory(value) {
+    function filterCategory(value: string) {
         const f = filtersRef.current;
         router.get(
             route('products.index'),
@@ -86,7 +118,7 @@ export default function Index({ products, filters, categories, can }) {
 
     function destroy() {
         setProcessing(true);
-        router.delete(route('products.destroy', deletingProduct.id), {
+        router.delete(route('products.destroy', deletingProduct!.id), {
             onFinish: () => {
                 setProcessing(false);
                 setDeletingProduct(null);

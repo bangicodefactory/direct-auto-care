@@ -9,18 +9,31 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-const roleLabels = { admin: 'Administrateur', employee: 'Employé' };
+const roleLabels: Record<string, string> = { admin: 'Administrateur', employee: 'Employé' };
 
-export default function Index({ users }) {
-    const [deletingUser, setDeletingUser] = useState(null);
+interface UserRow {
+    id: number;
+    name: string;
+    email: string;
+    is_active: boolean;
+    roles: string[];
+}
+
+interface IndexProps {
+    users: Paginated<UserRow>;
+}
+
+export default function Index({ users }: IndexProps) {
+    const [deletingUser, setDeletingUser] = useState<UserRow | null>(null);
     const [processing, setProcessing] = useState(false);
 
     function destroy() {
         setProcessing(true);
-        router.delete(route('users.destroy', deletingUser.id), {
+        router.delete(route('users.destroy', deletingUser!.id), {
             onFinish: () => {
                 setProcessing(false);
                 setDeletingUser(null);

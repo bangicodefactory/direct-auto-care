@@ -1,10 +1,23 @@
 import Modal from '@/Components/Modal';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { ServiceRecord, Vehicle } from '@/types/models';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Show({ record, can }) {
+interface ShowProps {
+    record: Pick<ServiceRecord, 'id' | 'mileage_at_service' | 'notes'> & {
+        serviced_at: string;
+        service_types: string[];
+        vehicle: Pick<Vehicle, 'id' | 'make' | 'model' | 'license_plate'>;
+    };
+    can: {
+        edit: boolean;
+        delete: boolean;
+    };
+}
+
+export default function Show({ record, can }: ShowProps) {
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);
     const [processing, setProcessing] = useState(false);
 

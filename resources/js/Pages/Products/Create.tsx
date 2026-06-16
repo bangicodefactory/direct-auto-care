@@ -10,34 +10,54 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { ProductCategory } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 
-export default function Edit({ product, categories }) {
-    const { data, setData, put, processing, errors } = useForm({
-        category: product.category,
-        name: product.name,
-        sku: product.sku ?? '',
-        unit: product.unit,
-        price_buy: product.price_buy ?? '',
-        price_sell: product.price_sell,
-        quantity_on_hand: product.quantity_on_hand,
-        low_stock_threshold: product.low_stock_threshold,
+interface CategoryOption {
+    value: ProductCategory;
+    label: string;
+}
+
+interface CreateProps {
+    categories: CategoryOption[];
+}
+
+export default function Create({ categories }: CreateProps) {
+    const { data, setData, post, processing, errors } = useForm<{
+        category: string;
+        name: string;
+        sku: string;
+        unit: string;
+        price_buy: string;
+        price_sell: string;
+        quantity_on_hand: number | string;
+        low_stock_threshold: number | string;
+    }>({
+        category: '',
+        name: '',
+        sku: '',
+        unit: '',
+        price_buy: '',
+        price_sell: '',
+        quantity_on_hand: 0,
+        low_stock_threshold: 5,
     });
 
-    function submit(e) {
+    function submit(e: FormEvent) {
         e.preventDefault();
-        put(route('products.update', product.id));
+        post(route('products.store'));
     }
 
     return (
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-foreground">
-                    Modifier — {product.name}
+                    Ajouter un produit
                 </h2>
             }
         >
-            <Head title={`Modifier ${product.name}`} />
+            <Head title="Nouveau produit" />
 
             <div className="py-8">
                 <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
@@ -52,7 +72,7 @@ export default function Edit({ product, categories }) {
                                 onValueChange={(v) => setData('category', v)}
                             >
                                 <SelectTrigger id="category" className="mt-1 min-h-[44px] w-full">
-                                    <SelectValue />
+                                    <SelectValue placeholder="— Choisir —" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categories.map((c) => (
@@ -163,12 +183,12 @@ export default function Edit({ product, categories }) {
 
                         <div className="flex items-center justify-between pt-2">
                             <Link
-                                href={route('products.show', product.id)}
+                                href={route('products.index')}
                                 className="text-sm text-muted-foreground hover:underline"
                             >
                                 Annuler
                             </Link>
-                            <Button disabled={processing}>Enregistrer</Button>
+                            <Button disabled={processing}>Créer</Button>
                         </div>
                     </form>
                 </div>

@@ -12,12 +12,46 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { ProductCategory, StockMovementType } from '@/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 import { useState } from 'react';
 
-const TYPE_LABELS = { in: 'Entrée', out: 'Sortie', adjustment: 'Ajustement' };
+const TYPE_LABELS: Record<StockMovementType, string> = {
+    in: 'Entrée',
+    out: 'Sortie',
+    adjustment: 'Ajustement',
+};
 
-export default function Show({ product, movements, can }) {
+interface ProductDetail {
+    id: number;
+    category: ProductCategory;
+    name: string;
+    sku: string | null;
+    unit: string;
+    price_buy: string | null;
+    price_sell: string;
+    quantity_on_hand: number;
+    low_stock_threshold: number;
+    is_low_stock: boolean;
+}
+
+interface MovementRow {
+    id: number;
+    type: StockMovementType;
+    quantity: number;
+    reason: string | null;
+    user: string | null;
+    created_at: string;
+}
+
+interface ShowProps {
+    product: ProductDetail;
+    movements: MovementRow[];
+    can: { edit: boolean; delete: boolean; adjust: boolean };
+}
+
+export default function Show({ product, movements, can }: ShowProps) {
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [adjusting, setAdjusting] = useState(false);
 
@@ -31,7 +65,7 @@ export default function Show({ product, movements, can }) {
         router.delete(route('products.destroy', product.id));
     }
 
-    function submitAdjustment(e) {
+    function submitAdjustment(e: FormEvent) {
         e.preventDefault();
         post(route('products.adjust-stock', product.id), {
             onSuccess: () => {

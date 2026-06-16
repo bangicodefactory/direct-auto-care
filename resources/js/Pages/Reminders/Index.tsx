@@ -22,23 +22,65 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { ReminderStatus, ReminderType } from '@/types/models';
+import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useState } from 'react';
 
-const STATUS_COLORS = {
+const STATUS_COLORS: Record<ReminderStatus, string> = {
     pending: 'bg-yellow-100 text-yellow-800',
     sent: 'bg-green-100 text-green-800',
     acknowledged: 'bg-blue-100 text-blue-800',
     cancelled: 'bg-muted text-foreground',
 };
 
-export default function Index({ reminders, filters, statuses, types }) {
-    const [triggeringReminder, setTriggeringReminder] = useState(null);
-    const [cancellingReminder, setCancellingReminder] = useState(null);
+interface ReminderRow {
+    id: number;
+    type: { value: ReminderType; label: string };
+    status: { value: ReminderStatus; label: string };
+    scheduled_for: string;
+    sent_at: string | null;
+    error_message: string | null;
+    customer: {
+        id: number;
+        name: string;
+    };
+    vehicle: {
+        id: number;
+        license_plate: string;
+    };
+    can: {
+        trigger: boolean;
+        cancel: boolean;
+    };
+}
+
+interface Filters {
+    status?: string;
+    type?: string;
+    date_from?: string;
+    date_to?: string;
+}
+
+interface FilterOption {
+    value: string;
+    label: string;
+}
+
+interface IndexProps {
+    reminders: Paginated<ReminderRow>;
+    filters: Filters;
+    statuses: FilterOption[];
+    types: FilterOption[];
+}
+
+export default function Index({ reminders, filters, statuses, types }: IndexProps) {
+    const [triggeringReminder, setTriggeringReminder] = useState<ReminderRow | null>(null);
+    const [cancellingReminder, setCancellingReminder] = useState<ReminderRow | null>(null);
     const [processing, setProcessing] = useState(false);
 
-    function applyFilters(changes) {
+    function applyFilters(changes: Partial<Filters> & { page?: undefined }) {
         router.get(
             route('reminders.index'),
             { ...filters, ...changes },
@@ -49,7 +91,7 @@ export default function Index({ reminders, filters, statuses, types }) {
     function handleTrigger() {
         setProcessing(true);
         router.post(
-            route('reminders.trigger', triggeringReminder.id),
+            route('reminders.trigger', triggeringReminder!.id),
             {},
             {
                 onFinish: () => {
@@ -63,7 +105,7 @@ export default function Index({ reminders, filters, statuses, types }) {
     function handleCancel() {
         setProcessing(true);
         router.post(
-            route('reminders.cancel', cancellingReminder.id),
+            route('reminders.cancel', cancellingReminder!.id),
             {},
             {
                 onFinish: () => {

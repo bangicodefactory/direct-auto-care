@@ -4,9 +4,21 @@ import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
 import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Settings } from '@/types/models';
 import { Head, useForm } from '@inertiajs/react';
 
-const COLOR_FIELDS = [
+/** Brand color form fields — `name` keys a string field on the settings form. */
+type ColorField =
+    | 'color_primary'
+    | 'color_accent'
+    | 'color_bg'
+    | 'color_text_primary'
+    | 'color_text_muted'
+    | 'color_success'
+    | 'color_warning'
+    | 'color_error';
+
+const COLOR_FIELDS: { name: ColorField; label: string }[] = [
     { name: 'color_primary', label: 'Couleur principale' },
     { name: 'color_accent', label: 'Couleur accent' },
     { name: 'color_bg', label: 'Arrière-plan' },
@@ -17,8 +29,52 @@ const COLOR_FIELDS = [
     { name: 'color_error', label: 'Erreur' },
 ];
 
-export default function Index({ settings }) {
-    const { data, setData, post, processing, errors, progress } = useForm({
+/**
+ * `SettingsController@edit` projection: the `only([...])` subset of the Settings
+ * model plus the computed `logo_url`.
+ */
+type SettingsPayload = Pick<
+    Settings,
+    | 'company_name'
+    | 'company_address'
+    | 'company_ice'
+    | 'company_if'
+    | 'company_rc'
+    | 'tva_rate'
+    | 'color_primary'
+    | 'color_accent'
+    | 'color_bg'
+    | 'color_text_primary'
+    | 'color_text_muted'
+    | 'color_success'
+    | 'color_warning'
+    | 'color_error'
+> & { logo_url: string | null };
+
+interface SettingsForm {
+    company_name: string;
+    company_address: string;
+    company_ice: string;
+    company_if: string;
+    company_rc: string;
+    tva_rate: number | string;
+    logo: File | null;
+    color_primary: string;
+    color_accent: string;
+    color_bg: string;
+    color_text_primary: string;
+    color_text_muted: string;
+    color_success: string;
+    color_warning: string;
+    color_error: string;
+}
+
+interface IndexProps {
+    settings: SettingsPayload;
+}
+
+export default function Index({ settings }: IndexProps) {
+    const { data, setData, post, processing, errors, progress } = useForm<SettingsForm>({
         company_name: settings.company_name ?? '',
         company_address: settings.company_address ?? '',
         company_ice: settings.company_ice ?? '',
@@ -36,7 +92,7 @@ export default function Index({ settings }) {
         color_error: settings.color_error ?? '#EF4444',
     });
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
         post(route('settings.update'), { forceFormData: true });
     }
@@ -167,7 +223,9 @@ export default function Index({ settings }) {
                                         type="file"
                                         accept=".jpg,.jpeg,.png,.svg,.webp"
                                         className="mt-1 block w-full text-sm text-muted-foreground ltr:file:mr-3 rtl:file:ml-3 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm file:font-medium hover:file:bg-muted/80"
-                                        onChange={(e) => setData('logo', e.target.files[0])}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                            setData('logo', e.target.files?.[0] ?? null)
+                                        }
                                     />
                                     <p className="mt-1 text-xs text-muted-foreground">
                                         JPG, PNG, SVG ou WebP — max 2 Mo
