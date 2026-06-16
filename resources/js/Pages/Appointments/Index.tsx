@@ -18,8 +18,14 @@ import { AppointmentStatus, Customer, ServiceType, Vehicle } from '@/types/model
 import { Deferred, Head, Link, router, useForm } from '@inertiajs/react';
 import { format, getDay, parse, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Calendar, Views, dateFnsLocalizer } from 'react-big-calendar';
+import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
+import {
+    Calendar,
+    Views,
+    dateFnsLocalizer,
+    type CalendarProps,
+    type View,
+} from 'react-big-calendar';
 import _withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -92,8 +98,10 @@ const localizer = dateFnsLocalizer({
     locales: { fr },
 });
 
-const withDragAndDrop = _withDragAndDrop.default ?? _withDragAndDrop;
-const DnDCalendar = withDragAndDrop(Calendar);
+const withDragAndDrop = _withDragAndDrop;
+const DnDCalendar = withDragAndDrop<CalendarEventDate, object>(
+    Calendar as ComponentType<CalendarProps<CalendarEventDate, object>>,
+);
 
 const STATUS_STYLES: Record<
     AppointmentStatus,
@@ -154,7 +162,7 @@ export default function AppointmentsIndex({
     serviceTypes,
     can,
 }: AppointmentsIndexProps) {
-    const [view, setView] = useState(Views.MONTH);
+    const [view, setView] = useState<View>(Views.MONTH);
     const [date, setDate] = useState(new Date());
     const [createModal, setCreateModal] = useState<CreateModalState | null>(null);
 
@@ -205,10 +213,18 @@ export default function AppointmentsIndex({
     }, []);
 
     const onEventDrop = useCallback(
-        ({ event, start, end }: { event: CalendarEventDate; start: Date; end: Date }) => {
+        ({
+            event,
+            start,
+            end,
+        }: {
+            event: CalendarEventDate;
+            start: Date | string;
+            end: Date | string;
+        }) => {
             router.put(
                 route('appointments.update', event.id),
-                buildReschedulePayload(event, start, end, true),
+                buildReschedulePayload(event, new Date(start), new Date(end), true),
                 { preserveState: false },
             );
         },
@@ -216,10 +232,18 @@ export default function AppointmentsIndex({
     );
 
     const onEventResize = useCallback(
-        ({ event, start, end }: { event: CalendarEventDate; start: Date; end: Date }) => {
+        ({
+            event,
+            start,
+            end,
+        }: {
+            event: CalendarEventDate;
+            start: Date | string;
+            end: Date | string;
+        }) => {
             router.put(
                 route('appointments.update', event.id),
-                buildReschedulePayload(event, start, end),
+                buildReschedulePayload(event, new Date(start), new Date(end)),
                 { preserveState: false },
             );
         },
