@@ -10,15 +10,27 @@ import {
     YAxis,
 } from 'recharts';
 
+interface MonthlyDatum {
+    month: string;
+    revenue: number;
+    appointments: number;
+}
+
+interface LineChartCardProps {
+    title: string;
+    data: MonthlyDatum[];
+}
+
 const LINES = [
     { key: 'revenue', label: 'CA (DH)', color: BRAND_PRIMARY, yAxisId: 'revenue' },
     { key: 'appointments', label: 'RDV', color: BRAND_ACCENT, yAxisId: 'appointments' },
 ];
 
-function revenueFormatter(value) {
-    if (value >= 1000)
+function revenueFormatter(value: number | string): string {
+    const num = Number(value);
+    if (num >= 1000)
         return (
-            Number(value / 1000).toLocaleString('fr-MA', {
+            Number(num / 1000).toLocaleString('fr-MA', {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 1,
             }) + 'k'
@@ -26,7 +38,7 @@ function revenueFormatter(value) {
     return String(value);
 }
 
-export default function LineChartCard({ title, data }) {
+export default function LineChartCard({ title, data }: LineChartCardProps) {
     return (
         <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
@@ -70,8 +82,8 @@ export default function LineChartCard({ title, data }) {
                                 borderRadius: 6,
                                 border: '1px solid #e5e7eb',
                             }}
-                            formatter={(value, name, { dataKey }) =>
-                                dataKey === 'revenue'
+                            formatter={(value, name, item) =>
+                                item?.dataKey === 'revenue'
                                     ? [
                                           Number(value).toLocaleString('fr-MA', {
                                               minimumFractionDigits: 2,

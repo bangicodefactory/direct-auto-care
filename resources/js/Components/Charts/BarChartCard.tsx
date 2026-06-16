@@ -1,7 +1,19 @@
 import { BRAND_PRIMARY } from '@/constants/brand';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-export default function BarChartCard({ title, data, dataKey = 'count', nameKey = 'name' }) {
+interface BarChartCardProps {
+    title: string;
+    data: object[];
+    dataKey?: string;
+    nameKey?: string;
+}
+
+export default function BarChartCard({
+    title,
+    data,
+    dataKey = 'count',
+    nameKey = 'name',
+}: BarChartCardProps) {
     return (
         <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">

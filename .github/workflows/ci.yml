@@ -101,5 +101,8 @@ jobs:
       - name: Format check (Prettier)
         run: npm run format:check
 
+      - name: Type check (tsc)
+        run: npm run types
+
       - name: Build
         run: npm run build
