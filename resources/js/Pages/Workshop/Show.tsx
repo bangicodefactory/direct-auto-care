@@ -83,7 +83,10 @@ function PhaseStepper({ phases, currentStatus }: PhaseStepperProps) {
                         className="flex min-w-[88px] flex-1 flex-col items-center text-center"
                     >
                         <div className="flex w-full items-center">
-                            <span className="h-0.5 flex-1 bg-transparent" />
+                            {/* Connector coming into this dot (green once the previous phase is done). */}
+                            <span
+                                className={`h-0.5 flex-1 ${i === 0 ? 'opacity-0' : i <= currentIndex ? 'bg-green-500' : 'bg-border'}`}
+                            />
                             <span
                                 className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${
                                     current
@@ -95,8 +98,9 @@ function PhaseStepper({ phases, currentStatus }: PhaseStepperProps) {
                             >
                                 {done ? <Check className="h-4 w-4" /> : i + 1}
                             </span>
+                            {/* Connector leaving this dot toward the next (green once this phase is done). */}
                             <span
-                                className={`h-0.5 flex-1 ${i < phases.length - 1 && (done || current) ? 'bg-green-500' : 'bg-border'} ${i === phases.length - 1 ? 'opacity-0' : ''}`}
+                                className={`h-0.5 flex-1 ${i === phases.length - 1 ? 'opacity-0' : i < currentIndex ? 'bg-green-500' : 'bg-border'}`}
                             />
                         </div>
                         <span
