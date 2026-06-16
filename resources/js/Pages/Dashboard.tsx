@@ -2,8 +2,71 @@ import BarChartCard from '@/Components/Charts/BarChartCard';
 import LineChartCard from '@/Components/Charts/LineChartCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import { ReactNode } from 'react';
 
-export default function Dashboard({ kpis, isAdmin }) {
+interface AppointmentToday {
+    id: number;
+    customer: string;
+    vehicle: string;
+    scheduled_at: string;
+    status: string;
+    services: string[];
+}
+
+interface LowStockProduct {
+    id: number;
+    name: string;
+    quantity_on_hand: number;
+    low_stock_threshold: number;
+    unit: string;
+}
+
+interface WorkshopPhase {
+    value: string;
+    label: string;
+    color: string;
+    count: number;
+}
+
+interface WorkshopStats {
+    active: number;
+    closed_today: number;
+    by_status: WorkshopPhase[];
+}
+
+interface TopService {
+    name: string;
+    count: number;
+}
+
+interface MonthlyStat {
+    month: string;
+    revenue: number;
+    appointments: number;
+}
+
+interface DashboardKpis {
+    customers_total: number;
+    customers_this_month: number;
+    customers_delta: number;
+    active_vehicles: number;
+    pending_reminders: number;
+    appointments_today: AppointmentToday[];
+    low_stock: LowStockProduct[];
+    workshop: WorkshopStats;
+    revenue_month?: number;
+    revenue_year?: number;
+    revenue_last_year?: number;
+    top_services?: TopService[];
+    monthly_stats?: MonthlyStat[];
+}
+
+interface DashboardProps {
+    kpis: DashboardKpis;
+    isAdmin: boolean;
+}
+
+export default function Dashboard({ kpis, isAdmin }: DashboardProps) {
     return (
         <AuthenticatedLayout
             header={
@@ -122,14 +185,14 @@ export default function Dashboard({ kpis, isAdmin }) {
                         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                             <BarChartCard
                                 title="Top prestations"
-                                data={kpis.top_services}
+                                data={kpis.top_services!}
                                 dataKey="count"
                                 nameKey="name"
                             />
                             <div className="lg:col-span-2">
                                 <LineChartCard
                                     title="Évolution mensuelle (12 mois)"
-                                    data={kpis.monthly_stats}
+                                    data={kpis.monthly_stats!}
                                 />
                             </div>
                         </div>
@@ -142,14 +205,14 @@ export default function Dashboard({ kpis, isAdmin }) {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmt(value) {
+function fmt(value: number | undefined) {
     return Number(value).toLocaleString('fr-MA', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     });
 }
 
-function Delta({ value }) {
+function Delta({ value }: { value: number }) {
     if (value === 0) return <span className="text-xs text-muted-foreground">= ce mois</span>;
     const positive = value > 0;
     return (
@@ -161,7 +224,7 @@ function Delta({ value }) {
 }
 
 // Phase colour → dot classes, matching ServiceOrderStatus::color().
-const PHASE_DOT = {
+const PHASE_DOT: Record<string, string> = {
     gray: 'bg-gray-400',
     blue: 'bg-blue-500',
     yellow: 'bg-yellow-500',
@@ -172,7 +235,7 @@ const PHASE_DOT = {
     red: 'bg-red-500',
 };
 
-function WorkshopSection({ workshop }) {
+function WorkshopSection({ workshop }: { workshop: WorkshopStats }) {
     const workshopUrl = route('workshop.index');
 
     return (
@@ -227,7 +290,14 @@ function WorkshopSection({ workshop }) {
     );
 }
 
-function KpiCard({ label, value, sub, href }) {
+interface KpiCardProps {
+    label: string;
+    value: ReactNode;
+    sub?: ReactNode;
+    href?: string;
+}
+
+function KpiCard({ label, value, sub, href }: KpiCardProps) {
     const inner = (
         <>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -252,7 +322,13 @@ function KpiCard({ label, value, sub, href }) {
     return <div className="rounded-lg border border-border bg-card p-5 shadow-sm">{inner}</div>;
 }
 
-function Section({ title, href, children }) {
+interface SectionProps {
+    title: string;
+    href?: string;
+    children: ReactNode;
+}
+
+function Section({ title, href, children }: SectionProps) {
     return (
         <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
             <div className="mb-3 flex items-center justify-between">

@@ -6,7 +6,12 @@ import UpdateLocaleForm from './Partials/UpdateLocaleForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 
-export default function Edit({ mustVerifyEmail, status }) {
+interface EditProps {
+    mustVerifyEmail?: boolean;
+    status?: string;
+}
+
+export default function Edit({ mustVerifyEmail, status }: EditProps) {
     const { t } = useTranslation();
 
     return (
