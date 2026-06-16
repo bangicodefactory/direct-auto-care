@@ -10,34 +10,67 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { ProductCategory } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 
-export default function Create({ categories }) {
-    const { data, setData, post, processing, errors } = useForm({
-        category: '',
-        name: '',
-        sku: '',
-        unit: '',
-        price_buy: '',
-        price_sell: '',
-        quantity_on_hand: 0,
-        low_stock_threshold: 5,
+interface ProductForEdit {
+    id: number;
+    category: ProductCategory;
+    name: string;
+    sku: string | null;
+    unit: string;
+    price_buy: string | null;
+    price_sell: string;
+    quantity_on_hand: number;
+    low_stock_threshold: number;
+}
+
+interface CategoryOption {
+    value: ProductCategory;
+    label: string;
+}
+
+interface EditProps {
+    product: ProductForEdit;
+    categories: CategoryOption[];
+}
+
+export default function Edit({ product, categories }: EditProps) {
+    const { data, setData, put, processing, errors } = useForm<{
+        category: string;
+        name: string;
+        sku: string;
+        unit: string;
+        price_buy: string;
+        price_sell: string;
+        quantity_on_hand: number | string;
+        low_stock_threshold: number | string;
+    }>({
+        category: product.category,
+        name: product.name,
+        sku: product.sku ?? '',
+        unit: product.unit,
+        price_buy: product.price_buy ?? '',
+        price_sell: product.price_sell,
+        quantity_on_hand: product.quantity_on_hand,
+        low_stock_threshold: product.low_stock_threshold,
     });
 
-    function submit(e) {
+    function submit(e: FormEvent) {
         e.preventDefault();
-        post(route('products.store'));
+        put(route('products.update', product.id));
     }
 
     return (
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-foreground">
-                    Ajouter un produit
+                    Modifier — {product.name}
                 </h2>
             }
         >
-            <Head title="Nouveau produit" />
+            <Head title={`Modifier ${product.name}`} />
 
             <div className="py-8">
                 <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
@@ -52,7 +85,7 @@ export default function Create({ categories }) {
                                 onValueChange={(v) => setData('category', v)}
                             >
                                 <SelectTrigger id="category" className="mt-1 min-h-[44px] w-full">
-                                    <SelectValue placeholder="— Choisir —" />
+                                    <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categories.map((c) => (
@@ -163,12 +196,12 @@ export default function Create({ categories }) {
 
                         <div className="flex items-center justify-between pt-2">
                             <Link
-                                href={route('products.index')}
+                                href={route('products.show', product.id)}
                                 className="text-sm text-muted-foreground hover:underline"
                             >
                                 Annuler
                             </Link>
-                            <Button disabled={processing}>Créer</Button>
+                            <Button disabled={processing}>Enregistrer</Button>
                         </div>
                     </form>
                 </div>

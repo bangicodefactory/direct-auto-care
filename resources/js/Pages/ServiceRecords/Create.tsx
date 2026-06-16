@@ -5,36 +5,46 @@ import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
 import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { ServiceType, Vehicle } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 
-export default function Edit({ record, serviceTypes }) {
+interface CreateProps {
+    vehicle: Pick<Vehicle, 'id' | 'make' | 'model' | 'license_plate' | 'mileage'>;
+    serviceTypes: Pick<ServiceType, 'id' | 'name'>[];
+    prefill: {
+        serviced_at: string;
+        service_type_ids: number[];
+    } | null;
+}
+
+export default function Create({ vehicle, serviceTypes, prefill }: CreateProps) {
     const today = new Date().toISOString().split('T')[0];
-    const { make, model, license_plate, id: vehicleId } = record.vehicle;
 
-    const { data, setData, patch, processing, errors } = useForm({
-        service_type_ids: record.service_type_ids,
-        serviced_at: record.serviced_at,
-        mileage_at_service: record.mileage_at_service ?? '',
-        notes: record.notes ?? '',
+    const { data, setData, post, processing, errors } = useForm({
+        service_type_ids: prefill?.service_type_ids ?? [],
+        serviced_at: prefill?.serviced_at ?? today,
+        mileage_at_service: '',
+        notes: '',
     });
 
-    function submit(e) {
+    function submit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        patch(route('service-records.update', record.id));
+        post(route('vehicles.service-records.store', vehicle.id));
     }
 
     return (
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-foreground">
-                    Modifier le compte rendu —{' '}
+                    Nouveau compte rendu —{' '}
                     <span className="font-normal text-muted-foreground">
-                        {make} {model} ({license_plate})
+                        {vehicle.make} {vehicle.model} ({vehicle.license_plate})
                     </span>
                 </h2>
             }
         >
-            <Head title="Modifier le compte rendu" />
+            <Head title="Nouveau compte rendu" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-2xl sm:px-6 lg:px-8">
@@ -71,10 +81,15 @@ export default function Edit({ record, serviceTypes }) {
                                     id="mileage_at_service"
                                     type="number"
                                     value={data.mileage_at_service}
-                                    min={0}
+                                    min={vehicle.mileage ?? 0}
                                     className="mt-1 block w-full"
                                     onChange={(e) => setData('mileage_at_service', e.target.value)}
                                 />
+                                {vehicle.mileage != null && (
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        Minimum&nbsp;: {vehicle.mileage.toLocaleString('fr-MA')} km
+                                    </p>
+                                )}
                                 <InputError message={errors.mileage_at_service} className="mt-2" />
                             </div>
 
@@ -92,7 +107,7 @@ export default function Edit({ record, serviceTypes }) {
 
                             <div className="flex items-center justify-end gap-4">
                                 <Link
-                                    href={route('vehicles.show', vehicleId)}
+                                    href={route('vehicles.show', vehicle.id)}
                                     className="text-sm text-muted-foreground hover:text-foreground"
                                 >
                                     Annuler

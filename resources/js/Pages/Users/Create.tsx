@@ -12,9 +12,13 @@ import {
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-const roleLabels = { admin: 'Administrateur', employee: 'Employé' };
+const roleLabels: Record<string, string> = { admin: 'Administrateur', employee: 'Employé' };
 
-export default function Create({ roles }) {
+interface CreateProps {
+    roles: string[];
+}
+
+export default function Create({ roles }: CreateProps) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         email: '',
@@ -23,7 +27,7 @@ export default function Create({ roles }) {
         role: roles[0] ?? '',
     });
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
         post(route('users.store'));
     }

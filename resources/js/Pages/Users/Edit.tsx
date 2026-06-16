@@ -11,11 +11,22 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { User } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-const roleLabels = { admin: 'Administrateur', employee: 'Employé' };
+const roleLabels: Record<string, string> = { admin: 'Administrateur', employee: 'Employé' };
 
-export default function Edit({ user, roles }) {
+/** `$user->load('roles')` — full User model with eager-loaded Spatie roles. */
+interface UserWithRoles extends User {
+    roles: { name: string }[];
+}
+
+interface EditProps {
+    user: UserWithRoles;
+    roles: string[];
+}
+
+export default function Edit({ user, roles }: EditProps) {
     const { data, setData, put, processing, errors } = useForm({
         name: user.name,
         email: user.email,
@@ -23,7 +34,7 @@ export default function Edit({ user, roles }) {
         is_active: user.is_active,
     });
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
         put(route('users.update', user.id));
     }
