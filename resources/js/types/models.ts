@@ -14,6 +14,10 @@
 
 /* ------------------------------------------------------------------ *
  * Enum string-literal unions (backing values from app/Enums/*.php)
+ *
+ * NOTE: these are hand-mirrored from the PHP enums — there is no build-time
+ * link, so keep them in sync when an `app/Enums/*` backing value changes.
+ * (Auto-generation from Eloquent is deferred to a future ADR.)
  * ------------------------------------------------------------------ */
 
 export type FuelType = 'essence' | 'diesel' | 'hybride' | 'electrique';
