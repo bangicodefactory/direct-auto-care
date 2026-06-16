@@ -44,9 +44,9 @@ interface CreateForm {
 }
 
 interface CreateProps {
-    customers: Customer[];
-    products: Product[];
-    vehicles: Vehicle[];
+    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    products: Pick<Product, 'id' | 'name' | 'unit' | 'price_sell'>[];
+    vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
     types: SelectOption[];
     defaultType: InvoiceType;
 }

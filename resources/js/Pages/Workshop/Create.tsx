@@ -42,8 +42,8 @@ interface TodayAppointment {
 }
 
 interface CreateProps {
-    customers: Customer[];
-    vehicles: Vehicle[];
+    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
     todayAppointments: TodayAppointment[];
 }
 

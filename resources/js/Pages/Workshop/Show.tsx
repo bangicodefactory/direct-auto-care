@@ -2,7 +2,7 @@ import Modal from '@/Components/Modal';
 import VehicleConditionDiagram from '@/Components/VehicleConditionDiagram';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import type { Product, ServiceOrder, ServiceOrderItem, ServiceOrderStatus } from '@/types/models';
+import type { Product, ServiceOrderItem, ServiceOrderStatus } from '@/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Check, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -289,20 +289,30 @@ function PartsManager({ order, products, editable }: PartsManagerProps) {
     );
 }
 
-type WorkshopShowOrder = Omit<
-    ServiceOrder,
-    'customer' | 'vehicle' | 'quote' | 'invoice' | 'items' | 'signature_path'
-> & {
-    customer: string;
-    vehicle: string;
-    status_color: BadgeColor;
+// Bespoke projection from ServiceOrderController@show (summary() + extra fields);
+// NOT the raw ServiceOrder model — phase timestamps live in `phases`, not here.
+interface WorkshopShowOrder {
+    id: number;
+    number: string;
+    status: ServiceOrderStatus;
     status_label: string;
-    received_at: string | null;
+    status_color: BadgeColor;
+    customer: string | null;
+    vehicle: string | null;
+    updated_at: string | null;
+    mileage_in: number | null;
+    fuel_level: number | null;
+    reception_condition: Record<string, string> | null;
+    reception_photos: string[];
     signature_url: string | null;
+    diagnosis_notes: string | null;
+    internal_notes: string | null;
+    received_at: string | null;
+    cancelled_at: string | null;
+    items: ServiceOrderItem[];
     quote: { id: number; number: string } | null;
     invoice: { id: number; number: string } | null;
-    items: ServiceOrderItem[];
-};
+}
 
 interface ConfirmState {
     kind: 'advance' | 'cancel';
