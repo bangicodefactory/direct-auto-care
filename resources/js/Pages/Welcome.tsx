@@ -1,8 +1,9 @@
+import type { User } from '@/types/models';
 import { Head, Link } from '@inertiajs/react';
 
 interface WelcomeProps {
     auth: {
-        user: unknown;
+        user: User | null;
     };
     laravelVersion: string;
     phpVersion: string;
