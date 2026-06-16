@@ -13,17 +13,59 @@ import {
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { AppointmentStatus, Customer, ServiceType, Vehicle } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
 
-export default function AppointmentsCreate({ customers, vehicles, serviceTypes }) {
-    const { data, setData, post, processing, errors } = useForm({
-        customer_id: '',
-        vehicle_id: '',
-        scheduled_at: '',
-        duration: 60,
-        service_type_ids: [],
-        notes: '',
+interface StatusOption {
+    value: AppointmentStatus;
+    label: string;
+}
+
+/** The appointment-being-edited DTO projected by AppointmentsController@edit. */
+interface EditableAppointment {
+    id: number;
+    customer_id: number;
+    vehicle_id: number | null;
+    scheduled_at: string;
+    duration: number;
+    status: AppointmentStatus;
+    notes: string | null;
+    service_type_ids: number[];
+}
+
+/** Props for the Appointments/Edit page (AppointmentsController@edit). */
+interface AppointmentsEditProps {
+    appointment: EditableAppointment;
+    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
+    serviceTypes: Pick<ServiceType, 'id' | 'name'>[];
+    statuses: StatusOption[];
+}
+
+export default function AppointmentsEdit({
+    appointment,
+    customers,
+    vehicles,
+    serviceTypes,
+    statuses,
+}: AppointmentsEditProps) {
+    const { data, setData, put, processing, errors } = useForm<{
+        customer_id: number | string;
+        vehicle_id: number | string;
+        scheduled_at: string;
+        duration: number | string;
+        status: AppointmentStatus | '';
+        service_type_ids: number[];
+        notes: string;
+    }>({
+        customer_id: appointment.customer_id ?? '',
+        vehicle_id: appointment.vehicle_id ?? '',
+        scheduled_at: appointment.scheduled_at ?? '',
+        duration: appointment.duration ?? 60,
+        status: appointment.status ?? '',
+        service_type_ids: appointment.service_type_ids ?? [],
+        notes: appointment.notes ?? '',
     });
 
     const filteredVehicles = useMemo(
@@ -31,9 +73,9 @@ export default function AppointmentsCreate({ customers, vehicles, serviceTypes }
         [vehicles, data.customer_id],
     );
 
-    function submit(e) {
+    function submit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        post(route('appointments.store'));
+        put(route('appointments.update', appointment.id));
     }
 
     return (
@@ -41,15 +83,15 @@ export default function AppointmentsCreate({ customers, vehicles, serviceTypes }
             header={
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold leading-tight text-foreground">
-                        Nouveau rendez-vous
+                        Modifier le rendez-vous #{appointment.id}
                     </h2>
                     <Button variant="outline" asChild>
-                        <Link href={route('appointments.index')}>← Retour</Link>
+                        <Link href={route('appointments.show', appointment.id)}>← Retour</Link>
                     </Button>
                 </div>
             }
         >
-            <Head title="Nouveau rendez-vous" />
+            <Head title={`Modifier RDV #${appointment.id}`} />
 
             <div className="py-8">
                 <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
@@ -138,6 +180,31 @@ export default function AppointmentsCreate({ customers, vehicles, serviceTypes }
                                     </div>
                                 </div>
 
+                                <div>
+                                    <InputLabel htmlFor="status" value="Statut *" />
+                                    <Select
+                                        value={data.status}
+                                        onValueChange={(v) =>
+                                            setData('status', v as AppointmentStatus)
+                                        }
+                                    >
+                                        <SelectTrigger
+                                            id="status"
+                                            className="mt-1 min-h-[44px] w-full"
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {statuses.map((s) => (
+                                                <SelectItem key={s.value} value={s.value}>
+                                                    {s.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.status} className="mt-1" />
+                                </div>
+
                                 <ServiceTypeMultiCheck
                                     serviceTypes={serviceTypes}
                                     selected={data.service_type_ids}
@@ -161,10 +228,14 @@ export default function AppointmentsCreate({ customers, vehicles, serviceTypes }
 
                             <div className="flex justify-end gap-3 px-6 py-4">
                                 <Button variant="outline" asChild>
-                                    <Link href={route('appointments.index')}>Annuler</Link>
+                                    <Link href={route('appointments.show', appointment.id)}>
+                                        Annuler
+                                    </Link>
                                 </Button>
                                 <Button disabled={processing}>
-                                    {processing ? 'Enregistrement…' : 'Confirmer le rendez-vous'}
+                                    {processing
+                                        ? 'Enregistrement…'
+                                        : 'Enregistrer les modifications'}
                                 </Button>
                             </div>
                         </form>

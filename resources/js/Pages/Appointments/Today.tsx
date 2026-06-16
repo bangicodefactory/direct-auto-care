@@ -1,17 +1,38 @@
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { AppointmentStatus } from '@/types/models';
 import { Head, Link, router } from '@inertiajs/react';
 import { LogIn } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const REFRESH_MS = 5 * 60 * 1000;
 
-const STATUS_STYLES = {
+const STATUS_STYLES: Record<AppointmentStatus, string> = {
     pending: 'bg-yellow-100 text-yellow-800',
     confirmed: 'bg-blue-100 text-blue-800',
     completed: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
 };
+
+/** A row of today's list as projected by AppointmentsController@todayPage. */
+interface TodayAppointment {
+    id: number;
+    scheduled_at: string;
+    ends_at: string | null;
+    duration: number;
+    status: AppointmentStatus;
+    status_label: string;
+    notes: string | null;
+    customer: { id: number; name: string };
+    vehicle: { id: number; plate: string; make: string; model: string } | null;
+    services: string[];
+    service_order_id: number | null;
+}
+
+/** Props for the Appointments/Today page (AppointmentsController@todayPage). */
+interface AppointmentsTodayProps {
+    todayList: TodayAppointment[];
+}
 
 function todayLabel() {
     return new Date().toLocaleDateString('fr-FR', {
@@ -27,7 +48,7 @@ function currentHHMM() {
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
-export default function AppointmentsToday({ todayList }) {
+export default function AppointmentsToday({ todayList }: AppointmentsTodayProps) {
     useEffect(() => {
         function refresh() {
             router.reload({ only: ['todayList'] });
@@ -83,7 +104,7 @@ export default function AppointmentsToday({ todayList }) {
     );
 }
 
-function AppointmentRow({ apt, now }) {
+function AppointmentRow({ apt, now }: { apt: TodayAppointment; now: string }) {
     const [checkingIn, setCheckingIn] = useState(false);
 
     const isActive =

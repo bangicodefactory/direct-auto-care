@@ -27,7 +27,7 @@ const FIELD_ORDER = [
 ];
 
 interface VehicleFormData {
-    customer_id: string | number;
+    customer_id?: string | number;
     make: string;
     model: string;
     year: string | number;
@@ -87,7 +87,7 @@ export default function VehicleForm({
                     <InputLabel value="Client" />
                     <CustomerCombobox
                         customers={customers}
-                        value={data.customer_id}
+                        value={data.customer_id ?? ''}
                         onChange={(id) => setData('customer_id', id)}
                         error={errors.customer_id}
                         inputRef={(el) => {

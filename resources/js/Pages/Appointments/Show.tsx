@@ -1,17 +1,46 @@
 import Modal from '@/Components/Modal';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { AppointmentStatus } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-const STATUS_STYLES = {
+const STATUS_STYLES: Record<AppointmentStatus, string> = {
     pending: 'bg-yellow-100 text-yellow-800',
     confirmed: 'bg-blue-100 text-blue-800',
     completed: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
 };
 
-function Field({ label, value }) {
+/** The appointment DTO projected by AppointmentsController@show. */
+interface ShowAppointment {
+    id: number;
+    scheduled_at: string;
+    duration: number;
+    ends_at: string | null;
+    status: AppointmentStatus;
+    status_label: string;
+    notes: string | null;
+    customer: { id: number; name: string; phone: string; email: string | null };
+    vehicle: { id: number; plate: string; make: string; model: string } | null;
+    services: string[];
+    created_by: string | null;
+}
+
+interface ShowCan {
+    edit: boolean;
+    cancel: boolean;
+    complete: boolean;
+    delete: boolean;
+}
+
+/** Props for the Appointments/Show page (AppointmentsController@show). */
+interface AppointmentsShowProps {
+    appointment: ShowAppointment;
+    can: ShowCan;
+}
+
+function Field({ label, value }: { label: string; value: React.ReactNode }) {
     if (value === null || value === undefined || value === '') return null;
     return (
         <div>
@@ -23,7 +52,7 @@ function Field({ label, value }) {
     );
 }
 
-function CancelButton({ appointmentId }) {
+function CancelButton({ appointmentId }: { appointmentId: number }) {
     const { post, processing } = useForm({});
     const [open, setOpen] = useState(false);
 
@@ -66,7 +95,7 @@ function CancelButton({ appointmentId }) {
     );
 }
 
-function CompleteButton({ appointmentId }) {
+function CompleteButton({ appointmentId }: { appointmentId: number }) {
     const { post, processing } = useForm({});
     const [open, setOpen] = useState(false);
 
@@ -109,7 +138,7 @@ function CompleteButton({ appointmentId }) {
     );
 }
 
-function DeleteButton({ appointmentId }) {
+function DeleteButton({ appointmentId }: { appointmentId: number }) {
     const { delete: destroy, processing } = useForm({});
 
     function handleDelete() {
@@ -124,7 +153,7 @@ function DeleteButton({ appointmentId }) {
     );
 }
 
-export default function AppointmentsShow({ appointment, can }) {
+export default function AppointmentsShow({ appointment, can }: AppointmentsShowProps) {
     return (
         <AuthenticatedLayout
             header={

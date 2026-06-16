@@ -1,33 +1,38 @@
 import CustomerForm from '@/Components/CustomerForm';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Customer } from '@/types/models';
 import { Head, useForm } from '@inertiajs/react';
 
-export default function Create() {
-    const { data, setData, post, processing, errors } = useForm({
-        first_name: '',
-        last_name: '',
-        phone: '',
-        email: '',
-        address: '',
-        notes: '',
-        notify_whatsapp: true,
-        notify_email: true,
+interface EditProps {
+    customer: Customer;
+}
+
+export default function Edit({ customer }: EditProps) {
+    const { data, setData, put, processing, errors } = useForm({
+        first_name: customer.first_name,
+        last_name: customer.last_name,
+        phone: customer.phone,
+        email: customer.email ?? '',
+        address: customer.address ?? '',
+        notes: customer.notes ?? '',
+        notify_whatsapp: customer.notify_whatsapp,
+        notify_email: customer.notify_email,
     });
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
-        post(route('customers.store'));
+        put(route('customers.update', customer.id));
     }
 
     return (
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Nouveau client
+                    Modifier le client
                 </h2>
             }
         >
-            <Head title="Nouveau client" />
+            <Head title="Modifier le client" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-2xl sm:px-6 lg:px-8">
@@ -38,7 +43,8 @@ export default function Create() {
                             errors={errors}
                             processing={processing}
                             onSubmit={submit}
-                            cancelHref={route('customers.index')}
+                            cancelHref={route('customers.show', customer.id)}
+                            autoFocus={false}
                         />
                     </div>
                 </div>

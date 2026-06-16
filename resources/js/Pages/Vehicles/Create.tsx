@@ -1,8 +1,15 @@
 import VehicleForm from '@/Components/VehicleForm';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Customer } from '@/types/models';
 import { Head, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 
-export default function Create({ customer = null, customers = null }) {
+interface CreateProps {
+    customer?: Pick<Customer, 'id' | 'first_name' | 'last_name'> | null;
+    customers?: Pick<Customer, 'id' | 'first_name' | 'last_name' | 'phone'>[] | null;
+}
+
+export default function Create({ customer = null, customers = null }: CreateProps) {
     const isStandalone = customers !== null;
 
     const { data, setData, post, processing, errors } = useForm({
@@ -17,12 +24,12 @@ export default function Create({ customer = null, customers = null }) {
         color: '',
     });
 
-    function submit(e) {
+    function submit(e: FormEvent) {
         e.preventDefault();
         if (isStandalone) {
             post(route('vehicles.store'));
         } else {
-            post(route('customers.vehicles.store', customer.id));
+            post(route('customers.vehicles.store', customer!.id));
         }
     }
 
@@ -57,7 +64,7 @@ export default function Create({ customer = null, customers = null }) {
                             cancelHref={
                                 isStandalone
                                     ? route('vehicles.index')
-                                    : route('customers.show', customer.id)
+                                    : route('customers.show', customer!.id)
                             }
                             customers={isStandalone ? customers : null}
                         />

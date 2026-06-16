@@ -17,18 +17,67 @@ import {
 } from '@/Components/ui/table';
 import { FUEL_LABELS } from '@/constants/fuelTypes';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { FuelType } from '@/types/models';
+import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-function SortIcon({ column, currentSort, currentDirection }) {
+interface VehicleRow {
+    id: number;
+    make: string;
+    model: string;
+    year: number;
+    license_plate: string;
+    fuel_type: FuelType;
+    customer: {
+        id: number;
+        name: string;
+    };
+}
+
+interface VehicleFilters {
+    search?: string;
+    sort?: string;
+    direction?: string;
+}
+
+interface IndexProps {
+    vehicles: Paginated<VehicleRow>;
+    filters: VehicleFilters;
+    can: {
+        delete: boolean;
+    };
+}
+
+interface SortIconProps {
+    column: string;
+    currentSort: string;
+    currentDirection: string;
+}
+
+interface SortableHeaderProps {
+    column: string;
+    label: string;
+    currentSort: string;
+    currentDirection: string;
+    onSort: (column: string) => void;
+}
+
+function SortIcon({ column, currentSort, currentDirection }: SortIconProps) {
     if (currentSort !== column) {
         return <span className="ms-1 text-muted-foreground/40">↕</span>;
     }
     return <span className="ms-1 text-primary">{currentDirection === 'asc' ? '↑' : '↓'}</span>;
 }
 
-function SortableHeader({ column, label, currentSort, currentDirection, onSort }) {
+function SortableHeader({
+    column,
+    label,
+    currentSort,
+    currentDirection,
+    onSort,
+}: SortableHeaderProps) {
     return (
         <button
             type="button"
@@ -45,9 +94,9 @@ function SortableHeader({ column, label, currentSort, currentDirection, onSort }
     );
 }
 
-export default function Index({ vehicles, filters, can }) {
+export default function Index({ vehicles, filters, can }: IndexProps) {
     const [search, setSearch] = useState(filters?.search ?? '');
-    const [deletingVehicle, setDeletingVehicle] = useState(null);
+    const [deletingVehicle, setDeletingVehicle] = useState<VehicleRow | null>(null);
     const [processing, setProcessing] = useState(false);
     const isFirstRender = useRef(true);
 
@@ -70,7 +119,7 @@ export default function Index({ vehicles, filters, can }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
-    function handleSort(column) {
+    function handleSort(column: string) {
         const newDirection = sort === column && direction === 'asc' ? 'desc' : 'asc';
         router.get(
             route('vehicles.index'),
@@ -83,7 +132,7 @@ export default function Index({ vehicles, filters, can }) {
 
     function destroy() {
         setProcessing(true);
-        router.delete(route('vehicles.destroy', deletingVehicle.id), {
+        router.delete(route('vehicles.destroy', deletingVehicle!.id), {
             onFinish: () => {
                 setProcessing(false);
                 setDeletingVehicle(null);
