@@ -2,7 +2,11 @@ import { Button } from '@/Components/ui/button';
 import { useTranslation } from '@/helpers/i18n';
 import { useForm, usePage } from '@inertiajs/react';
 
-export default function UpdateLocaleForm({ className = '' }) {
+interface UpdateLocaleFormProps {
+    className?: string;
+}
+
+export default function UpdateLocaleForm({ className = '' }: UpdateLocaleFormProps) {
     const { t } = useTranslation();
     const user = usePage().props.auth.user;
 
@@ -10,7 +14,7 @@ export default function UpdateLocaleForm({ className = '' }) {
         locale: user.locale ?? 'fr',
     });
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
         patch(route('profile.locale'));
     }

@@ -5,7 +5,17 @@ import TextInput from '@/Components/TextInput';
 import { useTranslation } from '@/helpers/i18n';
 import { Link, useForm, usePage } from '@inertiajs/react';
 
-export default function UpdateProfileInformation({ mustVerifyEmail, status, className = '' }) {
+interface UpdateProfileInformationProps {
+    mustVerifyEmail?: boolean;
+    status?: string;
+    className?: string;
+}
+
+export default function UpdateProfileInformation({
+    mustVerifyEmail,
+    status,
+    className = '',
+}: UpdateProfileInformationProps) {
     const { t } = useTranslation();
     const user = usePage().props.auth.user;
 
@@ -14,7 +24,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
         email: user.email,
     });
 
-    const submit = (e) => {
+    const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
         patch(route('profile.update'));
