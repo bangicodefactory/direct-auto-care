@@ -8,13 +8,20 @@ import TextInput from '@/Components/TextInput';
 import VehicleConditionDiagram from '@/Components/VehicleConditionDiagram';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Customer, Vehicle } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
 
 const FIELD =
     'mt-1 block min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary';
 
-function Card({ title, description, children }) {
+interface CardProps {
+    title: string;
+    description?: string;
+    children: React.ReactNode;
+}
+
+function Card({ title, description, children }: CardProps) {
     return (
         <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
             <div className="p-6">
@@ -28,8 +35,30 @@ function Card({ title, description, children }) {
     );
 }
 
-export default function Create({ customers, vehicles, todayAppointments }) {
-    const { data, setData, post, processing, progress, errors } = useForm({
+interface TodayAppointment {
+    id: number;
+    customer_id: number;
+    time: string;
+}
+
+interface CreateProps {
+    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
+    todayAppointments: TodayAppointment[];
+}
+
+export default function Create({ customers, vehicles, todayAppointments }: CreateProps) {
+    const { data, setData, post, processing, progress, errors } = useForm<{
+        customer_id: string | number;
+        vehicle_id: string;
+        appointment_id: string;
+        mileage_in: string;
+        reception_condition: Record<string, string>;
+        fuel_level: number;
+        photos: File[];
+        signature: File | null;
+        internal_notes: string;
+    }>({
         customer_id: '',
         vehicle_id: '',
         appointment_id: '',
@@ -51,11 +80,11 @@ export default function Create({ customers, vehicles, todayAppointments }) {
         [todayAppointments, data.customer_id],
     );
 
-    function handleCustomer(id) {
+    function handleCustomer(id: string | number) {
         setData((prev) => ({ ...prev, customer_id: id, vehicle_id: '', appointment_id: '' }));
     }
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
         post(route('workshop.store'), { forceFormData: true });
     }

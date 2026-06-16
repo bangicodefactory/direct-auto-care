@@ -11,19 +11,53 @@ import {
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Customer, InvoiceType, Product, Vehicle } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
 
 const today = new Date().toISOString().slice(0, 10);
 
+interface LineItem {
+    _key: number;
+    product_id: string | number;
+    description: string;
+    quantity: string | number;
+    unit_price_ht: string;
+}
+
+interface SelectOption {
+    value: string;
+    label: string;
+}
+
+interface CreateForm {
+    type: InvoiceType | string;
+    customer_id: string | number;
+    vehicle_id: string | number;
+    issue_date: string;
+    due_date: string;
+    discount: string;
+    tva_rate: string;
+    notes: string;
+    items: LineItem[];
+}
+
+interface CreateProps {
+    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    products: Pick<Product, 'id' | 'name' | 'unit' | 'price_sell'>[];
+    vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
+    types: SelectOption[];
+    defaultType: InvoiceType;
+}
+
 let _nextKey = 0;
-function newItem() {
+function newItem(): LineItem {
     return { _key: _nextKey++, product_id: '', description: '', quantity: 1, unit_price_ht: '' };
 }
 
-export default function Create({ customers, products, vehicles, types, defaultType }) {
-    const { data, setData, post, processing, errors } = useForm({
+export default function Create({ customers, products, vehicles, types, defaultType }: CreateProps) {
+    const { data, setData, post, processing, errors } = useForm<CreateForm>({
         type: defaultType,
         customer_id: '',
         vehicle_id: '',
@@ -40,8 +74,8 @@ export default function Create({ customers, products, vehicles, types, defaultTy
         [vehicles, data.customer_id],
     );
 
-    const subtotalHt = data.items.reduce((sum, it) => {
-        const qty = parseFloat(it.quantity) || 0;
+    const subtotalHt = data.items.reduce((sum: number, it: LineItem) => {
+        const qty = parseFloat(it.quantity as string) || 0;
         const price = parseFloat(it.unit_price_ht) || 0;
         return sum + qty * price;
     }, 0);
@@ -51,11 +85,11 @@ export default function Create({ customers, products, vehicles, types, defaultTy
     const tvaAmount = Math.round((((subtotalHt - discount) * tvaRate) / 100) * 100) / 100;
     const totalTtc = subtotalHt - discount + tvaAmount;
 
-    function handleCustomerChange(id) {
+    function handleCustomerChange(id: string) {
         setData((prev) => ({ ...prev, customer_id: id, vehicle_id: '' }));
     }
 
-    function handleProductChange(index, productId) {
+    function handleProductChange(index: number, productId: string) {
         const product = products.find((p) => String(p.id) === String(productId));
         setData(
             'items',
@@ -72,7 +106,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
         );
     }
 
-    function updateItem(index, field, value) {
+    function updateItem(index: number, field: keyof LineItem, value: string) {
         setData(
             'items',
             data.items.map((it, i) => (i === index ? { ...it, [field]: value } : it)),
@@ -83,14 +117,14 @@ export default function Create({ customers, products, vehicles, types, defaultTy
         setData('items', [...data.items, newItem()]);
     }
 
-    function removeItem(index) {
+    function removeItem(index: number) {
         setData(
             'items',
             data.items.filter((_, i) => i !== index),
         );
     }
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
         post(route('invoices.store'));
     }
@@ -272,7 +306,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                         <tbody className="divide-y divide-border">
                                             {data.items.map((item, index) => {
                                                 const lineTotal =
-                                                    (parseFloat(item.quantity) || 0) *
+                                                    (parseFloat(item.quantity as string) || 0) *
                                                     (parseFloat(item.unit_price_ht) || 0);
                                                 return (
                                                     <tr key={item._key}>

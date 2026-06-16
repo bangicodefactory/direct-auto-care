@@ -15,11 +15,52 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { InvoiceItem, InvoiceStatus, InvoiceType } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ChevronDown, Printer } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 
-function Field({ label, value }) {
+interface FieldProps {
+    label: ReactNode;
+    value: ReactNode;
+}
+
+interface BadgeProps {
+    children: ReactNode;
+    className?: string;
+}
+
+interface ShowProps {
+    // Bespoke projection from InvoicesController@show (not the raw Invoice model).
+    invoice: {
+        id: number;
+        number: string;
+        type: InvoiceType;
+        status: InvoiceStatus;
+        issue_date: string;
+        due_date: string | null;
+        subtotal_ht: string;
+        discount: string;
+        tva_rate: string;
+        tva_amount: string;
+        total_ttc: string;
+        notes: string | null;
+        customer: { id: number; name: string; phone: string | null; email: string | null } | null;
+        vehicle: { id: number; plate: string; make: string; model: string } | null;
+        items: InvoiceItem[];
+        created_by: string | null;
+    };
+    can: {
+        issue?: boolean;
+        markPaid?: boolean;
+        convert?: boolean;
+        edit?: boolean;
+        cancel?: boolean;
+    };
+}
+
+function Field({ label, value }: FieldProps) {
     if (!value) return null;
     return (
         <div>
@@ -31,7 +72,7 @@ function Field({ label, value }) {
     );
 }
 
-function Badge({ children, className = '' }) {
+function Badge({ children, className = '' }: BadgeProps) {
     return (
         <span
             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${className}`}
@@ -41,21 +82,21 @@ function Badge({ children, className = '' }) {
     );
 }
 
-const STATUS_STYLES = {
+const STATUS_STYLES: Record<string, string> = {
     draft: 'bg-muted text-foreground',
     issued: 'bg-blue-100 text-blue-700',
     paid: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
 };
 
-const STATUS_LABELS = {
+const STATUS_LABELS: Record<string, string> = {
     draft: 'Brouillon',
     issued: 'Émise',
     paid: 'Payée',
     cancelled: 'Annulée',
 };
 
-export default function Show({ invoice, can }) {
+export default function Show({ invoice, can }: ShowProps) {
     const typeLabel = invoice.type === 'quote' ? 'Devis' : 'Facture';
     const { post, processing } = useForm({});
     const [confirmingCancel, setConfirmingCancel] = useState(false);

@@ -2,11 +2,14 @@ import Modal from '@/Components/Modal';
 import VehicleConditionDiagram from '@/Components/VehicleConditionDiagram';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { Product, ServiceOrderItem, ServiceOrderStatus } from '@/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Check, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
-const BADGE = {
+type BadgeColor = 'gray' | 'blue' | 'yellow' | 'orange' | 'purple' | 'cyan' | 'green' | 'red';
+
+const BADGE: Record<BadgeColor, string> = {
     gray: 'bg-muted text-foreground',
     blue: 'bg-blue-100 text-blue-700',
     yellow: 'bg-yellow-100 text-yellow-800',
@@ -20,7 +23,12 @@ const BADGE = {
 const FIELD =
     'mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary';
 
-function Field({ label, value }) {
+interface FieldProps {
+    label: string;
+    value?: string | null;
+}
+
+function Field({ label, value }: FieldProps) {
     if (!value) return null;
     return (
         <div>
@@ -32,7 +40,13 @@ function Field({ label, value }) {
     );
 }
 
-function Card({ title, action, children }) {
+interface CardProps {
+    title: string;
+    action?: React.ReactNode;
+    children: React.ReactNode;
+}
+
+function Card({ title, action, children }: CardProps) {
     return (
         <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -44,7 +58,18 @@ function Card({ title, action, children }) {
     );
 }
 
-function PhaseStepper({ phases, currentStatus }) {
+interface Phase {
+    value: ServiceOrderStatus;
+    label: string;
+    at?: string | null;
+}
+
+interface PhaseStepperProps {
+    phases: Phase[];
+    currentStatus: ServiceOrderStatus;
+}
+
+function PhaseStepper({ phases, currentStatus }: PhaseStepperProps) {
     const currentIndex = phases.findIndex((p) => p.value === currentStatus);
 
     return (
@@ -87,8 +112,19 @@ function PhaseStepper({ phases, currentStatus }) {
     );
 }
 
-function PartsManager({ order, products, editable }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+interface PartsManagerProps {
+    order: { id: number; items: ServiceOrderItem[] };
+    products: Product[];
+    editable: boolean;
+}
+
+function PartsManager({ order, products, editable }: PartsManagerProps) {
+    const { data, setData, post, processing, errors, reset } = useForm<{
+        product_id: string;
+        description: string;
+        quantity: number | string;
+        unit_price_ht: string;
+    }>({
         product_id: '',
         description: '',
         quantity: 1,
@@ -97,7 +133,7 @@ function PartsManager({ order, products, editable }) {
 
     const total = order.items.reduce((sum, item) => sum + Number(item.line_total_ht), 0);
 
-    function pickProduct(id) {
+    function pickProduct(id: string) {
         const product = products.find((p) => String(p.id) === String(id));
         setData((current) => ({
             ...current,
@@ -108,7 +144,7 @@ function PartsManager({ order, products, editable }) {
         }));
     }
 
-    function submit(e) {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
         post(route('workshop.items.store', order.id), {
             preserveScroll: true,
@@ -116,7 +152,7 @@ function PartsManager({ order, products, editable }) {
         });
     }
 
-    function remove(itemId) {
+    function remove(itemId: number) {
         router.delete(route('workshop.items.destroy', [order.id, itemId]), {
             preserveScroll: true,
         });
@@ -253,23 +289,64 @@ function PartsManager({ order, products, editable }) {
     );
 }
 
-export default function Show({ order, phases, next, can, products = [] }) {
+// Bespoke projection from ServiceOrderController@show (summary() + extra fields);
+// NOT the raw ServiceOrder model — phase timestamps live in `phases`, not here.
+interface WorkshopShowOrder {
+    id: number;
+    number: string;
+    status: ServiceOrderStatus;
+    status_label: string;
+    status_color: BadgeColor;
+    customer: string | null;
+    vehicle: string | null;
+    updated_at: string | null;
+    mileage_in: number | null;
+    fuel_level: number | null;
+    reception_condition: Record<string, string> | null;
+    reception_photos: string[];
+    signature_url: string | null;
+    diagnosis_notes: string | null;
+    internal_notes: string | null;
+    received_at: string | null;
+    cancelled_at: string | null;
+    items: ServiceOrderItem[];
+    quote: { id: number; number: string } | null;
+    invoice: { id: number; number: string } | null;
+}
+
+interface ConfirmState {
+    kind: 'advance' | 'cancel';
+}
+
+interface ShowProps {
+    order: WorkshopShowOrder;
+    phases: Phase[];
+    next: { value: ServiceOrderStatus; label: string } | null;
+    can: { update: boolean };
+    products?: Product[];
+}
+
+export default function Show({ order, phases, next, can, products = [] }: ShowProps) {
     const isCancelled = order.status === 'cancelled';
     const isClosed = order.status === 'closed';
     const diagnosisEditable = order.status === 'diagnosis' || order.status === 'in_progress';
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors } = useForm<{
+        mileage_in: number | string;
+        diagnosis_notes: string;
+        internal_notes: string;
+    }>({
         mileage_in: order.mileage_in ?? '',
         diagnosis_notes: order.diagnosis_notes ?? '',
         internal_notes: order.internal_notes ?? '',
     });
 
-    const [confirm, setConfirm] = useState(null); // { kind: 'advance'|'cancel' }
+    const [confirm, setConfirm] = useState<ConfirmState | null>(null); // { kind: 'advance'|'cancel' }
     const [busy, setBusy] = useState(false); // a phase transition (advance/cancel) is in flight
     const hasCondition =
         order.reception_condition && Object.keys(order.reception_condition).length > 0;
 
-    function saveNotes(e) {
+    function saveNotes(e: React.FormEvent) {
         e.preventDefault();
         put(route('workshop.update', order.id), { preserveScroll: true });
     }
