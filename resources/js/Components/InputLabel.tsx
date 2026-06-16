@@ -1,7 +1,12 @@
 import { Label } from '@/Components/ui/label';
 import { cn } from '@/lib/utils';
 
-export default function InputLabel({ value, className = '', children, ...props }) {
+export default function InputLabel({
+    value,
+    className = '',
+    children,
+    ...props
+}: React.LabelHTMLAttributes<HTMLLabelElement> & { value?: string }) {
     return (
         <Label {...props} className={cn(className)}>
             {value ? value : children}

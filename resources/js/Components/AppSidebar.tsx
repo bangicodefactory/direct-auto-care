@@ -20,6 +20,7 @@ import {
     SidebarRail,
 } from '@/Components/ui/sidebar';
 import { useTranslation } from '@/helpers/i18n';
+import type { User } from '@/types/inertia';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Bell,
@@ -30,6 +31,7 @@ import {
     FileText,
     LayoutDashboard,
     LogOut,
+    type LucideIcon,
     Package,
     Settings,
     UserCog,
@@ -37,7 +39,14 @@ import {
     Wrench,
 } from 'lucide-react';
 
-const navMain = [
+interface NavItem {
+    labelKey: string;
+    routeName: string;
+    icon: LucideIcon;
+    match: string | null;
+}
+
+const navMain: NavItem[] = [
     { labelKey: 'ui.nav_home', routeName: 'dashboard', icon: LayoutDashboard, match: 'dashboard' },
     {
         labelKey: 'ui.nav_customers',
@@ -73,7 +82,7 @@ const navMain = [
     { labelKey: 'ui.nav_workshop', routeName: 'workshop.index', icon: Wrench, match: 'workshop.*' },
 ];
 
-const navAdmin = [
+const navAdmin: NavItem[] = [
     {
         labelKey: 'ui.nav_reminders',
         routeName: 'reminders.index',
@@ -89,14 +98,19 @@ const navAdmin = [
     },
 ];
 
-function isActive(item) {
+function isActive(item: NavItem) {
     if (item.match === null) {
         return !route().current('appointments.today-page') && route().current('appointments.*');
     }
     return route().current(item.match);
 }
 
-export default function AppSidebar({ user, role, ...props }) {
+type AppSidebarProps = { user: User; role: string | null } & Omit<
+    React.ComponentProps<typeof Sidebar>,
+    'role'
+>;
+
+export default function AppSidebar({ user, role, ...props }: AppSidebarProps) {
     const { t } = useTranslation();
     const locale = usePage().props.locale;
     const isAdmin = role === 'admin';
@@ -153,7 +167,7 @@ export default function AppSidebar({ user, role, ...props }) {
                                     <SidebarMenuItem key={item.labelKey}>
                                         <SidebarMenuButton
                                             asChild
-                                            isActive={route().current(item.match)}
+                                            isActive={route().current(item.match!)}
                                             tooltip={t(item.labelKey)}
                                         >
                                             <Link href={route(item.routeName)}>

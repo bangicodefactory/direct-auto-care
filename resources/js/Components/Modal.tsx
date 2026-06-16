@@ -1,13 +1,22 @@
 import { Dialog, DialogContent, DialogTitle } from '@/Components/ui/dialog';
 import { cn } from '@/lib/utils';
 
-const maxWidthClasses = {
+const maxWidthClasses: Record<string, string> = {
     sm: 'sm:max-w-sm',
     md: 'sm:max-w-md',
     lg: 'sm:max-w-lg',
     xl: 'sm:max-w-xl',
     '2xl': 'sm:max-w-2xl',
 };
+
+interface ModalProps {
+    children?: React.ReactNode;
+    show?: boolean;
+    maxWidth?: string;
+    closeable?: boolean;
+    onClose?: () => void;
+    title?: string;
+}
 
 export default function Modal({
     children,
@@ -16,7 +25,7 @@ export default function Modal({
     closeable = true,
     onClose = () => {},
     title = '',
-}) {
+}: ModalProps) {
     return (
         <Dialog
             open={show}

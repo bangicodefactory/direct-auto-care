@@ -7,7 +7,7 @@ export default function NotificationBell() {
     const { t } = useTranslation();
     const { notifications, unreadCount } = usePage().props;
     const [open, setOpen] = useState(false);
-    const ref = useRef(null);
+    const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -17,8 +17,8 @@ export default function NotificationBell() {
     }, []);
 
     useEffect(() => {
-        function handleClickOutside(e) {
-            if (ref.current && !ref.current.contains(e.target)) {
+        function handleClickOutside(e: MouseEvent) {
+            if (ref.current && !ref.current.contains(e.target as Node)) {
                 setOpen(false);
             }
         }
@@ -26,7 +26,7 @@ export default function NotificationBell() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    function markRead(id) {
+    function markRead(id: string) {
         setOpen(false);
         router.post(route('notifications.read', id));
     }
@@ -35,7 +35,7 @@ export default function NotificationBell() {
         router.post(route('notifications.read-all'), {}, { preserveScroll: true });
     }
 
-    const iconForType = (type) => {
+    const iconForType = (type: string) => {
         if (type === 'low_stock') return '📦';
         if (type === 'reminder_failure') return '⚠️';
         return '📅';

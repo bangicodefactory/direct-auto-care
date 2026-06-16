@@ -1,7 +1,11 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link } from '@inertiajs/react';
 
-export default function GuestLayout({ children }) {
+interface GuestLayoutProps {
+    children?: React.ReactNode;
+}
+
+export default function GuestLayout({ children }: GuestLayoutProps) {
     return (
         <div className="flex min-h-screen flex-col items-center bg-muted pt-6 sm:justify-center sm:pt-0">
             <div>

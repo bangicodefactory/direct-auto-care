@@ -3,12 +3,33 @@ import { Input } from '@/Components/ui/input';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 
-export default function CustomerCombobox({ customers, value, onChange, error, inputRef }) {
+interface CustomerComboboxCustomer {
+    id: number;
+    first_name: string;
+    last_name: string;
+    phone?: string | null;
+}
+
+interface CustomerComboboxProps {
+    customers: CustomerComboboxCustomer[];
+    value: string | number;
+    onChange: (id: number | string) => void;
+    error?: string;
+    inputRef?: React.Ref<HTMLInputElement>;
+}
+
+export default function CustomerCombobox({
+    customers,
+    value,
+    onChange,
+    error,
+    inputRef,
+}: CustomerComboboxProps) {
     const [query, setQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
-    const containerRef = useRef(null);
-    const listRef = useRef(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const listRef = useRef<HTMLUListElement>(null);
 
     const selected = value ? (customers.find((c) => c.id === Number(value)) ?? null) : null;
 
@@ -27,7 +48,7 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
         }
     }, [activeIndex]);
 
-    function select(customer) {
+    function select(customer: CustomerComboboxCustomer) {
         onChange(customer.id);
         setQuery('');
         setIsOpen(false);
@@ -39,7 +60,7 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
         setQuery('');
     }
 
-    function handleKeyDown(e) {
+    function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (!isOpen) {
             if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
                 e.preventDefault();
@@ -76,8 +97,8 @@ export default function CustomerCombobox({ customers, value, onChange, error, in
     }
 
     useEffect(() => {
-        function handler(e) {
-            if (containerRef.current && !containerRef.current.contains(e.target)) {
+        function handler(e: MouseEvent) {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 setIsOpen(false);
                 setActiveIndex(-1);
             }

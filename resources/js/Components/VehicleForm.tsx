@@ -26,6 +26,37 @@ const FIELD_ORDER = [
     'color',
 ];
 
+interface VehicleFormData {
+    customer_id: string | number;
+    make: string;
+    model: string;
+    year: string | number;
+    license_plate: string;
+    vin: string;
+    mileage: string | number;
+    fuel_type: string;
+    color: string;
+}
+
+interface VehicleFormCustomer {
+    id: number;
+    first_name: string;
+    last_name: string;
+    phone?: string | null;
+}
+
+interface VehicleFormProps {
+    data: VehicleFormData;
+    setData: (key: string, value: string | number) => void;
+    errors: Record<string, string>;
+    processing: boolean;
+    onSubmit: (e: React.FormEvent) => void;
+    cancelHref: string;
+    autoFocus?: boolean;
+    customers?: VehicleFormCustomer[] | null;
+    minMileage?: number | null;
+}
+
 export default function VehicleForm({
     data,
     setData,
@@ -36,8 +67,8 @@ export default function VehicleForm({
     autoFocus = true,
     customers = null,
     minMileage = null,
-}) {
-    const inputRefs = useRef({});
+}: VehicleFormProps) {
+    const inputRefs = useRef<Record<string, HTMLElement | null>>({});
 
     const mileageDecreasing =
         minMileage !== null && data.mileage !== '' && Number(data.mileage) < minMileage;
@@ -59,7 +90,9 @@ export default function VehicleForm({
                         value={data.customer_id}
                         onChange={(id) => setData('customer_id', id)}
                         error={errors.customer_id}
-                        inputRef={(el) => (inputRefs.current.customer_id = el)}
+                        inputRef={(el) => {
+                            inputRefs.current.customer_id = el;
+                        }}
                     />
                 </div>
             )}
@@ -69,7 +102,9 @@ export default function VehicleForm({
                     <InputLabel htmlFor="make" value="Marque" />
                     <TextInput
                         id="make"
-                        ref={(el) => (inputRefs.current.make = el)}
+                        ref={(el) => {
+                            inputRefs.current.make = el;
+                        }}
                         value={data.make}
                         className="mt-1 block w-full"
                         isFocused={autoFocus && customers === null}
@@ -82,7 +117,9 @@ export default function VehicleForm({
                     <InputLabel htmlFor="model" value="Modèle" />
                     <TextInput
                         id="model"
-                        ref={(el) => (inputRefs.current.model = el)}
+                        ref={(el) => {
+                            inputRefs.current.model = el;
+                        }}
                         value={data.model}
                         className="mt-1 block w-full"
                         onChange={(e) => setData('model', e.target.value)}
@@ -97,7 +134,9 @@ export default function VehicleForm({
                     <TextInput
                         id="year"
                         type="number"
-                        ref={(el) => (inputRefs.current.year = el)}
+                        ref={(el) => {
+                            inputRefs.current.year = el;
+                        }}
                         value={data.year}
                         className="mt-1 block w-full"
                         min={1950}
@@ -115,7 +154,9 @@ export default function VehicleForm({
                     >
                         <SelectTrigger
                             id="fuel_type"
-                            ref={(el) => (inputRefs.current.fuel_type = el)}
+                            ref={(el) => {
+                                inputRefs.current.fuel_type = el;
+                            }}
                             className="mt-1 min-h-[44px]"
                         >
                             <SelectValue placeholder="— Sélectionner —" />
@@ -137,7 +178,9 @@ export default function VehicleForm({
                     <InputLabel htmlFor="license_plate" value="Plaque d'immatriculation" />
                     <TextInput
                         id="license_plate"
-                        ref={(el) => (inputRefs.current.license_plate = el)}
+                        ref={(el) => {
+                            inputRefs.current.license_plate = el;
+                        }}
                         value={data.license_plate}
                         className="mt-1 block w-full"
                         placeholder="12345-A-01"
@@ -150,7 +193,9 @@ export default function VehicleForm({
                     <InputLabel htmlFor="color" value="Couleur" />
                     <TextInput
                         id="color"
-                        ref={(el) => (inputRefs.current.color = el)}
+                        ref={(el) => {
+                            inputRefs.current.color = el;
+                        }}
                         value={data.color}
                         className="mt-1 block w-full"
                         onChange={(e) => setData('color', e.target.value)}
@@ -165,7 +210,9 @@ export default function VehicleForm({
                     <TextInput
                         id="mileage"
                         type="number"
-                        ref={(el) => (inputRefs.current.mileage = el)}
+                        ref={(el) => {
+                            inputRefs.current.mileage = el;
+                        }}
                         value={data.mileage}
                         className="mt-1 block w-full"
                         min={minMileage ?? 0}
@@ -184,7 +231,9 @@ export default function VehicleForm({
                     <InputLabel htmlFor="vin" value="Numéro de châssis (VIN)" />
                     <TextInput
                         id="vin"
-                        ref={(el) => (inputRefs.current.vin = el)}
+                        ref={(el) => {
+                            inputRefs.current.vin = el;
+                        }}
                         value={data.vin}
                         className="mt-1 block w-full"
                         placeholder="17 caractères"
