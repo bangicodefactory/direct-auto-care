@@ -1,7 +1,12 @@
 import InputError from '@/Components/InputError';
 import { Button } from '@/Components/ui/button';
 import { useEffect, useRef, useState } from 'react';
-import SignatureCanvas from 'react-signature-canvas';
+import _SignatureCanvas from 'react-signature-canvas';
+
+// react-signature-canvas is CJS; under Vite the default import can resolve to
+// { default: Class }. Unwrap so the rendered component is the class, not an object.
+const SignatureCanvas =
+    (_SignatureCanvas as { default?: typeof _SignatureCanvas }).default ?? _SignatureCanvas;
 
 /**
  * Client signature capture. Exports the drawing as a PNG File via onChange so it
@@ -18,7 +23,7 @@ interface SignaturePadProps {
 
 export default function SignaturePad({ onChange, error }: SignaturePadProps) {
     const wrapRef = useRef<HTMLDivElement>(null);
-    const padRef = useRef<SignatureCanvas>(null);
+    const padRef = useRef<_SignatureCanvas>(null);
     const [width, setWidth] = useState(0);
 
     useEffect(() => {

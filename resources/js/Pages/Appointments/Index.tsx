@@ -98,7 +98,10 @@ const localizer = dateFnsLocalizer({
     locales: { fr },
 });
 
-const withDragAndDrop = _withDragAndDrop;
+// The CJS addon resolves to `{ default: fn }` under Vite's interop but to the
+// function directly elsewhere — handle both. (@types declares it as the function.)
+const withDragAndDrop =
+    (_withDragAndDrop as { default?: typeof _withDragAndDrop }).default ?? _withDragAndDrop;
 const DnDCalendar = withDragAndDrop<CalendarEventDate, object>(
     Calendar as ComponentType<CalendarProps<CalendarEventDate, object>>,
 );
@@ -320,7 +323,7 @@ export default function AppointmentsIndex({
             </div>
 
             {can.create && (
-                <Deferred data={['customers', 'vehicles', 'serviceTypes']} fallback={null}>
+                <Deferred data={['customers', 'vehicles', 'serviceTypes']} fallback={<></>}>
                     <CreateModal
                         show={createModal !== null}
                         initialData={createModal}
