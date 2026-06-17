@@ -9,7 +9,7 @@ name: Deploy (garage.bangicode.ma)
 # Required repo SECRETS:  CPANEL_SSH_HOST, CPANEL_SSH_PORT, CPANEL_SSH_USER,
 #                         CPANEL_SSH_KEY (private key), CPANEL_DEPLOY_PATH
 # Required repo VARIABLES: DEPLOY_ENABLED ("true"), CPANEL_PHP_BIN (optional,
-#                         e.g. /opt/cpanel/ea-php83/root/usr/bin/php)
+#                         e.g. /opt/cpanel/ea-php84/root/usr/bin/php)
 
 on:
   workflow_run:
@@ -55,7 +55,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           tools: composer:v2
           coverage: none
       - run: composer install --no-dev --optimize-autoloader --no-interaction
