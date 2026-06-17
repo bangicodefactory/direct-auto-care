@@ -50,6 +50,7 @@ the result to the server over SSH, then runs `deploy/garage/post-deploy.sh`
 | `CPANEL_SSH_USER` | your cPanel username |
 | `CPANEL_SSH_KEY` | the **private** key from §1.4 (full PEM, incl. BEGIN/END lines) |
 | `CPANEL_DEPLOY_PATH` | absolute app root, e.g. `/home/<cpuser>/garage` |
+| `CPANEL_ENV` | the full server `.env` contents — CI writes this to `$CPANEL_DEPLOY_PATH/.env` on every deploy. Must include a fixed `APP_KEY=base64:…`, the DB block, and `ADMIN_*`. |
 
 **Variables:**
 
@@ -58,31 +59,31 @@ the result to the server over SSH, then runs `deploy/garage/post-deploy.sh`
 | `CPANEL_PHP_BIN` | `/opt/cpanel/ea-php84/root/usr/bin/php` (adjust to the real path) |
 | `DEPLOY_ENABLED` | leave unset for now; set to `true` after §3 to arm deploys |
 
-## 3. First-time server bootstrap (one-time, in cPanel Terminal / SSH)
+## 3. First-time go-live (no manual `.env` step)
 
-Do an initial upload so the files exist, then create `.env` and seed the demo.
-Easiest: run the Deploy workflow once manually (Actions ▸ Deploy ▸ *Run
-workflow*) **with `DEPLOY_ENABLED=true`** — it will rsync the files (the
-post-deploy `migrate --force` may warn until `.env` exists; that's fine). Then:
+The deploy **writes `.env` on the server from the `CPANEL_ENV` secret** on every
+run, so there's nothing to hand-edit. To go live:
 
-```bash
-cd ~/garage
-cp deploy/garage/.env.staging.example .env
-nano .env                       # set DB_*, ADMIN_PASSWORD, confirm APP_URL/SESSION_DOMAIN
-export PHP_BIN=/opt/cpanel/ea-php84/root/usr/bin/php
-$PHP_BIN artisan key:generate --force
-$PHP_BIN artisan migrate:fresh --seed --force   # builds schema + loads DEMO fake data
-$PHP_BIN artisan storage:link || true
-$PHP_BIN artisan config:cache && $PHP_BIN artisan route:cache && $PHP_BIN artisan view:cache
-```
+1. Set the **`DEPLOY_ENABLED`** variable to `true`.
+2. Point the subdomain **Document Root** at `<CPANEL_DEPLOY_PATH>/public`
+   (e.g. `/home/bangspbp/garage/public`).
+3. Ensure the **PHP 8.4 CLI has `pdo_mysql`** (cPanel ▸ *Select PHP Version* ▸
+   *Extensions*), and the docroot `.htaccess` PHP handler is **scoped to PHP files**:
+   ```apache
+   <FilesMatch "\.(php|phtml)$">
+       SetHandler application/x-httpd-alt-php84
+   </FilesMatch>
+   ```
+   (an unscoped `SetHandler` 404s non-PHP routes like `/login`).
+4. Run the Deploy workflow with the **`reseed`** input **checked**
+   (Actions ▸ Deploy ▸ *Run workflow*). It writes `.env`, runs
+   `migrate:fresh --seed --force` (schema + DEMO data), links storage, caches.
+5. Run **AutoSSL** (§1.5) → open `https://garage.bangicode.ma` and log in with the
+   `ADMIN_EMAIL` / `ADMIN_PASSWORD` baked into `CPANEL_ENV`.
 
-Visit `https://garage.bangicode.ma` and log in with `ADMIN_EMAIL` /
-`ADMIN_PASSWORD`. (Optional: cPanel ▸ *Directory Privacy* on `~/garage/public`
-to put HTTP basic-auth in front of the demo.)
-
-From now on, **every push to `main` auto-deploys** after CI passes:
-`post-deploy.sh` runs `migrate --force` (additive — your demo data persists).
-To reset the demo to clean fake data, re-run `migrate:fresh --seed --force`.
+From then on, **every push to `main` auto-deploys** after CI passes:
+`post-deploy.sh` runs `migrate --force` (additive — demo data persists). To reset
+the demo to clean fake data, re-run the workflow with **reseed** checked.
 
 ---
 

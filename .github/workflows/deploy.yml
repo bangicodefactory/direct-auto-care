@@ -17,6 +17,11 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      reseed:
+        description: 'Reset DB with fresh demo data (migrate:fresh --seed) instead of migrate --force'
+        type: boolean
+        default: false
 
 # No write scopes needed — this only reads the repo and pushes over SSH.
 permissions:
@@ -87,7 +92,21 @@ jobs:
             --exclude-from=deploy/garage/rsync-exclude.txt \
             ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
-      # ---- Migrate (additive) + cache, on the server ----
+      # ---- Write the server .env from the CPANEL_ENV secret (CI-managed) ----
+      - name: Write server .env
+        env:
+          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+          SSH_PORT: ${{ secrets.CPANEL_SSH_PORT }}
+          SSH_USER: ${{ secrets.CPANEL_SSH_USER }}
+          DEPLOY_PATH: ${{ secrets.CPANEL_DEPLOY_PATH }}
+          ENV_CONTENT: ${{ secrets.CPANEL_ENV }}
+        run: |
+          printf '%s' "$ENV_CONTENT" | ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "umask 077 && cat > '$DEPLOY_PATH/.env'"
+
+      # ---- Migrate + cache, on the server ----
+      # SEED=1 (the workflow_dispatch "reseed" input) does migrate:fresh --seed;
+      # otherwise migrate --force (additive). Auto-deploys never reseed.
       - name: Post-deploy (migrate + cache)
         env:
           SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
@@ -95,6 +114,7 @@ jobs:
           SSH_USER: ${{ secrets.CPANEL_SSH_USER }}
           DEPLOY_PATH: ${{ secrets.CPANEL_DEPLOY_PATH }}
           PHP_BIN: ${{ vars.CPANEL_PHP_BIN }}
+          SEED: ${{ (github.event_name == 'workflow_dispatch' && inputs.reseed) && '1' || '0' }}
         run: |
           ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "cd '$DEPLOY_PATH' && PHP_BIN='${PHP_BIN:-php}' bash deploy/garage/post-deploy.sh"
+            "cd '$DEPLOY_PATH' && PHP_BIN='${PHP_BIN:-php}' SEED='${SEED:-0}' bash deploy/garage/post-deploy.sh"
