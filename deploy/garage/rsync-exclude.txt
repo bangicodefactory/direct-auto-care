@@ -10,3 +10,8 @@
 /storage/
 /public/storage
 /public/hot
+# cPanel/CloudLinux writes the per-domain PHP handler block into the docroot
+# .htaccess (public/). Exclude it so deploys don't wipe that block (which would
+# revert the PHP version). If Laravel's public/.htaccess rules ever change in the
+# repo, apply them on the server by hand.
+/public/.htaccess
