@@ -1,0 +1,12 @@
+# Paths NOT uploaded to the server (relative to repo root).
+# Critically protects the server's own .env and runtime storage/ from being
+# overwritten. Leading "/" anchors to the repo root.
+/.git/
+/.github/
+/node_modules/
+/tests/
+/.playwright-mcp/
+/.env
+/storage/
+/public/storage
+/public/hot
