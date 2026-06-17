@@ -27,9 +27,15 @@ if ! grep -qE '^APP_KEY=base64:' .env; then
   "$PHP_BIN" artisan key:generate --force
 fi
 
-# Apply pending migrations. --force = run in non-interactive/prod. ADDITIVE:
-# this never drops tables. (Demo reset is the manual migrate:fresh above.)
-"$PHP_BIN" artisan migrate --force
+# Apply migrations. SEED=1 (the deploy workflow's "reseed" input) rebuilds the
+# demo — migrate:fresh --seed DROPS ALL TABLES then loads fake data. Otherwise
+# migrate --force is additive and never drops data.
+if [ "${SEED:-0}" = "1" ]; then
+    echo "SEED=1 -> resetting demo data (migrate:fresh --seed)"
+    "$PHP_BIN" artisan migrate:fresh --seed --force
+else
+    "$PHP_BIN" artisan migrate --force
+fi
 
 # Public storage symlink (company logo, reception photos, signatures).
 "$PHP_BIN" artisan storage:link || echo "storage:link skipped (symlinks may be disabled) — see README"
