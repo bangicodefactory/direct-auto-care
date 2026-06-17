@@ -4,10 +4,11 @@
 # to run by hand from the app root). SAFE TO RUN ON EVERY DEPLOY: it applies new
 # migrations additively and never drops data.
 #
-#   cd ~/garage && PHP_BIN=/opt/cpanel/ea-php83/root/usr/bin/php bash deploy/garage/post-deploy.sh
+#   cd ~/garage && PHP_BIN=/opt/cpanel/ea-php84/root/usr/bin/php bash deploy/garage/post-deploy.sh
 #
 # cPanel's default `php` in Terminal is often an OLD version — set PHP_BIN to the
-# 8.2/8.3 CLI (CI passes it via the CPANEL_PHP_BIN repo variable).
+# PHP 8.4 CLI (CI passes it via the CPANEL_PHP_BIN repo variable). The project's
+# locked deps (Symfony v8) require PHP >= 8.4.
 #
 # To (re)load the DEMO fake data / reset the showcase, run ONCE manually instead:
 #   $PHP_BIN artisan migrate:fresh --seed --force      # DROPS ALL TABLES, then seeds

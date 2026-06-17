@@ -23,7 +23,7 @@ the result to the server over SSH, then runs `deploy/garage/post-deploy.sh`
    - **Document Root:** `garage/public` ← point at Laravel's `public/`, not the
      app root (keeps `.env`, `vendor/`, DB code out of the web root). This makes
      the app root `~/garage` and serves from `~/garage/public`.
-2. **PHP 8.3** → cPanel ▸ *MultiPHP Manager* ▸ set `garage.bangicode.ma` to PHP 8.3.
+2. **PHP 8.4** → cPanel ▸ *MultiPHP Manager* ▸ set `garage.bangicode.ma` to PHP 8.4.
 3. **Database** → cPanel ▸ *MySQL Databases*: create a **dedicated** DB + user
    (e.g. `garage` / `garageusr`, prefixed to `cpuser_…`), grant ALL PRIVILEGES.
    Record the prefixed names + password for the server `.env`.
@@ -35,7 +35,7 @@ the result to the server over SSH, then runs `deploy/garage/post-deploy.sh`
      shared is usually **21098**), and **username** (your cPanel user).
    - Verify locally: `ssh -p 21098 cpuser@premium173.web-hosting.com` →
      `composer --version` is optional (vendor/ is uploaded), but confirm the
-     PHP 8.3 CLI path: `ls /opt/cpanel/ea-php83/root/usr/bin/php`.
+     PHP 8.4 CLI path: `ls /opt/cpanel/ea-php84/root/usr/bin/php`.
 5. **AutoSSL** → cPanel ▸ *SSL/TLS Status* ▸ tick `garage.bangicode.ma` ▸ Run
    AutoSSL (so `https://garage.bangicode.ma` gets a cert).
 
@@ -55,7 +55,7 @@ the result to the server over SSH, then runs `deploy/garage/post-deploy.sh`
 
 | Variable | Value |
 |---|---|
-| `CPANEL_PHP_BIN` | `/opt/cpanel/ea-php83/root/usr/bin/php` (adjust to the real path) |
+| `CPANEL_PHP_BIN` | `/opt/cpanel/ea-php84/root/usr/bin/php` (adjust to the real path) |
 | `DEPLOY_ENABLED` | leave unset for now; set to `true` after §3 to arm deploys |
 
 ## 3. First-time server bootstrap (one-time, in cPanel Terminal / SSH)
@@ -69,7 +69,7 @@ post-deploy `migrate --force` may warn until `.env` exists; that's fine). Then:
 cd ~/garage
 cp deploy/garage/.env.staging.example .env
 nano .env                       # set DB_*, ADMIN_PASSWORD, confirm APP_URL/SESSION_DOMAIN
-export PHP_BIN=/opt/cpanel/ea-php83/root/usr/bin/php
+export PHP_BIN=/opt/cpanel/ea-php84/root/usr/bin/php
 $PHP_BIN artisan key:generate --force
 $PHP_BIN artisan migrate:fresh --seed --force   # builds schema + loads DEMO fake data
 $PHP_BIN artisan storage:link || true
