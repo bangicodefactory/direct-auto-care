@@ -22,6 +22,13 @@ echo "Using PHP: $("$PHP_BIN" -v | head -1)"
 mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views \
          storage/logs bootstrap/cache
 
+# Clear any stale config cache from a previous deploy BEFORE the seeders run.
+# The seeders read ADMIN_EMAIL / ADMIN_PASSWORD via env(), and Laravel makes
+# env() return null whenever a cached config file is present (env is only read
+# into config during config:cache). Without this, migrate:fresh --seed creates
+# the admin with the hard-coded fallback creds instead of the ones in .env.
+"$PHP_BIN" artisan config:clear || true
+
 # App key — only generate if .env doesn't already have one.
 if ! grep -qE '^APP_KEY=base64:' .env; then
   "$PHP_BIN" artisan key:generate --force
