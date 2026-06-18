@@ -206,7 +206,7 @@ export default function AppSidebar({ user, role, ...props }: AppSidebarProps) {
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
-                                className="w-[--radix-dropdown-menu-trigger-width] min-w-56"
+                                className="w-(--radix-dropdown-menu-trigger-width) min-w-56"
                                 side="top"
                                 align="end"
                                 sideOffset={4}
