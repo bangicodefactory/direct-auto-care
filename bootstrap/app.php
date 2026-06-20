@@ -8,6 +8,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -25,6 +26,9 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        // Report unhandled exceptions to Sentry (no-op when SENTRY_LARAVEL_DSN is unset).
+        Integration::handles($exceptions);
+
         $exceptions->render(function (InsufficientStockException $e, Request $request) {
             return response()->json(['message' => $e->getMessage()], 422);
         });
