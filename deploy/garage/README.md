@@ -50,7 +50,9 @@ the result to the server over SSH, then runs `deploy/garage/post-deploy.sh`
 | `CPANEL_SSH_USER` | your cPanel username |
 | `CPANEL_SSH_KEY` | the **private** key from §1.4 (full PEM, incl. BEGIN/END lines) |
 | `CPANEL_DEPLOY_PATH` | absolute app root, e.g. `/home/<cpuser>/garage` |
-| `CPANEL_ENV` | the full server `.env` contents — CI writes this to `$CPANEL_DEPLOY_PATH/.env` on every deploy. Must include a fixed `APP_KEY=base64:…`, the DB block, and `ADMIN_*`. |
+| `CPANEL_ENV` | the full server `.env` contents — CI writes this to `$CPANEL_DEPLOY_PATH/.env` on every deploy. Must include a fixed `APP_KEY=base64:…`, the DB block, `ADMIN_*`, and the **Sentry backend** block (`SENTRY_LARAVEL_DSN`, `SENTRY_TRACES_SAMPLE_RATE`). |
+| `VITE_SENTRY_DSN` | DSN of the **React/JavaScript** project in Sentry. Baked into the browser bundle at build time (public by design). Leave unset to disable frontend reporting. |
+| `SENTRY_AUTH_TOKEN` | Sentry **org auth token** with `project:releases` + `org:read` scope. Used only to upload JS source maps during the deploy build. Leave unset to skip source-map upload. |
 
 **Variables:**
 
@@ -58,6 +60,12 @@ the result to the server over SSH, then runs `deploy/garage/post-deploy.sh`
 |---|---|
 | `CPANEL_PHP_BIN` | `/opt/cpanel/ea-php84/root/usr/bin/php` (adjust to the real path) |
 | `DEPLOY_ENABLED` | leave unset for now; set to `true` after §3 to arm deploys |
+| `SENTRY_ORG` | your Sentry **org slug** (source-map upload target) |
+| `SENTRY_PROJECT` | the **React project slug** in Sentry (source-map upload target) |
+
+> **Sentry is optional and fails open:** with none of the Sentry secrets/vars set,
+> the build skips source-map upload and both SDKs no-op (empty DSN). Add them when
+> you're ready — see the integration notes below.
 
 ## 3. First-time go-live (no manual `.env` step)
 
@@ -95,6 +103,12 @@ the demo to clean fake data, re-run the workflow with **reseed** checked.
   `storage/`; no `--delete`, so deploys never remove server runtime files.
 - **Demo posture** (`.env.staging.example`): `APP_DEBUG=false`, mail→log,
   WhatsApp disabled, `QUEUE_CONNECTION=sync`. No queue worker / scheduler.
+- **Sentry** (errors + 10% tracing): backend SDK reports via `SENTRY_LARAVEL_DSN`
+  (in `CPANEL_ENV`); the browser SDK is initialised in `app.tsx` from the
+  build-time `VITE_SENTRY_DSN`. The deploy build uploads JS source maps when
+  `SENTRY_AUTH_TOKEN` + `SENTRY_ORG`/`SENTRY_PROJECT` are set, tagging the release
+  with the deployed commit SHA. `.npmrc` blocks `@sentry/cli`'s postinstall, so the
+  deploy fetches its binary explicitly (`node ./node_modules/@sentry/cli/scripts/install.js`).
 
 ## Troubleshooting
 
