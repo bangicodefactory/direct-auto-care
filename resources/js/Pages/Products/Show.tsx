@@ -179,7 +179,7 @@ export default function Show({ product, movements, can }: ShowProps) {
                                                 {TYPE_LABELS[m.type] ?? m.type}
                                             </TableCell>
                                             <TableCell
-                                                className={`whitespace-nowrap text-end font-semibold ${m.quantity > 0 ? 'text-emerald-600' : 'text-destructive'}`}
+                                                className={`whitespace-nowrap text-end font-semibold tabular-nums ${m.quantity > 0 ? 'text-emerald-600' : 'text-destructive'}`}
                                             >
                                                 {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
                                             </TableCell>
