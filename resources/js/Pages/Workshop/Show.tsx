@@ -169,7 +169,7 @@ function PartsManager({ order, products, editable }: PartsManagerProps) {
     return (
         <Card title="Pièces & main d'œuvre">
             {order.items.length > 0 ? (
-                <ul className="divide-y divide-border text-sm">
+                <ul className="divide-y divide-border text-sm tabular-nums">
                     {order.items.map((item) => (
                         <li key={item.id} className="flex items-center justify-between gap-3 py-2">
                             <span className="text-foreground">

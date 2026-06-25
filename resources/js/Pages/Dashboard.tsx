@@ -303,7 +303,7 @@ function KpiCard({ label, value, sub, href }: KpiCardProps) {
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {label}
             </p>
-            <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
+            <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{value}</p>
             {sub && <div className="mt-1">{sub}</div>}
         </>
     );

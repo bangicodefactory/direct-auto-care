@@ -399,7 +399,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                                 className="mt-0.5"
                                                             />
                                                         </td>
-                                                        <td className="py-2 pe-3 text-end font-medium text-foreground">
+                                                        <td className="py-2 pe-3 text-end font-medium tabular-nums text-foreground">
                                                             {lineTotal.toFixed(2)} DH
                                                         </td>
                                                         <td className="py-2">
@@ -503,7 +503,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                 className="-mt-2"
                                             />
 
-                                            <div className="border-t border-border pt-3 text-sm">
+                                            <div className="border-t border-border pt-3 text-sm tabular-nums">
                                                 <div className="flex justify-between text-muted-foreground">
                                                     <span>Sous-total HT</span>
                                                     <span>{subtotalHt.toFixed(2)} DH</span>

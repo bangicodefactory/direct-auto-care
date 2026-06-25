@@ -111,7 +111,9 @@ export default function Show({ product, movements, can }: ShowProps) {
                                     <dt className="text-sm font-medium text-muted-foreground">
                                         {label}
                                     </dt>
-                                    <dd className="col-span-2 text-sm text-foreground">{value}</dd>
+                                    <dd className="col-span-2 text-sm tabular-nums text-foreground">
+                                        {value}
+                                    </dd>
                                 </div>
                             ))}
                         </dl>
@@ -177,7 +179,7 @@ export default function Show({ product, movements, can }: ShowProps) {
                                                 {TYPE_LABELS[m.type] ?? m.type}
                                             </TableCell>
                                             <TableCell
-                                                className={`whitespace-nowrap text-end font-semibold ${m.quantity > 0 ? 'text-emerald-600' : 'text-destructive'}`}
+                                                className={`whitespace-nowrap text-end font-semibold tabular-nums ${m.quantity > 0 ? 'text-emerald-600' : 'text-destructive'}`}
                                             >
                                                 {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
                                             </TableCell>

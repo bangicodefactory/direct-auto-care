@@ -117,7 +117,7 @@ export default function Show({ record, can }: ShowProps) {
                                     <dt className="text-sm font-medium text-muted-foreground">
                                         Kilométrage
                                     </dt>
-                                    <dd className="text-sm text-foreground">
+                                    <dd className="text-sm tabular-nums text-foreground">
                                         {record.mileage_at_service.toLocaleString('fr-MA')} km
                                     </dd>
                                 </div>
