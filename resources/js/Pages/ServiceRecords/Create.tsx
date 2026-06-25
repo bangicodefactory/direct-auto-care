@@ -86,7 +86,7 @@ export default function Create({ vehicle, serviceTypes, prefill }: CreateProps) 
                                     onChange={(e) => setData('mileage_at_service', e.target.value)}
                                 />
                                 {vehicle.mileage != null && (
-                                    <p className="mt-1 text-xs text-muted-foreground">
+                                    <p className="mt-1 text-xs tabular-nums text-muted-foreground">
                                         Minimum&nbsp;: {vehicle.mileage.toLocaleString('fr-MA')} km
                                     </p>
                                 )}

@@ -111,7 +111,9 @@ export default function Show({ product, movements, can }: ShowProps) {
                                     <dt className="text-sm font-medium text-muted-foreground">
                                         {label}
                                     </dt>
-                                    <dd className="col-span-2 text-sm text-foreground">{value}</dd>
+                                    <dd className="col-span-2 text-sm tabular-nums text-foreground">
+                                        {value}
+                                    </dd>
                                 </div>
                             ))}
                         </dl>

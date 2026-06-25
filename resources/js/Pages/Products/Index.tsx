@@ -213,7 +213,7 @@ export default function Index({ products, filters, categories, can }: IndexProps
                                         <TableCell className="whitespace-nowrap text-muted-foreground">
                                             {p.category}
                                         </TableCell>
-                                        <TableCell className="whitespace-nowrap text-end text-foreground">
+                                        <TableCell className="whitespace-nowrap text-end tabular-nums text-foreground">
                                             {Number(p.price_sell).toFixed(2)} DH
                                         </TableCell>
                                         <TableCell

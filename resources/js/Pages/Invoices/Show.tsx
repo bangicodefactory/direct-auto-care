@@ -246,7 +246,7 @@ export default function Show({ invoice, can }: ShowProps) {
                                     <TableHead className="text-end">Total HT</TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
+                            <TableBody className="tabular-nums">
                                 {invoice.items.map((item) => (
                                     <TableRow key={item.id}>
                                         <TableCell className="text-foreground">
@@ -268,7 +268,7 @@ export default function Show({ invoice, can }: ShowProps) {
 
                         {/* Totals */}
                         <div className="flex justify-end border-t border-border px-6 py-4">
-                            <dl className="w-64 space-y-2 text-sm">
+                            <dl className="w-64 space-y-2 text-sm tabular-nums">
                                 <div className="flex justify-between">
                                     <dt className="text-muted-foreground">Sous-total HT</dt>
                                     <dd className="text-foreground">

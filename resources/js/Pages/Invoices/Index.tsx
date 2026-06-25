@@ -320,7 +320,7 @@ export default function Index({ invoices, filters, types, statuses, can }: Index
                                             <TableCell className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
                                                 {inv.issue_date}
                                             </TableCell>
-                                            <TableCell className="whitespace-nowrap text-end font-medium text-foreground">
+                                            <TableCell className="whitespace-nowrap text-end font-medium tabular-nums text-foreground">
                                                 {Number(inv.total_ttc).toFixed(2)} DH
                                             </TableCell>
                                             <TableCell className="whitespace-nowrap text-end">
