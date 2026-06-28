@@ -80,9 +80,10 @@ All fonts served via Google Fonts (free tier, no licensing cost).
 
 | Role | Font | Weights | Tailwind class |
 |---|---|---|---|
-| Headings / hero | Montserrat | 600, 700 | `font-heading` |
-| Body / UI labels | Hanken Grotesk | 400, 500, 600 | `font-sans` (default) |
-| Code / mono labels | JetBrains Mono | 400, 500 | `font-mono` |
+| Headings / hero | Oswald | 400, 500, 600, 700 | `font-heading` |
+| Body / UI labels | IBM Plex Sans | 400, 500, 600, 700 | `font-sans` (default) |
+| Code / mono labels | IBM Plex Mono | 400, 500, 600 | `font-mono` |
+| Arabic (bilingual) | Cairo | 400, 600, 700, 900 | `font-arabic` |
 
 ### Type scale
 
@@ -179,9 +180,10 @@ Installed in `resources/js/Components/ui/`:
 ```js
 // tailwind.config.js extend
 fontFamily: {
-  heading: ['Montserrat', 'sans-serif'],
-  sans: ['Hanken Grotesk', ...defaultTheme.fontFamily.sans],
-  mono: ['JetBrains Mono', ...defaultTheme.fontFamily.mono],
+  heading: ['Oswald', 'sans-serif'],
+  sans: ['IBM Plex Sans', ...defaultTheme.fontFamily.sans],
+  mono: ['IBM Plex Mono', ...defaultTheme.fontFamily.mono],
+  arabic: ['Cairo', ...defaultTheme.fontFamily.sans],
 }
 boxShadow: {
   tech: '0px 4px 12px rgba(26, 54, 115, 0.08)',
