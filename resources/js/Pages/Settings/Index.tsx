@@ -82,14 +82,14 @@ export default function Index({ settings }: IndexProps) {
         company_rc: settings.company_rc ?? '',
         tva_rate: settings.tva_rate ?? 20,
         logo: null,
-        color_primary: settings.color_primary ?? '#0B3D91',
-        color_accent: settings.color_accent ?? '#E63946',
-        color_bg: settings.color_bg ?? '#F8FAFC',
-        color_text_primary: settings.color_text_primary ?? '#0F172A',
-        color_text_muted: settings.color_text_muted ?? '#64748B',
-        color_success: settings.color_success ?? '#10B981',
-        color_warning: settings.color_warning ?? '#F59E0B',
-        color_error: settings.color_error ?? '#EF4444',
+        color_primary: settings.color_primary ?? '#F4A81C',
+        color_accent: settings.color_accent ?? '#2FA84F',
+        color_bg: settings.color_bg ?? '#F6F2EA',
+        color_text_primary: settings.color_text_primary ?? '#211E1A',
+        color_text_muted: settings.color_text_muted ?? '#6B655E',
+        color_success: settings.color_success ?? '#2FA84F',
+        color_warning: settings.color_warning ?? '#F4A81C',
+        color_error: settings.color_error ?? '#E5484D',
     });
 
     function submit(e: React.FormEvent) {

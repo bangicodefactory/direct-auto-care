@@ -124,7 +124,7 @@ export default function AppSidebar({ user, role, ...props }: AppSidebarProps) {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild tooltip="Direct Auto Care">
                             <Link href={route('dashboard')}>
-                                <ApplicationLogo className="h-8 w-8 shrink-0 fill-current text-primary" />
+                                <ApplicationLogo className="h-8 w-8 shrink-0" />
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-semibold">Direct Auto Care</span>
                                     <span className="truncate text-xs text-muted-foreground">
