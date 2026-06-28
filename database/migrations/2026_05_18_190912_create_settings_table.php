@@ -24,15 +24,15 @@ return new class () extends Migration {
             // Logo
             $table->string('logo_path')->nullable();
 
-            // Brand colors (hex)
-            $table->string('color_primary', 7)->default('#0B3D91');
-            $table->string('color_accent', 7)->default('#E63946');
-            $table->string('color_bg', 7)->default('#F8FAFC');
-            $table->string('color_text_primary', 7)->default('#0F172A');
-            $table->string('color_text_muted', 7)->default('#64748B');
-            $table->string('color_success', 7)->default('#10B981');
-            $table->string('color_warning', 7)->default('#F59E0B');
-            $table->string('color_error', 7)->default('#EF4444');
+            // Brand colors (hex) — Direct Auto Care design system v1.0
+            $table->string('color_primary', 7)->default('#F4A81C');      // amber 500
+            $table->string('color_accent', 7)->default('#2FA84F');       // green
+            $table->string('color_bg', 7)->default('#F6F2EA');           // warm paper
+            $table->string('color_text_primary', 7)->default('#211E1A'); // ink
+            $table->string('color_text_muted', 7)->default('#6B655E');   // warm grey
+            $table->string('color_success', 7)->default('#2FA84F');      // green
+            $table->string('color_warning', 7)->default('#F4A81C');      // amber
+            $table->string('color_error', 7)->default('#E5484D');        // red
 
             // Enforce single-row at the DB level
             $table->tinyInteger('singleton')->unsigned()->default(1);

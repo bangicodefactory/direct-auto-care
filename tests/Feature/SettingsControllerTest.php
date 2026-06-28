@@ -234,8 +234,8 @@ class SettingsControllerTest extends TestCase
         $response = $this->get(route('settings.branding-css'));
 
         $response->assertOk();
-        $this->assertStringContainsString('#0B3D91', $response->getContent());
-        $this->assertStringContainsString('#E63946', $response->getContent());
+        $this->assertStringContainsString('#F4A81C', $response->getContent());
+        $this->assertStringContainsString('#2FA84F', $response->getContent());
     }
 
     public function test_branding_css_reflects_updated_colors(): void

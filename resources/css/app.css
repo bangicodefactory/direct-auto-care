@@ -5,58 +5,70 @@
 
 @layer base {
     :root {
-        /* shadcn-standard tokens — HSL space-separated */
-        --background: 218 100% 98%;         /* #f7f9ff surface */
-        --foreground: 207 71% 11%;          /* #091d2e on-surface */
+        /* ───────────────────────────────────────────────────────────────
+           Direct Auto Care — Design System (v1.0)
+           Warm garage brand: amber action, warm-black structure, green validation.
+           shadcn-standard tokens — HSL space-separated.
+           ─────────────────────────────────────────────────────────────── */
+        --background: 40 38% 94%;           /* #F6F2EA paper */
+        --foreground: 34 12% 12%;           /* #211E1A ink */
 
-        --card: 0 0% 100%;                  /* #ffffff surface-container-lowest */
-        --card-foreground: 207 71% 11%;
+        --card: 0 0% 100%;                  /* #FFFFFF */
+        --card-foreground: 34 12% 12%;
 
         --popover: 0 0% 100%;
-        --popover-foreground: 207 71% 11%;
+        --popover-foreground: 34 12% 12%;
 
-        --primary: 219 100% 17%;            /* #002058 primary (Navy) */
-        --primary-foreground: 0 0% 100%;    /* on-primary */
+        --primary: 39 91% 53%;              /* #F4A81C amber 500 — action */
+        --primary-foreground: 40 17% 7%;    /* #15130F ink — readable on amber */
 
-        --secondary: 202 100% 30%;          /* #006397 secondary (Sky Blue) */
-        --secondary-foreground: 0 0% 100%;
+        --secondary: 40 17% 7%;             /* #15130F ink — solid dark button */
+        --secondary-foreground: 40 38% 94%; /* #F6F2EA paper */
 
-        --muted: 215 67% 87%;               /* #c9dcf3 surface-dim */
-        --muted-foreground: 230 8% 30%;     /* #444650 on-surface-variant */
+        --muted: 43 30% 90%;                /* #EFEADD warm light */
+        --muted-foreground: 32 7% 39%;      /* #6B655E warm grey */
 
-        --accent: 6 100% 16%;               /* #500000 tertiary (tech red) */
-        --accent-foreground: 0 0% 100%;
+        --accent: 41 30% 91%;               /* #F1ECE1 — subtle hover surface */
+        --accent-foreground: 40 17% 7%;     /* #15130F ink */
 
-        --destructive: 0 75% 41%;           /* #ba1a1a error */
+        --destructive: 358 75% 59%;         /* #E5484D error */
         --destructive-foreground: 0 0% 100%;
 
-        --border: 232 22% 79%;              /* #c4c6d1 outline-variant */
-        --input: 232 22% 79%;
-        --ring: 202 100% 30%;               /* #006397 — focus ring (Sky Blue) */
+        --border: 43 27% 85%;               /* #E4DECF warm hairline */
+        --input: 43 27% 85%;
+        --ring: 39 91% 53%;                 /* #F4A81C amber — focus ring */
 
-        --radius: 0.25rem;                  /* 4px per design.md */
+        --radius: 0.25rem;                  /* 4px */
 
-        /* Bangicode M3 extensions */
-        --surface: 218 100% 98%;
-        --surface-container-low: 213 100% 95%;
-        --surface-container: 213 100% 92%;
-        --surface-container-high: 211 100% 90%;
-        --surface-container-highest: 209 92% 87%;
-        --primary-container: 222 64% 28%;
-        --on-primary-container: 222 64% 72%;
-        --secondary-container: 204 96% 67%;
-        --tertiary: 6 100% 16%;
-        --tertiary-container: 0 100% 24%;
+        /* Semantic states · حالات */
+        --success: 136 56% 42%;             /* #2FA84F green — validation */
+        --success-foreground: 0 0% 100%;
+        --warning: 39 91% 53%;              /* #F4A81C amber — alerte */
+        --warning-foreground: 40 17% 7%;
+        --info: 209 54% 50%;                /* #3B82C4 blue — info */
+        --info-foreground: 0 0% 100%;
 
-        /* Sidebar tokens — aligned with Bangicode M3 palette */
-        --sidebar-background: 0 0% 100%;             /* same as card */
-        --sidebar-foreground: 207 71% 11%;
-        --sidebar-primary: 219 100% 17%;
-        --sidebar-primary-foreground: 0 0% 100%;
-        --sidebar-accent: 215 67% 93%;               /* light blue tint for hover */
-        --sidebar-accent-foreground: 207 71% 11%;
-        --sidebar-border: 232 22% 79%;
-        --sidebar-ring: 202 100% 30%;
+        /* M3 surface/role extensions — remapped to warm neutrals */
+        --surface: 40 38% 94%;              /* #F6F2EA */
+        --surface-container-low: 43 50% 96%;    /* #FBF8F1 */
+        --surface-container: 41 30% 91%;        /* #F1ECE1 */
+        --surface-container-high: 43 27% 85%;   /* #E4DECF */
+        --surface-container-highest: 43 25% 81%;/* #DCD5C4 */
+        --primary-container: 39 85% 85%;        /* #FBE3B5 amber 300 */
+        --on-primary-container: 37 92% 34%;     /* #A66A07 amber 700 */
+        --secondary-container: 43 27% 85%;      /* #E4DECF */
+        --tertiary: 136 56% 42%;                /* #2FA84F green */
+        --tertiary-container: 141 40% 94%;      /* #E8F6ED green tint */
+
+        /* Sidebar tokens — warm garage palette */
+        --sidebar-background: 0 0% 100%;             /* #FFFFFF */
+        --sidebar-foreground: 34 12% 12%;            /* #211E1A */
+        --sidebar-primary: 39 91% 53%;               /* #F4A81C amber */
+        --sidebar-primary-foreground: 40 17% 7%;     /* #15130F ink */
+        --sidebar-accent: 43 80% 95%;                /* #FDF6E6 amber tint hover */
+        --sidebar-accent-foreground: 37 92% 34%;     /* #A66A07 amber 700 */
+        --sidebar-border: 43 30% 90%;                /* #EFEADD */
+        --sidebar-ring: 39 91% 53%;                  /* #F4A81C amber */
     }
 }
 
