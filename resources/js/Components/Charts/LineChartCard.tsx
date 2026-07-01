@@ -1,4 +1,4 @@
-import { BRAND_ACCENT, BRAND_PRIMARY } from '@/constants/brand';
+import { brandAccent, brandPrimary } from '@/constants/brand';
 import {
     CartesianGrid,
     Legend,
@@ -21,11 +21,6 @@ interface LineChartCardProps {
     data: MonthlyDatum[];
 }
 
-const LINES = [
-    { key: 'revenue', label: 'CA (DH)', color: BRAND_PRIMARY, yAxisId: 'revenue' },
-    { key: 'appointments', label: 'RDV', color: BRAND_ACCENT, yAxisId: 'appointments' },
-];
-
 function revenueFormatter(value: number | string): string {
     const num = Number(value);
     if (num >= 1000)
@@ -39,6 +34,11 @@ function revenueFormatter(value: number | string): string {
 }
 
 export default function LineChartCard({ title, data }: LineChartCardProps) {
+    const LINES = [
+        { key: 'revenue', label: 'CA (DH)', color: brandPrimary(), yAxisId: 'revenue' },
+        { key: 'appointments', label: 'RDV', color: brandAccent(), yAxisId: 'appointments' },
+    ];
+
     return (
         <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">

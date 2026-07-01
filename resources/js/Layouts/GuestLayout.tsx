@@ -1,4 +1,4 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import BrandLogo from '@/Components/BrandLogo';
 import { Link } from '@inertiajs/react';
 
 interface GuestLayoutProps {
@@ -10,7 +10,7 @@ export default function GuestLayout({ children }: GuestLayoutProps) {
         <div className="flex min-h-screen flex-col items-center bg-muted pt-6 sm:justify-center sm:pt-0">
             <div>
                 <Link href="/">
-                    <ApplicationLogo className="h-20 w-20" />
+                    <BrandLogo className="h-20 w-20" />
                 </Link>
             </div>
 

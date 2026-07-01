@@ -1,5 +1,28 @@
-// Brand color hex values — mirrors CSS variables defined in resources/css/app.css.
-// Recharts SVG fills cannot read CSS variables directly, so these must be kept
-// in sync manually. When M11 updates --primary / --accent, update here too.
-export const BRAND_PRIMARY = '#F4A81C'; // --primary: hsl(39 91% 53%) amber
-export const BRAND_ACCENT = '#2FA84F'; // --success: hsl(136 56% 42%) green
+// Brand colours for Recharts. Recharts writes `stroke`/`fill` as SVG attributes,
+// which do NOT resolve CSS variables, so we read the computed theme tokens at
+// runtime (set per-client by /branding.css) and build concrete hsl() strings.
+// Falls back to the Direct Auto Care palette during SSR / before styles resolve.
+//
+// These are functions, not constants, so they must be called inside a component
+// render — after the theme stylesheet has been applied to <html>.
+
+function cssColor(varName, fallback) {
+    if (typeof window === 'undefined') {
+        return fallback;
+    }
+    const value = window
+        .getComputedStyle(document.documentElement)
+        .getPropertyValue(varName)
+        .trim();
+    return value ? `hsl(${value})` : fallback;
+}
+
+/** Primary action colour (--primary). */
+export function brandPrimary() {
+    return cssColor('--primary', '#F4A81C');
+}
+
+/** Validation / accent colour (--success). */
+export function brandAccent() {
+    return cssColor('--success', '#2FA84F');
+}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpdateSettingsRequest;
 use App\Models\Settings;
 use App\Services\SettingsService;
+use App\Support\Branding;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
@@ -43,22 +44,19 @@ class SettingsController extends Controller
         return redirect()->route('settings.edit')->with('success', 'Paramètres enregistrés.');
     }
 
+    /**
+     * Per-client theme, emitted as an unlayered `:root` block that overrides the
+     * design-system defaults in app.css (which live in `@layer base`). Colours
+     * come from `config('company.theme')` — the deployment's .env — so the shared
+     * compiled bundle themes itself per client without a rebuild.
+     */
     public function brandingCss(): HttpResponse
     {
-        $settings = $this->settingsService->get();
+        $declarations = collect(Branding::cssTokens())
+            ->map(fn (string $value, string $token) => "    {$token}: {$value};")
+            ->implode("\n");
 
-        $css = <<<CSS
-        :root {
-            --brand-primary: {$settings->color_primary};
-            --brand-accent: {$settings->color_accent};
-            --brand-bg: {$settings->color_bg};
-            --brand-text-primary: {$settings->color_text_primary};
-            --brand-text-muted: {$settings->color_text_muted};
-            --brand-success: {$settings->color_success};
-            --brand-warning: {$settings->color_warning};
-            --brand-error: {$settings->color_error};
-        }
-        CSS;
+        $css = ":root {\n{$declarations}\n}\n";
 
         return response($css, 200, [
             'Content-Type'  => 'text/css; charset=utf-8',

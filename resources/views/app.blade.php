@@ -6,9 +6,6 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Dynamic brand colors -->
-        <link rel="stylesheet" href="{{ route('settings.branding-css') }}">
-
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +15,10 @@
         @routes
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
+
+        {{-- Per-client theme — loaded AFTER the compiled CSS so its :root overrides
+             the design-system defaults baked into app.css (@layer base). --}}
+        <link rel="stylesheet" href="{{ route('settings.branding-css') }}?v={{ substr(md5(implode(',', config('company.theme'))), 0, 8) }}">
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

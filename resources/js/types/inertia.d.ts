@@ -38,6 +38,11 @@ declare module '@inertiajs/core' {
                 success?: string;
                 error?: string;
             };
+            /** Per-client white-label identity, resolved from config on the server. */
+            appSettings: {
+                company_name: string;
+                logo_url: string | null;
+            };
             locale: string;
             notifications: AppNotification[];
             unreadCount: number;

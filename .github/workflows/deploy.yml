@@ -1,15 +1,22 @@
-name: Deploy (garage.bangicode.ma)
+name: Deploy (per-client)
 
-# Demo/staging deploy to the Namecheap cPanel account over SSH.
-# Runs automatically after the CI workflow succeeds on `main`, and can be run
-# manually. It is GATED by the `DEPLOY_ENABLED` repository variable, so nothing
-# deploys until you have (a) done the cPanel setup, (b) added the secrets/vars
-# below, and (c) set `DEPLOY_ENABLED=true`. See deploy/garage/README.md.
+# White-label deploy to Namecheap cPanel over SSH. One GitHub Environment per
+# client holds that client's own secrets/vars, so the SAME build ships to any
+# client with its own domain, database, .env (COMPANY_* + THEME_*), and branding.
 #
-# Required repo SECRETS:  CPANEL_SSH_HOST, CPANEL_SSH_PORT, CPANEL_SSH_USER,
-#                         CPANEL_SSH_KEY (private key), CPANEL_DEPLOY_PATH
-# Required repo VARIABLES: DEPLOY_ENABLED ("true"), CPANEL_PHP_BIN (optional,
-#                         e.g. /opt/cpanel/ea-php84/root/usr/bin/php)
+# Runs automatically after CI succeeds on `main` (deploys every client listed in
+# the DEPLOY_CLIENTS repo variable), and can be run manually for one client.
+# GATED by the repo variable DEPLOY_ENABLED — nothing deploys until it is "true".
+#
+# Per-CLIENT GitHub Environment (Settings → Environments → e.g. "directautocare"):
+#   Secrets: CPANEL_SSH_HOST, CPANEL_SSH_PORT, CPANEL_SSH_USER, CPANEL_SSH_KEY,
+#            CPANEL_DEPLOY_PATH, CPANEL_ENV (that client's full server .env)
+#   Vars:    CPANEL_PHP_BIN (optional), SENTRY_ORG/SENTRY_PROJECT (optional,
+#            override the repo-level defaults for a per-client Sentry project)
+# Repo-level:
+#   Vars:    DEPLOY_ENABLED ("true"), DEPLOY_CLIENTS (JSON array of environment
+#            names, e.g. ["garage-demo","directautocare"])
+# See deploy/README.md for the full "add a new client" runbook.
 
 on:
   workflow_run:
@@ -18,6 +25,10 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      client:
+        description: 'Which client to deploy (must match a GitHub Environment name; "all" = every client in DEPLOY_CLIENTS)'
+        type: string
+        default: all
       reseed:
         description: 'Reset DB with fresh demo data (migrate:fresh --seed) instead of migrate --force'
         type: boolean
@@ -27,19 +38,43 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: deploy-garage
-  cancel-in-progress: false
-
 jobs:
-  deploy:
-    name: Build & deploy to cPanel
+  # Resolve which client environments to deploy into a matrix.
+  prepare:
+    name: Resolve target clients
     runs-on: ubuntu-latest
-    # Only when explicitly enabled, AND (manual run OR CI succeeded on main).
     if: >-
       vars.DEPLOY_ENABLED == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
        github.event.workflow_run.conclusion == 'success')
+    outputs:
+      clients: ${{ steps.pick.outputs.clients }}
+    steps:
+      - id: pick
+        env:
+          # A single manual client, or "all"/auto → the DEPLOY_CLIENTS repo var.
+          INPUT_CLIENT: ${{ github.event.inputs.client }}
+          ALL_CLIENTS: ${{ vars.DEPLOY_CLIENTS }}
+        run: |
+          if [ -n "$INPUT_CLIENT" ] && [ "$INPUT_CLIENT" != "all" ]; then
+            printf 'clients=["%s"]\n' "$INPUT_CLIENT" >> "$GITHUB_OUTPUT"
+          else
+            printf 'clients=%s\n' "${ALL_CLIENTS:-[]}" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    name: Build & deploy → ${{ matrix.client }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.client }}
+    strategy:
+      # Deploy clients independently; one failure must not cancel the others.
+      fail-fast: false
+      matrix:
+        client: ${{ fromJSON(needs.prepare.outputs.clients) }}
+    concurrency:
+      group: deploy-${{ matrix.client }}
+      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -61,12 +96,14 @@ jobs:
         run: node ./node_modules/@sentry/cli/scripts/install.js
       # VITE_* are baked into the bundle; SENTRY_AUTH_TOKEN/ORG/PROJECT drive the
       # source-map upload. With no token the Vite plugin is skipped (see vite.config.js).
+      # The theme is NOT baked in — it is injected per client at runtime via
+      # /branding.css — so the same bundle themes itself for every client.
       - name: Build front-end (+ upload source maps)
         env:
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_SENTRY_TRACES_SAMPLE_RATE: '0.1'
-          # Match the server's APP_ENV (staging demo) so front/back group together.
-          VITE_SENTRY_ENVIRONMENT: staging
+          # Group each client's front/back events under the same Sentry environment.
+          VITE_SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || matrix.client }}
           VITE_SENTRY_RELEASE: ${{ github.event.workflow_run.head_sha || github.sha }}
           SENTRY_RELEASE: ${{ github.event.workflow_run.head_sha || github.sha }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -110,7 +147,7 @@ jobs:
             --exclude-from=deploy/garage/rsync-exclude.txt \
             ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
-      # ---- Write the server .env from the CPANEL_ENV secret (CI-managed) ----
+      # ---- Write the server .env from this client's CPANEL_ENV secret ----
       - name: Write server .env
         env:
           SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
@@ -132,7 +169,8 @@ jobs:
           SSH_USER: ${{ secrets.CPANEL_SSH_USER }}
           DEPLOY_PATH: ${{ secrets.CPANEL_DEPLOY_PATH }}
           PHP_BIN: ${{ vars.CPANEL_PHP_BIN }}
+          CLIENT: ${{ matrix.client }}
           SEED: ${{ (github.event_name == 'workflow_dispatch' && inputs.reseed) && '1' || '0' }}
         run: |
           ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "cd '$DEPLOY_PATH' && PHP_BIN='${PHP_BIN:-php}' SEED='${SEED:-0}' bash deploy/garage/post-deploy.sh"
+            "cd '$DEPLOY_PATH' && PHP_BIN='${PHP_BIN:-php}' SEED='${SEED:-0}' CLIENT='${CLIENT}' bash deploy/garage/post-deploy.sh"

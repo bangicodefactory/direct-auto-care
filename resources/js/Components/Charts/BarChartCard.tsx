@@ -1,4 +1,4 @@
-import { BRAND_PRIMARY } from '@/constants/brand';
+import { brandPrimary } from '@/constants/brand';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface BarChartCardProps {
@@ -48,7 +48,7 @@ export default function BarChartCard({
                         />
                         <Bar
                             dataKey={dataKey}
-                            fill={BRAND_PRIMARY}
+                            fill={brandPrimary()}
                             radius={[4, 4, 0, 0]}
                             maxBarSize={48}
                         />

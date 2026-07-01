@@ -53,4 +53,4 @@ fi
 "$PHP_BIN" artisan route:cache
 "$PHP_BIN" artisan view:cache
 
-echo "Post-deploy complete for garage.bangicode.ma."
+echo "Post-deploy complete${CLIENT:+ for $CLIENT}."

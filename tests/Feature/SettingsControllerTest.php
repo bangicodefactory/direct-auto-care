@@ -229,23 +229,25 @@ class SettingsControllerTest extends TestCase
             ->assertHeader('Cache-Control', 'max-age=86400, public');
     }
 
-    public function test_branding_css_contains_default_colors(): void
+    public function test_branding_css_contains_default_theme_tokens(): void
     {
         $response = $this->get(route('settings.branding-css'));
 
         $response->assertOk();
-        $this->assertStringContainsString('#F4A81C', $response->getContent());
-        $this->assertStringContainsString('#2FA84F', $response->getContent());
+        // Emitted as HSL shadcn tokens from config('company.theme'), not hex.
+        $this->assertStringContainsString('--primary: 39 91% 53%;', $response->getContent());
+        $this->assertStringContainsString('--success: 136 56% 42%;', $response->getContent());
     }
 
-    public function test_branding_css_reflects_updated_colors(): void
+    public function test_branding_css_reflects_configured_theme(): void
     {
-        $this->actingAs($this->admin)->post(route('settings.update'), [
-            'tva_rate'      => 20,
-            'color_primary' => '#AABBCC',
-        ]);
+        config(['company.theme.primary' => '#AABBCC']);
 
         $response = $this->get(route('settings.branding-css'));
-        $this->assertStringContainsString('#AABBCC', $response->getContent());
+
+        $this->assertStringContainsString(
+            '--primary: '.\App\Support\Branding::hexToHsl('#AABBCC').';',
+            $response->getContent()
+        );
     }
 }

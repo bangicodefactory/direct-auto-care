@@ -1,4 +1,4 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import BrandLogo from '@/Components/BrandLogo';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -112,7 +112,7 @@ type AppSidebarProps = { user: User; role: string | null } & Omit<
 
 export default function AppSidebar({ user, role, ...props }: AppSidebarProps) {
     const { t } = useTranslation();
-    const locale = usePage().props.locale;
+    const { locale, appSettings } = usePage().props;
     const isAdmin = role === 'admin';
     const initials = user.name.charAt(0).toUpperCase();
     const side = locale === 'ar' ? 'right' : 'left';
@@ -122,11 +122,13 @@ export default function AppSidebar({ user, role, ...props }: AppSidebarProps) {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild tooltip="Direct Auto Care">
+                        <SidebarMenuButton size="lg" asChild tooltip={appSettings.company_name}>
                             <Link href={route('dashboard')}>
-                                <ApplicationLogo className="h-8 w-8 shrink-0" />
+                                <BrandLogo className="h-8 w-8 shrink-0" />
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">Direct Auto Care</span>
+                                    <span className="truncate font-semibold">
+                                        {appSettings.company_name}
+                                    </span>
                                     <span className="truncate text-xs text-muted-foreground">
                                         Garage
                                     </span>
