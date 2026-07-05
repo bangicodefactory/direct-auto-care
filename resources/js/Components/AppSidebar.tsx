@@ -33,7 +33,6 @@ import {
     LogOut,
     type LucideIcon,
     Package,
-    Settings,
     UserCog,
     Users,
     Wrench,
@@ -90,12 +89,6 @@ const navAdmin: NavItem[] = [
         match: 'reminders.*',
     },
     { labelKey: 'ui.nav_users', routeName: 'users.index', icon: UserCog, match: 'users.*' },
-    {
-        labelKey: 'ui.nav_settings',
-        routeName: 'settings.edit',
-        icon: Settings,
-        match: 'settings.*',
-    },
 ];
 
 function isActive(item: NavItem) {

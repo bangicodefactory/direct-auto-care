@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\AppointmentsController;
 use App\Http\Controllers\NotificationsController;
-use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\BrandingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\InvoicePdfController;
@@ -159,14 +159,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
 });
 
-// Settings — admin only
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
-    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
-});
-
 // Dynamic branding CSS — public (cached by browser, no auth needed)
-Route::get('/branding.css', [SettingsController::class, 'brandingCss'])->name('settings.branding-css');
+Route::get('/branding.css', [BrandingController::class, 'css'])->name('branding-css');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

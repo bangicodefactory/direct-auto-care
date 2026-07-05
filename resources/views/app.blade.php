@@ -18,7 +18,7 @@
 
         {{-- Per-client theme — loaded AFTER the compiled CSS so its :root overrides
              the design-system defaults baked into app.css (@layer base). --}}
-        <link rel="stylesheet" href="{{ route('settings.branding-css') }}?v={{ substr(md5(implode(',', config('company.theme'))), 0, 8) }}">
+        <link rel="stylesheet" href="{{ route('branding-css') }}?v={{ substr(md5(implode(',', config('company.theme'))), 0, 8) }}">
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
