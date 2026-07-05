@@ -2,27 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(RoleSeeder::class);
-        $this->call(ServiceTypeSeeder::class);
+        // Roles + service catalog + admin (the production baseline)...
+        $this->call(ProductionSeeder::class);
 
-        $admin = User::firstOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'admin@directautocare.ma')],
-            [
-                'name' => env('ADMIN_NAME', 'Administrateur'),
-                'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        $admin->assignRole('admin');
+        // ...then the demo transactional data (local/showcase only).
         $this->call(CustomerSeeder::class);
         $this->call(VehicleSeeder::class);
         $this->call(ProductSeeder::class);

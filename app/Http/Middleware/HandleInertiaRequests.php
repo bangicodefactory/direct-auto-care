@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\SettingsService;
+use App\Support\Branding;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -18,8 +18,6 @@ class HandleInertiaRequests extends Middleware
     /** @return array<string, mixed> */
     public function share(Request $request): array
     {
-        $settings = app(SettingsService::class)->get();
-
         return [
             ...parent::share($request),
             'auth' => [
@@ -31,8 +29,8 @@ class HandleInertiaRequests extends Middleware
                 'error'   => $request->session()->get('error'),
             ],
             'appSettings' => [
-                'company_name' => $settings->company_name,
-                'logo_url'     => $settings->logoUrl(),
+                'company_name' => config('company.name'),
+                'logo_url'     => Branding::logoUrl(),
             ],
             'notifications' => fn () => $request->user()
                 ? $request->user()->notifications()->latest()->take(10)->get()->map(fn ($n) => [

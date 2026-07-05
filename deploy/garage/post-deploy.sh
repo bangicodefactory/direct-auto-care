@@ -34,15 +34,27 @@ if ! grep -qE '^APP_KEY=base64:' .env; then
   "$PHP_BIN" artisan key:generate --force
 fi
 
-# Apply migrations. SEED=1 (the deploy workflow's "reseed" input) rebuilds the
-# demo — migrate:fresh --seed DROPS ALL TABLES then loads fake data. Otherwise
-# migrate --force is additive and never drops data.
-if [ "${SEED:-0}" = "1" ]; then
-    echo "SEED=1 -> resetting demo data (migrate:fresh --seed)"
-    "$PHP_BIN" artisan migrate:fresh --seed --force
-else
-    "$PHP_BIN" artisan migrate --force
-fi
+# Apply migrations. The deploy workflow's "seed" input drives this:
+#   demo (or legacy "1") -> migrate:fresh --seed  → DROPS ALL TABLES, loads fake
+#                           demo data. Garage showcase reset only — never a client.
+#   prod                 -> migrate --force, then ProductionSeeder (roles + service
+#                           catalog + admin from ADMIN_*, no demo data). First
+#                           deploy of a real client. Idempotent, never drops data.
+#   none (default)       -> migrate --force. Additive, never drops data.
+case "${SEED:-none}" in
+    demo | 1 | fresh)
+        echo "SEED=demo -> resetting demo data (migrate:fresh --seed)"
+        "$PHP_BIN" artisan migrate:fresh --seed --force
+        ;;
+    prod)
+        echo "SEED=prod -> production first-deploy seed (roles + service catalog + admin)"
+        "$PHP_BIN" artisan migrate --force
+        "$PHP_BIN" artisan db:seed --class=ProductionSeeder --force
+        ;;
+    *)
+        "$PHP_BIN" artisan migrate --force
+        ;;
+esac
 
 # Public storage symlink (company logo, reception photos, signatures).
 "$PHP_BIN" artisan storage:link || echo "storage:link skipped (symlinks may be disabled) — see README"
@@ -53,4 +65,4 @@ fi
 "$PHP_BIN" artisan route:cache
 "$PHP_BIN" artisan view:cache
 
-echo "Post-deploy complete for garage.bangicode.ma."
+echo "Post-deploy complete${CLIENT:+ for $CLIENT}."
