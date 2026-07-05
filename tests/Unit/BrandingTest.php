@@ -37,7 +37,6 @@ class BrandingTest extends TestCase
     {
         config(['company.theme' => [
             'primary'    => '#F4A81C',
-            'accent'     => '#2FA84F',
             'bg'         => '#F6F2EA',
             'text'       => '#211E1A',
             'text_muted' => '#6B655E',

@@ -1,4 +1,5 @@
 import { brandAccent, brandPrimary } from '@/constants/brand';
+import { useMemo } from 'react';
 import {
     CartesianGrid,
     Legend,
@@ -34,10 +35,14 @@ function revenueFormatter(value: number | string): string {
 }
 
 export default function LineChartCard({ title, data }: LineChartCardProps) {
-    const LINES = [
-        { key: 'revenue', label: 'CA (DH)', color: brandPrimary(), yAxisId: 'revenue' },
-        { key: 'appointments', label: 'RDV', color: brandAccent(), yAxisId: 'appointments' },
-    ];
+    // Theme is fixed per page load, so read the CSS-var colours once.
+    const LINES = useMemo(
+        () => [
+            { key: 'revenue', label: 'CA (DH)', color: brandPrimary(), yAxisId: 'revenue' },
+            { key: 'appointments', label: 'RDV', color: brandAccent(), yAxisId: 'appointments' },
+        ],
+        [],
+    );
 
     return (
         <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-200">

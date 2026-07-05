@@ -45,9 +45,16 @@ Environment** holding that client's secrets. See `.github/workflows/deploy.yml`.
    `main` fan out to every entry.
 
 5. **First deploy** — run the **Deploy (per-client)** workflow manually with
-   `client = <slug>`. It builds, rsyncs, writes the `.env`, generates `APP_KEY`,
-   and runs migrations. `reseed = true` loads demo data (destructive — first
-   provisioning of a demo only).
+   `client = <slug>` and the `seed` input:
+   - **`seed = prod`** for a real client's first deploy → migrate + roles +
+     service catalog + admin (from `ADMIN_*`), **no demo data**.
+   - **`seed = demo`** only to (re)load the garage showcase's fake data
+     (destructive: `migrate:fresh --seed` DROPS all tables).
+   - **`seed = none`** (default) on later deploys → additive `migrate`.
+   It builds, rsyncs, writes the `.env`, generates `APP_KEY`, then seeds per above.
+
+   Sentry: for a client's front/back events to group, set `SENTRY_ENVIRONMENT`
+   in its `CPANEL_ENV` to the client slug (same as the GitHub Environment name).
 
 ## Master switch
 

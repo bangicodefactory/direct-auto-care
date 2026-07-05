@@ -25,7 +25,7 @@ class Branding
         $theme = config('company.theme');
 
         $primary = self::hexToHsl($theme['primary']);
-        $success = self::hexToHsl($theme['accent']);
+        $success = self::hexToHsl($theme['success']);
         $bg      = self::hexToHsl($theme['bg']);
         $text    = self::hexToHsl($theme['text']);
 
@@ -58,7 +58,7 @@ class Branding
             return null;
         }
 
-        if (Str::startsWith($logo, ['http://', 'https://'])) {
+        if (Str::isUrl($logo, ['http', 'https'])) {
             return $logo;
         }
 
