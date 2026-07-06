@@ -63,6 +63,17 @@ export default function VehicleConditionDiagram({
             .then((svg) => {
                 if (cancelled || !containerRef.current) return;
                 containerRef.current.innerHTML = svg;
+                // The static SVG ships with inline on* handlers (onmousemove/onmouseout
+                // calling showTooltip/hideTooltip) that aren't defined in the app, so
+                // hovering a part would throw ReferenceError. Strip them — our own
+                // interaction is the delegated click listener wired below.
+                containerRef.current
+                    .querySelectorAll<SVGElement>('[onmousemove], [onmouseout], [onmouseover]')
+                    .forEach((node) => {
+                        node.removeAttribute('onmousemove');
+                        node.removeAttribute('onmouseout');
+                        node.removeAttribute('onmouseover');
+                    });
                 const el = containerRef.current.querySelector<SVGSVGElement>('svg');
                 if (el) {
                     el.style.width = '100%';
