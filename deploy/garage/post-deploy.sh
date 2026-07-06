@@ -22,6 +22,16 @@ echo "Using PHP: $("$PHP_BIN" -v | head -1)"
 mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views \
          storage/logs bootstrap/cache
 
+# Ensure the docroot has Laravel's front-controller rewrite. public/.htaccess is
+# deliberately NOT rsynced (it can hold cPanel's per-domain PHP-handler block, which
+# a deploy must not clobber). A BRAND-NEW client docroot has no .htaccess at all, so
+# every route 404s while / and static files still work. Seed it from the shipped
+# template ONLY when missing — existing servers keep their handler block untouched.
+if [ ! -f public/.htaccess ] && [ -f deploy/laravel-public.htaccess ]; then
+  cp deploy/laravel-public.htaccess public/.htaccess
+  echo "Created public/.htaccess from template (fresh docroot)."
+fi
+
 # Clear any stale config cache from a previous deploy BEFORE the seeders run.
 # The seeders read ADMIN_EMAIL / ADMIN_PASSWORD via env(), and Laravel makes
 # env() return null whenever a cached config file is present (env is only read
