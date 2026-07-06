@@ -17,6 +17,7 @@ use App\Services\Notifications\MetaWhatsAppChannel;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -36,6 +37,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Cap indexed string columns at 191 chars so utf8mb4 keys (191*4 = 764B)
+        // fit the index-length limit on older MySQL/MariaDB (a fresh client DB on
+        // such a server otherwise fails create_users_table with error 1071).
+        Schema::defaultStringLength(191);
+
         Vite::prefetch(concurrency: 3);
 
         Gate::policy(User::class, UserPolicy::class);
