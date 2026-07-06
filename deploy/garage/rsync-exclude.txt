@@ -12,6 +12,8 @@
 /public/hot
 # cPanel/CloudLinux writes the per-domain PHP handler block into the docroot
 # .htaccess (public/). Exclude it so deploys don't wipe that block (which would
-# revert the PHP version). If Laravel's public/.htaccess rules ever change in the
-# repo, apply them on the server by hand.
+# revert the PHP version). A brand-new client docroot has no .htaccess, so
+# post-deploy.sh seeds one from deploy/laravel-public.htaccess ONLY when missing.
+# If Laravel's rewrite rules ever change, update BOTH public/.htaccess and that
+# template (existing servers still need the change applied by hand).
 /public/.htaccess
