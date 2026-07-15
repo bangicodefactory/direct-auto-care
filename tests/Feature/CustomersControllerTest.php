@@ -297,6 +297,68 @@ class CustomersControllerTest extends TestCase
             ->assertSessionHasErrors(['first_name', 'last_name', 'phone']);
     }
 
+    public function test_store_creates_company_customer(): void
+    {
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'type'         => 'company',
+                'company_name' => 'Transports Atlas SARL',
+                'ice'          => '001234567000089',
+                'if'           => '12345678',
+                'ville'        => 'Casablanca',
+                'phone'        => '0612345678',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('customers', [
+            'type'         => 'company',
+            'company_name' => 'Transports Atlas SARL',
+            'ice'          => '001234567000089',
+            'if'           => '12345678',
+            'ville'        => 'Casablanca',
+            'phone'        => '+212612345678',
+            'first_name'   => null,
+            'last_name'    => null,
+        ]);
+    }
+
+    public function test_store_company_requires_company_name(): void
+    {
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'type'  => 'company',
+                'phone' => '0612345678',
+            ])
+            ->assertSessionHasErrors(['company_name']);
+    }
+
+    public function test_index_exposes_display_name_and_type_for_company(): void
+    {
+        Customer::factory()->company()->create(['company_name' => 'ACME SARL']);
+
+        $this->actingAs($this->employee)
+            ->get(route('customers.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('customers.data.0.display_name', 'ACME SARL')
+                ->where('customers.data.0.type', 'company')
+            );
+    }
+
+    public function test_index_filters_by_company_name(): void
+    {
+        Customer::factory()->company()->create(['company_name' => 'Transports Atlas']);
+        Customer::factory()->create(['first_name' => 'Sara', 'last_name' => 'Bennani']);
+
+        $this->actingAs($this->employee)
+            ->get(route('customers.index', ['search' => 'Atlas']))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->has('customers.data', 1)
+                ->where('customers.data.0.display_name', 'Transports Atlas')
+            );
+    }
+
     public function test_store_saves_notify_whatsapp_opt_out(): void
     {
         $this->actingAs($this->employee)

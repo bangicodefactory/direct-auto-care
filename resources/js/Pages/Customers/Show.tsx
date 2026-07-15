@@ -91,7 +91,7 @@ export default function Show({ customer, can }: ShowProps) {
             header={
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold leading-tight text-foreground">
-                        {customer.first_name} {customer.last_name}
+                        {customer.display_name}
                     </h2>
                     <div className="flex gap-3">
                         <Button asChild>
@@ -109,7 +109,7 @@ export default function Show({ customer, can }: ShowProps) {
                 </div>
             }
         >
-            <Head title={`${customer.first_name} ${customer.last_name}`} />
+            <Head title={customer.display_name} />
 
             <div className="py-12">
                 <div className="mx-auto max-w-4xl space-y-6 sm:px-6 lg:px-8">
@@ -119,6 +119,63 @@ export default function Show({ customer, can }: ShowProps) {
                                 Informations
                             </h3>
                             <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                                <dt className="font-medium text-muted-foreground">Type</dt>
+                                <dd className="text-foreground">
+                                    {customer.type === 'company' ? 'Entreprise' : 'Particulier'}
+                                </dd>
+
+                                {customer.type === 'company' && (
+                                    <>
+                                        <dt className="font-medium text-muted-foreground">
+                                            Raison sociale
+                                        </dt>
+                                        <dd className="text-foreground">
+                                            {customer.company_name ?? '—'}
+                                        </dd>
+
+                                        <dt className="font-medium text-muted-foreground">ICE</dt>
+                                        <dd className="text-foreground">{customer.ice ?? '—'}</dd>
+
+                                        <dt className="font-medium text-muted-foreground">IF</dt>
+                                        <dd className="text-foreground">{customer.if ?? '—'}</dd>
+
+                                        {customer.patente && (
+                                            <>
+                                                <dt className="font-medium text-muted-foreground">
+                                                    Patente
+                                                </dt>
+                                                <dd className="text-foreground">
+                                                    {customer.patente}
+                                                </dd>
+                                            </>
+                                        )}
+
+                                        {customer.ville && (
+                                            <>
+                                                <dt className="font-medium text-muted-foreground">
+                                                    Ville
+                                                </dt>
+                                                <dd className="text-foreground">
+                                                    {customer.ville}
+                                                </dd>
+                                            </>
+                                        )}
+
+                                        {(customer.first_name || customer.last_name) && (
+                                            <>
+                                                <dt className="font-medium text-muted-foreground">
+                                                    Personne à contacter
+                                                </dt>
+                                                <dd className="text-foreground">
+                                                    {[customer.first_name, customer.last_name]
+                                                        .filter(Boolean)
+                                                        .join(' ')}
+                                                </dd>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+
                                 <dt className="font-medium text-muted-foreground">Téléphone</dt>
                                 <dd className="text-foreground">{customer.phone}</dd>
 
@@ -197,10 +254,8 @@ export default function Show({ customer, can }: ShowProps) {
                 <div className="p-6">
                     <h2 className="text-lg font-medium text-foreground">Supprimer ce client ?</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        <span className="font-medium">
-                            {customer.first_name} {customer.last_name}
-                        </span>{' '}
-                        sera définitivement supprimé. Cette action est irréversible.
+                        <span className="font-medium">{customer.display_name}</span> sera
+                        définitivement supprimé. Cette action est irréversible.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
                         <Button variant="secondary" onClick={() => setConfirmingDeletion(false)}>

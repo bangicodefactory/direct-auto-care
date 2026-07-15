@@ -4,12 +4,32 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
 import { Textarea } from '@/Components/ui/textarea';
+import type { CustomerType } from '@/types/models';
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
 
-const FIELD_ORDER = ['first_name', 'last_name', 'phone', 'email', 'address', 'notes'];
+// Order used to focus the first field with a validation error.
+const FIELD_ORDER = [
+    'company_name',
+    'first_name',
+    'last_name',
+    'ice',
+    'if',
+    'patente',
+    'ville',
+    'phone',
+    'email',
+    'address',
+    'notes',
+];
 
 interface CustomerFormData {
+    type: CustomerType;
+    company_name: string;
+    ice: string;
+    if: string;
+    patente: string;
+    ville: string;
     first_name: string;
     last_name: string;
     phone: string;
@@ -30,6 +50,11 @@ interface CustomerFormProps {
     autoFocus?: boolean;
 }
 
+const TYPE_OPTIONS: { value: CustomerType; label: string }[] = [
+    { value: 'individual', label: 'Particulier' },
+    { value: 'company', label: 'Entreprise' },
+];
+
 export default function CustomerForm({
     data,
     setData,
@@ -40,6 +65,7 @@ export default function CustomerForm({
     autoFocus = true,
 }: CustomerFormProps) {
     const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
+    const isCompany = data.type === 'company';
 
     useEffect(() => {
         const firstErrorField = FIELD_ORDER.find((field) => errors[field]);
@@ -50,39 +76,157 @@ export default function CustomerForm({
 
     return (
         <form onSubmit={onSubmit} className="space-y-6 p-6">
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <InputLabel htmlFor="first_name" value="Prénom" />
-                    <TextInput
-                        id="first_name"
-                        ref={(el) => {
-                            inputRefs.current.first_name = el;
-                        }}
-                        value={data.first_name}
-                        className="mt-1 block w-full"
-                        isFocused={autoFocus}
-                        onChange={(e) => setData('first_name', e.target.value)}
-                    />
-                    <InputError message={errors.first_name} className="mt-2" />
-                </div>
-
-                <div>
-                    <InputLabel htmlFor="last_name" value="Nom de famille" />
-                    <TextInput
-                        id="last_name"
-                        ref={(el) => {
-                            inputRefs.current.last_name = el;
-                        }}
-                        value={data.last_name}
-                        className="mt-1 block w-full"
-                        onChange={(e) => setData('last_name', e.target.value)}
-                    />
-                    <InputError message={errors.last_name} className="mt-2" />
+            {/* TYPE TOGGLE */}
+            <div>
+                <InputLabel value="Type de client" />
+                <div
+                    className="mt-1 inline-flex rounded-lg border border-border p-1"
+                    role="group"
+                    aria-label="Type de client"
+                >
+                    {TYPE_OPTIONS.map((opt) => (
+                        <button
+                            key={opt.value}
+                            type="button"
+                            aria-pressed={data.type === opt.value}
+                            onClick={() => setData('type', opt.value)}
+                            className={`min-h-[40px] rounded-md px-4 text-sm font-medium transition ${
+                                data.type === opt.value
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
+            {/* COMPANY IDENTITY */}
+            {isCompany && (
+                <>
+                    <div>
+                        <InputLabel htmlFor="company_name" value="Raison sociale *" />
+                        <TextInput
+                            id="company_name"
+                            ref={(el) => {
+                                inputRefs.current.company_name = el;
+                            }}
+                            value={data.company_name}
+                            className="mt-1 block w-full"
+                            isFocused={autoFocus}
+                            onChange={(e) => setData('company_name', e.target.value)}
+                        />
+                        <InputError message={errors.company_name} className="mt-2" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <InputLabel htmlFor="ice" value="ICE" />
+                            <TextInput
+                                id="ice"
+                                ref={(el) => {
+                                    inputRefs.current.ice = el;
+                                }}
+                                value={data.ice}
+                                className="mt-1 block w-full"
+                                onChange={(e) => setData('ice', e.target.value)}
+                            />
+                            <InputError message={errors.ice} className="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel htmlFor="if" value="IF" />
+                            <TextInput
+                                id="if"
+                                ref={(el) => {
+                                    inputRefs.current.if = el;
+                                }}
+                                value={data.if}
+                                className="mt-1 block w-full"
+                                onChange={(e) => setData('if', e.target.value)}
+                            />
+                            <InputError message={errors.if} className="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel htmlFor="patente" value="Patente" />
+                            <TextInput
+                                id="patente"
+                                ref={(el) => {
+                                    inputRefs.current.patente = el;
+                                }}
+                                value={data.patente}
+                                className="mt-1 block w-full"
+                                onChange={(e) => setData('patente', e.target.value)}
+                            />
+                            <InputError message={errors.patente} className="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel htmlFor="ville" value="Ville" />
+                            <TextInput
+                                id="ville"
+                                ref={(el) => {
+                                    inputRefs.current.ville = el;
+                                }}
+                                value={data.ville}
+                                className="mt-1 block w-full"
+                                onChange={(e) => setData('ville', e.target.value)}
+                            />
+                            <InputError message={errors.ville} className="mt-2" />
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* PERSON NAME — the client for individuals, the contact for companies */}
+            <fieldset>
+                {isCompany && (
+                    <legend className="mb-2 text-sm font-medium text-foreground">
+                        Personne à contacter (facultatif)
+                    </legend>
+                )}
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <InputLabel
+                            htmlFor="first_name"
+                            value={isCompany ? 'Prénom' : 'Prénom *'}
+                        />
+                        <TextInput
+                            id="first_name"
+                            ref={(el) => {
+                                inputRefs.current.first_name = el;
+                            }}
+                            value={data.first_name}
+                            className="mt-1 block w-full"
+                            isFocused={autoFocus && !isCompany}
+                            onChange={(e) => setData('first_name', e.target.value)}
+                        />
+                        <InputError message={errors.first_name} className="mt-2" />
+                    </div>
+
+                    <div>
+                        <InputLabel
+                            htmlFor="last_name"
+                            value={isCompany ? 'Nom de famille' : 'Nom de famille *'}
+                        />
+                        <TextInput
+                            id="last_name"
+                            ref={(el) => {
+                                inputRefs.current.last_name = el;
+                            }}
+                            value={data.last_name}
+                            className="mt-1 block w-full"
+                            onChange={(e) => setData('last_name', e.target.value)}
+                        />
+                        <InputError message={errors.last_name} className="mt-2" />
+                    </div>
+                </div>
+            </fieldset>
+
             <div>
-                <InputLabel htmlFor="phone" value="Téléphone" />
+                <InputLabel htmlFor="phone" value="Téléphone *" />
                 <TextInput
                     id="phone"
                     ref={(el) => {

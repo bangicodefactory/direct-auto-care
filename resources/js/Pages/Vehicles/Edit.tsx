@@ -16,8 +16,7 @@ interface EditVehicle {
     color: string | null;
     customer: {
         id: number;
-        first_name: string;
-        last_name: string;
+        display_name: string;
     };
 }
 

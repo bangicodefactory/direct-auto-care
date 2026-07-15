@@ -33,8 +33,7 @@ interface ShowVehicle {
     color: string | null;
     customer: {
         id: number;
-        first_name: string;
-        last_name: string;
+        display_name: string;
     };
     service_records: ServiceRecordRow[];
     appointments: AppointmentRow[];
@@ -283,7 +282,7 @@ export default function Show({ vehicle, can }: ShowProps) {
                                         href={route('customers.show', vehicle.customer.id)}
                                         className="text-primary hover:underline"
                                     >
-                                        {vehicle.customer.first_name} {vehicle.customer.last_name}
+                                        {vehicle.customer.display_name}
                                     </Link>
                                 </dd>
                             </div>

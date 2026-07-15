@@ -37,7 +37,7 @@ class MetaWhatsAppChannel implements WhatsAppChannelContract
                     [
                         'type'       => 'body',
                         'parameters' => [
-                            ['type' => 'text', 'text' => $reminder->customer->first_name],
+                            ['type' => 'text', 'text' => $reminder->customer->first_name ?: $reminder->customer->display_name],
                             ['type' => 'text', 'text' => $reminder->vehicle->license_plate],
                         ],
                     ],

@@ -244,13 +244,20 @@
             <td>
                 <div class="party-label">Facturé à</div>
                 @if($invoice->customer)
-                    <div class="party-name">
-                        {{ $invoice->customer->first_name }} {{ $invoice->customer->last_name }}
-                    </div>
+                    <div class="party-name">{{ $invoice->customer->display_name }}</div>
                     <div class="party-detail">
+                        @if($invoice->customer->type === \App\Enums\CustomerType::Company)
+                            @if($invoice->customer->company_name && ($invoice->customer->first_name || $invoice->customer->last_name))
+                                Contact : {{ trim("{$invoice->customer->first_name} {$invoice->customer->last_name}") }}<br>
+                            @endif
+                            @if($invoice->customer->ice) ICE : {{ $invoice->customer->ice }}<br>@endif
+                            @if($invoice->customer->if) IF : {{ $invoice->customer->if }}<br>@endif
+                            @if($invoice->customer->patente) Patente : {{ $invoice->customer->patente }}<br>@endif
+                        @endif
                         @if($invoice->customer->phone) {{ $invoice->customer->phone }}<br>@endif
                         @if($invoice->customer->email) {{ $invoice->customer->email }}<br>@endif
                         @if($invoice->customer->address) {{ $invoice->customer->address }}<br>@endif
+                        @if($invoice->customer->ville) {{ $invoice->customer->ville }}<br>@endif
                     </div>
                 @else
                     <div class="party-detail">—</div>

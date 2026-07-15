@@ -207,6 +207,61 @@ class CustomerRequestTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // StoreCustomerRequest — company clients
+    // -------------------------------------------------------------------------
+
+    public function test_store_company_requires_company_name(): void
+    {
+        $rules = (new StoreCustomerRequest())->rules();
+        $v     = Validator::make(['type' => 'company', 'phone' => '+212612345678'], $rules);
+
+        $this->assertArrayHasKey('company_name', $v->errors()->toArray());
+    }
+
+    public function test_store_company_does_not_require_person_name(): void
+    {
+        $rules  = (new StoreCustomerRequest())->rules();
+        $v      = Validator::make([
+            'type'         => 'company',
+            'company_name' => 'Transports Atlas SARL',
+            'phone'        => '+212612345678',
+        ], $rules);
+        $errors = $v->errors()->toArray();
+
+        $this->assertArrayNotHasKey('first_name', $errors);
+        $this->assertArrayNotHasKey('last_name', $errors);
+        $this->assertArrayNotHasKey('company_name', $errors);
+    }
+
+    public function test_store_company_valid_payload_passes(): void
+    {
+        $rules = (new StoreCustomerRequest())->rules();
+        $v     = Validator::make([
+            'type'         => 'company',
+            'company_name' => 'Transports Atlas SARL',
+            'ice'          => '001234567000089',
+            'if'           => '12345678',
+            'ville'        => 'Casablanca',
+            'phone'        => '+212612345678',
+        ], $rules);
+
+        $this->assertFalse($v->fails());
+    }
+
+    public function test_store_rejects_unknown_type(): void
+    {
+        $rules = (new StoreCustomerRequest())->rules();
+        $v     = Validator::make([
+            'type'       => 'bogus',
+            'first_name' => 'A',
+            'last_name'  => 'B',
+            'phone'      => '+212612345678',
+        ], $rules);
+
+        $this->assertArrayHasKey('type', $v->errors()->toArray());
+    }
+
+    // -------------------------------------------------------------------------
     // UpdateCustomerRequest — validation rules
     // -------------------------------------------------------------------------
 

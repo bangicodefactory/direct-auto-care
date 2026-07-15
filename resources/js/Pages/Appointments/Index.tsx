@@ -71,7 +71,7 @@ interface AppointmentsIndexProps {
     statuses: StatusOption[];
     filters: IndexFilters;
     // Deferred props (Inertia::defer) — undefined until the 'modal' group loads.
-    customers?: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    customers?: Pick<Customer, 'id' | 'display_name'>[];
     vehicles?: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
     serviceTypes?: Pick<ServiceType, 'id' | 'name'>[];
     can: { create: boolean; delete: boolean };
@@ -84,7 +84,7 @@ interface CreateModalState {
 interface CreateModalProps {
     show: boolean;
     initialData: CreateModalState | null;
-    customers?: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    customers?: Pick<Customer, 'id' | 'display_name'>[];
     vehicles?: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
     serviceTypes?: Pick<ServiceType, 'id' | 'name'>[];
     onClose: () => void;

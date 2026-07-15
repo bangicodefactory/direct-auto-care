@@ -2,10 +2,18 @@
 
 namespace Database\Factories;
 
+use App\Enums\CustomerType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CustomerFactory extends Factory
 {
+    protected static array $companyNames = [
+        'Transports Atlas SARL', 'Société Chérifienne de Logistique', 'Maroc Fret SA',
+        'Entreprise Bennani & Fils', 'Cabinet Alaoui Consulting', 'Fiduciaire Tazi SARL',
+        'Auto Négoce Casablanca', 'Groupe Sahara Distribution', 'BTP Tanger Med SARL',
+        'Comptoir Métallurgique du Souss',
+    ];
+
     protected static array $firstNames = [
         'Youssef', 'Omar', 'Mohammed', 'Ahmed', 'Karim',
         'Hassan', 'Rachid', 'Hamza', 'Soufiane', 'Ayoub',
@@ -26,6 +34,12 @@ class CustomerFactory extends Factory
         $lastName = fake()->randomElement(self::$lastNames);
 
         return [
+            'type' => CustomerType::Individual,
+            'company_name' => null,
+            'ice' => null,
+            'if' => null,
+            'patente' => null,
+            'ville' => null,
             'first_name' => $firstName,
             'last_name' => $lastName,
             'phone' => '+212' . fake()->unique()->numerify('6########'),
@@ -51,5 +65,21 @@ class CustomerFactory extends Factory
             'notify_email' => fake()->boolean(30),
             'notify_whatsapp' => fake()->boolean(40),
         ];
+    }
+
+    /**
+     * A company (personne morale) client: raison sociale + Moroccan fiscal IDs,
+     * with the person name kept as an optional contact.
+     */
+    public function company(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'type' => CustomerType::Company,
+            'company_name' => fake()->randomElement(self::$companyNames),
+            'ice' => fake()->numerify('###############'),
+            'if' => fake()->numerify('#######'),
+            'patente' => fake()->optional(0.5)->numerify('########'),
+            'ville' => fake()->randomElement(['Casablanca', 'Rabat', 'Tanger', 'Marrakech', 'Fès', 'Agadir']),
+        ]);
     }
 }

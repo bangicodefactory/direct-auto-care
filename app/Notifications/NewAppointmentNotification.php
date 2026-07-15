@@ -23,7 +23,7 @@ class NewAppointmentNotification extends Notification
 
         return [
             'type'    => 'new_appointment',
-            'message' => "Nouveau rendez-vous\u{00A0}: {$customer->first_name} {$customer->last_name} le {$this->appointment->scheduled_at->format('d/m/Y à H:i')}",
+            'message' => "Nouveau rendez-vous\u{00A0}: {$customer->display_name} le {$this->appointment->scheduled_at->format('d/m/Y à H:i')}",
             'url'     => route('appointments.show', $this->appointment),
         ];
     }

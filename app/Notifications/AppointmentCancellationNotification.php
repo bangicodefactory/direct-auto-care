@@ -25,7 +25,7 @@ class AppointmentCancellationNotification extends Notification
 
         $mail = (new MailMessage())
             ->subject('Annulation de votre rendez-vous — Direct Auto Care')
-            ->greeting("Bonjour {$customer->first_name} {$customer->last_name},")
+            ->greeting("Bonjour {$customer->display_name},")
             ->line('Votre rendez-vous a été annulé.')
             ->line('**Date :** ' . $appointment->scheduled_at->format('d/m/Y'))
             ->line('**Heure :** ' . $appointment->scheduled_at->format('H:i'));

@@ -39,7 +39,7 @@ interface EditForm {
 
 interface EditProps {
     invoice: Invoice & { items: InvoiceItem[] };
-    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    customers: Pick<Customer, 'id' | 'display_name'>[];
     products: Pick<Product, 'id' | 'name' | 'unit' | 'price_sell'>[];
     vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
 }
@@ -188,7 +188,7 @@ export default function Edit({ invoice, customers, products, vehicles }: EditPro
                                                 </SelectItem>
                                                 {customers.map((c) => (
                                                     <SelectItem key={c.id} value={String(c.id)}>
-                                                        {c.first_name} {c.last_name}
+                                                        {c.display_name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

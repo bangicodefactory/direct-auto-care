@@ -23,7 +23,7 @@ class ReminderFailureNotification extends Notification
 
         return [
             'type'    => 'reminder_failure',
-            'message' => "Échec du rappel pour {$customer->first_name} {$customer->last_name}",
+            'message' => "Échec du rappel pour {$customer->display_name}",
             'url'     => route('reminders.index'),
         ];
     }
