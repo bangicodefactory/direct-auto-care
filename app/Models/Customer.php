@@ -48,6 +48,23 @@ class Customer extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        // The raison sociale + fiscal identifiers only apply to companies. Clear
+        // them on save for anyone who isn't a company so a client re-classified
+        // from entreprise to particulier never keeps stale fiscal data (which
+        // would otherwise resurface if they were switched back).
+        static::saving(function (self $customer): void {
+            if ($customer->type !== CustomerType::Company) {
+                $customer->company_name = null;
+                $customer->ice = null;
+                $customer->if = null;
+                $customer->patente = null;
+                $customer->ville = null;
+            }
+        });
+    }
+
     /**
      * The name to show for this customer: the raison sociale for companies,
      * otherwise the person's full name.

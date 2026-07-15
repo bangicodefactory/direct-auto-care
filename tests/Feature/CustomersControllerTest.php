@@ -442,6 +442,37 @@ class CustomersControllerTest extends TestCase
             ->assertSessionHasErrors(['first_name', 'last_name', 'phone']);
     }
 
+    public function test_update_converting_company_to_individual_clears_fiscal_fields(): void
+    {
+        $customer = Customer::factory()->company()->create([
+            'company_name' => 'ACME SARL',
+            'ice'          => '001234567000089',
+            'if'           => '12345678',
+            'patente'      => '87654321',
+            'ville'        => 'Casablanca',
+        ]);
+
+        $this->actingAs($this->employee)
+            ->put(route('customers.update', $customer), [
+                'type'       => 'individual',
+                'first_name' => 'Sara',
+                'last_name'  => 'Bennani',
+                'phone'      => $customer->phone,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('customers', [
+            'id'           => $customer->id,
+            'type'         => 'individual',
+            'first_name'   => 'Sara',
+            'company_name' => null,
+            'ice'          => null,
+            'if'           => null,
+            'patente'      => null,
+            'ville'        => null,
+        ]);
+    }
+
     public function test_update_saves_notify_toggles(): void
     {
         $customer = Customer::factory()->create([
