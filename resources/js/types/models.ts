@@ -159,6 +159,8 @@ export interface InvoiceItem {
     id: number;
     invoice_id: number;
     product_id: number | null;
+    /** Optional per-line vehicle attribution (multi-vehicle invoices). */
+    vehicle_id: number | null;
     description: string;
     quantity: string;
     unit_price_ht: string;
@@ -168,6 +170,7 @@ export interface InvoiceItem {
 
     // Relationships
     invoice?: Invoice;
+    vehicle?: Vehicle;
     product?: Product;
 }
 

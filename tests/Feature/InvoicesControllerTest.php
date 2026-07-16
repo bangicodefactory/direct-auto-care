@@ -352,6 +352,225 @@ class InvoicesControllerTest extends TestCase
             ->assertSessionHasErrors('vehicle_id');
     }
 
+    // =========================================================================
+    // Per-line vehicle attribution (multi-vehicle invoices)
+    // =========================================================================
+
+    public function test_store_persists_per_line_vehicle_id(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $vehicleA = \App\Models\Vehicle::factory()->create(['customer_id' => $customer->id]);
+        $vehicleB = \App\Models\Vehicle::factory()->create(['customer_id' => $customer->id]);
+
+        $payload          = $this->storePayload($customer);
+        $payload['items'] = [
+            [
+                'product_id'    => null,
+                'vehicle_id'    => $vehicleA->id,
+                'description'   => 'Vidange véhicule A',
+                'quantity'      => 1,
+                'unit_price_ht' => 200,
+            ],
+            [
+                'product_id'    => null,
+                'vehicle_id'    => $vehicleB->id,
+                'description'   => 'Freins véhicule B',
+                'quantity'      => 1,
+                'unit_price_ht' => 350,
+            ],
+        ];
+
+        $this->actingAs($admin)
+            ->post(route('invoices.store'), $payload)
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('invoice_items', [
+            'description' => 'Vidange véhicule A',
+            'vehicle_id'  => $vehicleA->id,
+        ]);
+        $this->assertDatabaseHas('invoice_items', [
+            'description' => 'Freins véhicule B',
+            'vehicle_id'  => $vehicleB->id,
+        ]);
+    }
+
+    public function test_store_allows_null_per_line_vehicle_id(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+
+        $payload          = $this->storePayload($customer);
+        $payload['items'] = [[
+            'product_id'    => null,
+            'vehicle_id'    => null,
+            'description'   => "Main d'œuvre",
+            'quantity'      => 1,
+            'unit_price_ht' => 200,
+        ]];
+
+        $this->actingAs($admin)
+            ->post(route('invoices.store'), $payload)
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('invoice_items', [
+            'description' => "Main d'œuvre",
+            'vehicle_id'  => null,
+        ]);
+    }
+
+    public function test_store_rejects_per_line_vehicle_of_another_customer(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $other    = Customer::factory()->create();
+        $foreign  = \App\Models\Vehicle::factory()->create(['customer_id' => $other->id]);
+
+        $payload          = $this->storePayload($customer);
+        $payload['items'] = [[
+            'product_id'    => null,
+            'vehicle_id'    => $foreign->id,
+            'description'   => 'Ligne suspecte',
+            'quantity'      => 1,
+            'unit_price_ht' => 100,
+        ]];
+
+        $this->actingAs($admin)
+            ->post(route('invoices.store'), $payload)
+            ->assertSessionHasErrors('items.0.vehicle_id');
+    }
+
+    public function test_convert_carries_over_per_line_vehicle_id(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $vehicle  = \App\Models\Vehicle::factory()->create(['customer_id' => $customer->id]);
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'customer_id' => $customer->id,
+        ]);
+        $quote->items()->create([
+            'product_id'    => null,
+            'vehicle_id'    => $vehicle->id,
+            'description'   => 'Vidange moteur',
+            'quantity'      => 1,
+            'unit_price_ht' => 150,
+            'line_total_ht' => 150,
+        ]);
+
+        $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertRedirect();
+
+        $invoice = Invoice::where('converted_from_quote_id', $quote->id)->first();
+        $this->assertNotNull($invoice);
+        $this->assertSame($vehicle->id, $invoice->items->first()->vehicle_id);
+    }
+
+    public function test_show_payload_includes_per_line_vehicle(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $vehicle  = \App\Models\Vehicle::factory()->create(['customer_id' => $customer->id]);
+        $invoice  = Invoice::factory()->create(['customer_id' => $customer->id]);
+        $invoice->items()->create([
+            'product_id'    => null,
+            'vehicle_id'    => $vehicle->id,
+            'description'   => 'Vidange moteur',
+            'quantity'      => 1,
+            'unit_price_ht' => 150,
+            'line_total_ht' => 150,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.show', $invoice))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Invoices/Show')
+                ->where('invoice.items.0.vehicle.id', $vehicle->id)
+                ->where('invoice.items.0.vehicle.plate', $vehicle->license_plate));
+    }
+
+    public function test_update_persists_per_line_vehicle_id(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $vehicle  = \App\Models\Vehicle::factory()->create(['customer_id' => $customer->id]);
+        $invoice  = Invoice::factory()->create([
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        $payload          = $this->updatePayload($customer);
+        $payload['items'] = [[
+            'product_id'    => null,
+            'vehicle_id'    => $vehicle->id,
+            'description'   => 'Vidange moteur',
+            'quantity'      => 1,
+            'unit_price_ht' => 150,
+        ]];
+
+        $this->actingAs($admin)
+            ->put(route('invoices.update', $invoice), $payload)
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertDatabaseHas('invoice_items', [
+            'invoice_id'  => $invoice->id,
+            'description' => 'Vidange moteur',
+            'vehicle_id'  => $vehicle->id,
+        ]);
+    }
+
+    public function test_update_rejects_per_line_vehicle_of_another_customer(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $other    = Customer::factory()->create();
+        $foreign  = \App\Models\Vehicle::factory()->create(['customer_id' => $other->id]);
+        $invoice  = Invoice::factory()->create([
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        $payload          = $this->updatePayload($customer);
+        $payload['items'] = [[
+            'product_id'    => null,
+            'vehicle_id'    => $foreign->id,
+            'description'   => 'Ligne suspecte',
+            'quantity'      => 1,
+            'unit_price_ht' => 100,
+        ]];
+
+        $this->actingAs($admin)
+            ->put(route('invoices.update', $invoice), $payload)
+            ->assertSessionHasErrors('items.0.vehicle_id');
+    }
+
+    public function test_store_treats_empty_string_per_line_vehicle_id_as_null(): void
+    {
+        // The Create form posts vehicle_id: '' for the "— Aucun —" option; Laravel's
+        // ConvertEmptyStringsToNull middleware must turn it into a real NULL so the
+        // nullable rule passes and the column is stored empty (not 0 / not a '' cast).
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+
+        $payload          = $this->storePayload($customer);
+        $payload['items'] = [[
+            'product_id'    => null,
+            'vehicle_id'    => '',
+            'description'   => "Main d'œuvre",
+            'quantity'      => 1,
+            'unit_price_ht' => 200,
+        ]];
+
+        $this->actingAs($admin)
+            ->post(route('invoices.store'), $payload)
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('invoice_items', [
+            'description' => "Main d'œuvre",
+            'vehicle_id'  => null,
+        ]);
+    }
+
     public function test_store_with_product_decrements_stock(): void
     {
         $admin    = User::factory()->create()->assignRole('admin');

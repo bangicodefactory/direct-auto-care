@@ -109,6 +109,10 @@
         .col-qty  { width: 10%; }
         .col-unit { width: 20%; }
         .col-total{ width: 25%; }
+        /* Multi-vehicle invoices add a Véhicule column; narrow the description to fit. */
+        .col-veh  { width: 18%; }
+        .col-veh .veh-detail { color: #888; font-size: 10px; }
+        .items-table.has-veh .col-desc { width: 27%; }
 
         /* ── Totals ── */
         .totals-wrap { width: 100%; }
@@ -273,10 +277,16 @@
     </table>
 
     {{-- ── LINE ITEMS ── --}}
-    <table class="items-table">
+    {{-- Show a per-line Véhicule column only when at least one line is attributed to a
+         vehicle (a multi-vehicle invoice). Single-vehicle invoices keep the plain table. --}}
+    @php($hasLineVehicles = $invoice->items->contains(fn ($i) => $i->vehicle_id))
+    <table class="items-table {{ $hasLineVehicles ? 'has-veh' : '' }}">
         <thead>
             <tr>
                 <th class="col-desc text-left">Description</th>
+                @if($hasLineVehicles)
+                <th class="col-veh text-left">Véhicule</th>
+                @endif
                 <th class="col-qty text-center">Qté</th>
                 <th class="col-unit text-right">P.U. HT (DH)</th>
                 <th class="col-total text-right">Total HT (DH)</th>
@@ -286,6 +296,14 @@
             @foreach($invoice->items as $item)
             <tr>
                 <td class="col-desc">{{ $item->description }}</td>
+                @if($hasLineVehicles)
+                <td class="col-veh">
+                    @if($item->vehicle)
+                        {{ $item->vehicle->license_plate }}
+                        <span class="veh-detail">{{ $item->vehicle->make }} {{ $item->vehicle->model }}</span>
+                    @endif
+                </td>
+                @endif
                 <td class="col-qty text-center">{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
                 <td class="col-unit text-right">{{ number_format((float)$item->unit_price_ht, 2, ',', ' ') }}</td>
                 <td class="col-total text-right">{{ number_format((float)$item->line_total_ht, 2, ',', ' ') }}</td>
