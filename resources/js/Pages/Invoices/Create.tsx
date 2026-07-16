@@ -11,6 +11,8 @@ import {
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import InvoiceVehicleField from '@/Pages/Invoices/Partials/InvoiceVehicleField';
+import LineVehicleSelect from '@/Pages/Invoices/Partials/LineVehicleSelect';
 import type { Customer, InvoiceType, Product, Vehicle } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
@@ -234,51 +236,14 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                         <InputError message={errors.customer_id} className="mt-1" />
                                     </div>
 
-                                    {isMultiVehicle ? (
-                                        <div>
-                                            <InputLabel value="Véhicule" />
-                                            <p className="mt-2 text-sm text-muted-foreground">
-                                                Ce client a plusieurs véhicules — précisez le
-                                                véhicule sur chaque ligne ci-dessous.
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <InputLabel htmlFor="vehicle_id" value="Véhicule" />
-                                            <Select
-                                                value={
-                                                    data.vehicle_id
-                                                        ? String(data.vehicle_id)
-                                                        : '__none__'
-                                                }
-                                                onValueChange={(v) =>
-                                                    setData('vehicle_id', v === '__none__' ? '' : v)
-                                                }
-                                                disabled={!data.customer_id}
-                                            >
-                                                <SelectTrigger
-                                                    id="vehicle_id"
-                                                    className="mt-1 min-h-[44px] w-full"
-                                                >
-                                                    <SelectValue placeholder="— Aucun —" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="__none__">
-                                                        — Aucun —
-                                                    </SelectItem>
-                                                    {filteredVehicles.map((v) => (
-                                                        <SelectItem key={v.id} value={String(v.id)}>
-                                                            {v.license_plate} — {v.make} {v.model}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <InputError
-                                                message={errors.vehicle_id}
-                                                className="mt-1"
-                                            />
-                                        </div>
-                                    )}
+                                    <InvoiceVehicleField
+                                        isMultiVehicle={isMultiVehicle}
+                                        value={data.vehicle_id}
+                                        vehicles={filteredVehicles}
+                                        disabled={!data.customer_id}
+                                        error={errors.vehicle_id}
+                                        onChange={(v) => setData('vehicle_id', v)}
+                                    />
 
                                     <div>
                                         <InputLabel
@@ -390,37 +355,21 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                         </td>
                                                         {isMultiVehicle && (
                                                             <td className="py-2 pe-3">
-                                                                <select
-                                                                    className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                                                <LineVehicleSelect
                                                                     value={item.vehicle_id}
-                                                                    onChange={(e) =>
-                                                                        updateItem(
-                                                                            index,
-                                                                            'vehicle_id',
-                                                                            e.target.value,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <option value="">
-                                                                        — Aucun —
-                                                                    </option>
-                                                                    {filteredVehicles.map((v) => (
-                                                                        <option
-                                                                            key={v.id}
-                                                                            value={v.id}
-                                                                        >
-                                                                            {v.license_plate} —{' '}
-                                                                            {v.make} {v.model}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                                <InputError
-                                                                    message={
+                                                                    vehicles={filteredVehicles}
+                                                                    error={
                                                                         errors[
                                                                             `items.${index}.vehicle_id`
                                                                         ]
                                                                     }
-                                                                    className="mt-0.5"
+                                                                    onChange={(v) =>
+                                                                        updateItem(
+                                                                            index,
+                                                                            'vehicle_id',
+                                                                            v,
+                                                                        )
+                                                                    }
                                                                 />
                                                             </td>
                                                         )}
