@@ -3,7 +3,7 @@ import Modal from '@/Components/Modal';
 import { Button } from '@/Components/ui/button';
 import { useForm, usePage } from '@inertiajs/react';
 import { Download } from 'lucide-react';
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 
 interface BulkImportModalProps {
     open: boolean;
@@ -34,18 +34,36 @@ export default function BulkImportModal({
 
     const report = usePage().props.flash.importReport;
 
+    // The report is flashed into page props and lingers there until the next
+    // Inertia visit; gate it on a local flag so reopening the modal doesn't show
+    // a previous run's results. It's revealed only after a successful submit and
+    // hidden again whenever the modal transitions open (adjust-during-render).
+    const [showReport, setShowReport] = useState(false);
+    const [wasOpen, setWasOpen] = useState(open);
+
+    if (open !== wasOpen) {
+        setWasOpen(open);
+        if (open) {
+            setShowReport(false);
+        }
+    }
+
     function submit(e: FormEvent) {
         e.preventDefault();
         post(endpoint, {
             forceFormData: true,
             preserveState: true,
             preserveScroll: true,
-            onSuccess: () => reset('file'),
+            onSuccess: () => {
+                reset('file');
+                setShowReport(true);
+            },
         });
     }
 
     function close() {
         reset('file');
+        setShowReport(false);
         onClose();
     }
 
@@ -82,7 +100,7 @@ export default function BulkImportModal({
                     )}
                 </div>
 
-                {report && (
+                {showReport && report && (
                     <div className="rounded-md border border-border bg-muted/40 p-3 text-sm">
                         <p className="font-medium text-foreground">
                             {report.imported} ligne(s) importée(s), {report.failed.length} en

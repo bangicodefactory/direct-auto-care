@@ -102,7 +102,7 @@ class ProductsController extends Controller implements HasMiddleware
 
     public function import(ImportProductsRequest $request, ProductImportService $service): RedirectResponse
     {
-        $report = $service->import($request->file('file'), $request->user());
+        $report = $service->import($request->file('file'));
 
         return back()
             ->with('success', "{$report->importedCount()} produit(s) importé(s), {$report->failedCount()} en erreur.")

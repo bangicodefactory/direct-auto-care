@@ -173,6 +173,38 @@ class ProductImportTest extends TestCase
         $this->assertSame(1, Product::where('sku', 'EXISTS')->count());
     }
 
+    public function test_duplicate_of_a_soft_deleted_sku_is_reported_not_fatal(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+        Product::factory()->create(['sku' => 'GONE'])->delete();
+
+        // The DB unique index on `sku` is global; reusing a trashed SKU must be a
+        // reported row error, not a UniqueConstraintViolation that aborts the batch.
+        $this->actingAs($admin)
+            ->from(route('products.index'))
+            ->post(route('products.import'), ['file' => $this->xlsx([
+                ['huile', 'Réédition', 'GONE', 'L', 10, 20, 5, 2],
+            ])])
+            ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 0 && count($r['failed']) === 1);
+    }
+
+    public function test_rows_beyond_the_cap_are_truncated(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+
+        // MAX_ROWS is 2000; feed one more valid (blank-sku) row than the cap.
+        $rows = array_fill(0, 2001, ['huile', 'Ligne', '', 'L', 10, 20, 5, 2]);
+
+        $this->actingAs($admin)
+            ->from(route('products.index'))
+            ->post(route('products.import'), ['file' => $this->xlsx($rows)])
+            ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 2000
+                && $r['truncated'] === true
+                && $r['failed'] === []);
+
+        $this->assertSame(2000, Product::count());
+    }
+
     public function test_non_xlsx_upload_is_rejected(): void
     {
         $admin = User::factory()->create()->assignRole('admin');

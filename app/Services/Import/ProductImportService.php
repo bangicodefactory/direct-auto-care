@@ -4,13 +4,13 @@ namespace App\Services\Import;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Models\Product;
-use App\Models\User;
 use App\Support\Import\ImportReport;
 use App\Support\Import\SpreadsheetReader;
 use App\Support\Import\SpreadsheetTemplate;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Unique;
 
 /**
  * Bulk-imports products from an uploaded .xlsx. Each row is validated against the
@@ -40,11 +40,12 @@ class ProductImportService
                 'price_buy : optionnel. price_sell : obligatoire.',
                 'quantity_on_hand : entier ≥ 0 (stock initial).',
                 'low_stock_threshold : entier ≥ 1 (seuil d\'alerte stock bas).',
+                'Astuce : formatez la colonne sku en « Texte » dans Excel pour préserver les zéros initiaux.',
             ],
         );
     }
 
-    public function import(UploadedFile $file, User $user): ImportReport
+    public function import(UploadedFile $file): ImportReport
     {
         $report = new ImportReport();
         $parsed = SpreadsheetReader::read($file->getRealPath(), self::MAX_ROWS);
@@ -53,6 +54,20 @@ class ProductImportService
             $report->markTruncated();
         }
 
+        // Drop the DB `unique` rule from the per-row validator: it would fire one
+        // query per row. Existing SKUs are preloaded once and checked in-memory
+        // below (the DB unique index remains the final backstop on insert).
+        $rules = StoreProductRequest::fieldRules();
+        $rules['sku'] = $this->withoutUniqueRules($rules['sku']);
+
+        // Include soft-deleted rows: the DB unique index on `sku` is global, so a
+        // row reusing a trashed SKU must be reported here rather than crash the
+        // atomic insert with a UniqueConstraintViolationException.
+        $existingSkus = array_fill_keys(
+            Product::withTrashed()->whereNotNull('sku')->pluck('sku')->all(),
+            true,
+        );
+
         $seenSkus = [];
         $valid = [];
 
@@ -60,14 +75,18 @@ class ProductImportService
             $data = $this->only($entry['data'], self::HEADERS);
             $errors = [];
 
-            $validator = Validator::make($data, StoreProductRequest::fieldRules());
+            $validator = Validator::make($data, $rules);
             foreach ($validator->errors()->all() as $message) {
                 $errors[] = $message;
             }
 
             $sku = $data['sku'] ?? null;
-            if ($sku !== null && isset($seenSkus[$sku])) {
-                $errors[] = "Le SKU « {$sku} » est en double dans le fichier.";
+            if ($sku !== null) {
+                if (isset($existingSkus[$sku])) {
+                    $errors[] = "La référence « {$sku} » est déjà utilisée.";
+                } elseif (isset($seenSkus[$sku])) {
+                    $errors[] = "La référence « {$sku} » est en double dans le fichier.";
+                }
             }
 
             if ($errors !== []) {
@@ -93,6 +112,21 @@ class ProductImportService
         }
 
         return $report;
+    }
+
+    /**
+     * Strip any {@see Unique} rule from a field's rule list so per-row validation
+     * doesn't hit the database; uniqueness is enforced in-memory from a preloaded set.
+     *
+     * @param  array<int, mixed>  $rules
+     * @return array<int, mixed>
+     */
+    private function withoutUniqueRules(array $rules): array
+    {
+        return array_values(array_filter(
+            $rules,
+            static fn ($rule): bool => ! $rule instanceof Unique,
+        ));
     }
 
     /**

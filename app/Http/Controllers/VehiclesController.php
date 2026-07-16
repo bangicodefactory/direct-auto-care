@@ -96,7 +96,7 @@ class VehiclesController extends Controller
 
     public function import(ImportVehiclesRequest $request, VehicleImportService $service): RedirectResponse
     {
-        $report = $service->import($request->file('file'), $request->user());
+        $report = $service->import($request->file('file'));
 
         return back()
             ->with('success', "{$report->importedCount()} véhicule(s) importé(s), {$report->failedCount()} en erreur.")

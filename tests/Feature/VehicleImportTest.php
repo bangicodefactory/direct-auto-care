@@ -206,6 +206,22 @@ class VehicleImportTest extends TestCase
         $this->assertSame(1, Vehicle::where('license_plate', 'EXIST-1')->count());
     }
 
+    public function test_duplicate_of_a_soft_deleted_plate_is_reported_not_fatal(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        Vehicle::factory()->create(['license_plate' => 'GONE-1'])->delete();
+
+        // The DB unique index on `license_plate` is global; reusing a trashed plate
+        // must be a reported row error, not a UniqueConstraintViolation on insert.
+        $file = $this->xlsx([$this->row(customerId: $customer->id, plate: 'GONE-1')]);
+
+        $this->actingAs($admin)
+            ->from(route('vehicles.index'))
+            ->post(route('vehicles.import'), ['file' => $file])
+            ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 0 && count($r['failed']) === 1);
+    }
+
     public function test_non_xlsx_upload_is_rejected(): void
     {
         $admin = User::factory()->create()->assignRole('admin');

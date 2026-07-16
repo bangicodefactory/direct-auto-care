@@ -54,7 +54,9 @@ class SpreadsheetReader
 
                     $data = [];
                     foreach ($headers as $col => $key) {
-                        if ($key === '') {
+                        // Skip unnamed columns and let the first occurrence of a
+                        // duplicated header win rather than the last.
+                        if ($key === '' || array_key_exists($key, $data)) {
                             continue;
                         }
                         $data[$key] = $cells[$col] ?? null;

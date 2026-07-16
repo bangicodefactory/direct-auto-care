@@ -4,7 +4,6 @@ namespace App\Services\Import;
 
 use App\Http\Requests\StoreVehicleRequest;
 use App\Models\Customer;
-use App\Models\User;
 use App\Models\Vehicle;
 use App\Support\Import\ImportReport;
 use App\Support\Import\SpreadsheetReader;
@@ -12,6 +11,7 @@ use App\Support\Import\SpreadsheetTemplate;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Unique;
 
 /**
  * Bulk-imports vehicles from an uploaded .xlsx. Each row is validated against the
@@ -44,11 +44,12 @@ class VehicleImportService
                 'vin : exactement 17 caractères si renseigné, sinon laissez vide.',
                 'license_plate : obligatoire et unique.',
                 'mileage et color sont optionnels.',
+                'Astuce : formatez les colonnes license_plate et vin en « Texte » dans Excel pour éviter toute conversion numérique.',
             ],
         );
     }
 
-    public function import(UploadedFile $file, User $user): ImportReport
+    public function import(UploadedFile $file): ImportReport
     {
         $report = new ImportReport();
         $parsed = SpreadsheetReader::read($file->getRealPath(), self::MAX_ROWS);
@@ -58,6 +59,22 @@ class VehicleImportService
         }
 
         [$idSet, $phoneMap] = $this->customerLookups();
+
+        // Drop the DB `unique` rules from the per-row validator (one query per row
+        // otherwise); existing plates/VINs are preloaded once and checked in-memory
+        // below (the DB unique indexes remain the final backstop on insert).
+        $rules = StoreVehicleRequest::fieldRules();
+        $rules['license_plate'] = $this->withoutUniqueRules($rules['license_plate']);
+        $rules['vin'] = $this->withoutUniqueRules($rules['vin']);
+
+        // Include soft-deleted rows: the DB unique indexes on `license_plate`/`vin`
+        // are global, so a row reusing a trashed identifier must be reported here
+        // rather than crash the atomic insert with a UniqueConstraintViolationException.
+        $existingPlates = array_fill_keys(Vehicle::withTrashed()->pluck('license_plate')->all(), true);
+        $existingVins = array_fill_keys(
+            Vehicle::withTrashed()->whereNotNull('vin')->pluck('vin')->all(),
+            true,
+        );
 
         $seenPlates = [];
         $seenVins = [];
@@ -70,19 +87,27 @@ class VehicleImportService
             $customerId = $this->resolveCustomer($data, $idSet, $phoneMap, $errors);
 
             $attributes = $this->only($data, self::ATTRIBUTES);
-            $validator = Validator::make($attributes, StoreVehicleRequest::fieldRules());
+            $validator = Validator::make($attributes, $rules);
             foreach ($validator->errors()->all() as $message) {
                 $errors[] = $message;
             }
 
             $plate = $attributes['license_plate'] ?? null;
-            if ($plate !== null && isset($seenPlates[$plate])) {
-                $errors[] = "La plaque « {$plate} » est en double dans le fichier.";
+            if ($plate !== null) {
+                if (isset($existingPlates[$plate])) {
+                    $errors[] = "La plaque « {$plate} » est déjà utilisée.";
+                } elseif (isset($seenPlates[$plate])) {
+                    $errors[] = "La plaque « {$plate} » est en double dans le fichier.";
+                }
             }
 
             $vin = $attributes['vin'] ?? null;
-            if ($vin !== null && isset($seenVins[$vin])) {
-                $errors[] = "Le VIN « {$vin} » est en double dans le fichier.";
+            if ($vin !== null) {
+                if (isset($existingVins[$vin])) {
+                    $errors[] = "Le VIN « {$vin} » est déjà utilisé.";
+                } elseif (isset($seenVins[$vin])) {
+                    $errors[] = "Le VIN « {$vin} » est en double dans le fichier.";
+                }
             }
 
             if ($errors !== []) {
@@ -178,6 +203,21 @@ class VehicleImportService
         $errors[] = 'customer_id ou customer_phone est requis.';
 
         return null;
+    }
+
+    /**
+     * Strip any {@see Unique} rule from a field's rule list so per-row validation
+     * doesn't hit the database; uniqueness is enforced in-memory from a preloaded set.
+     *
+     * @param  array<int, mixed>  $rules
+     * @return array<int, mixed>
+     */
+    private function withoutUniqueRules(array $rules): array
+    {
+        return array_values(array_filter(
+            $rules,
+            static fn ($rule): bool => ! $rule instanceof Unique,
+        ));
     }
 
     /**
