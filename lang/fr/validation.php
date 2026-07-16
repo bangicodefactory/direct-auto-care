@@ -10,6 +10,7 @@ return [
     'confirmed'        => 'La confirmation du champ :attribute ne correspond pas.',
     'current_password' => 'Le mot de passe est incorrect.',
     'email'            => 'Le champ :attribute doit être une adresse e-mail valide.',
+    'enum'             => 'La valeur sélectionnée pour :attribute est invalide.',
     'exists'           => 'La valeur sélectionnée pour :attribute est invalide.',
     'in'               => 'La valeur sélectionnée pour :attribute est invalide.',
     'integer'          => 'Le champ :attribute doit être un nombre entier.',

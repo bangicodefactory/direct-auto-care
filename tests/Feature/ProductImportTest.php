@@ -107,6 +107,22 @@ class ProductImportTest extends TestCase
         $this->assertDatabaseHas('products', ['sku' => 'SKU-OK']);
     }
 
+    public function test_invalid_category_error_message_is_in_french(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+
+        // The `enum` rule must resolve to the French translation (lang/fr/validation.php),
+        // not Laravel's English default — the bulk import is the first place a free-text
+        // enum value can be submitted, so it surfaces any missing translation.
+        $this->actingAs($admin)
+            ->from(route('products.index'))
+            ->post(route('products.import'), ['file' => $this->xlsx([
+                ['categorie_invalide', 'Ligne KO', 'SKU-FR', 'L', 10, 20, 5, 2],
+            ])])
+            ->assertSessionHas('importReport', fn ($r) => $r['failed'][0]['errors'][0]
+                === 'La valeur sélectionnée pour catégorie est invalide.');
+    }
+
     public function test_missing_price_sell_is_reported(): void
     {
         $admin = User::factory()->create()->assignRole('admin');

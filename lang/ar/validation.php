@@ -9,6 +9,7 @@ return [
     'confirmed'        => 'تأكيد حقل :attribute غير متطابق.',
     'current_password' => 'كلمة المرور غير صحيحة.',
     'email'            => 'يجب أن يكون حقل :attribute عنوان بريد إلكتروني صالحاً.',
+    'enum'             => 'القيمة المحددة لحقل :attribute غير صالحة.',
     'exists'           => 'القيمة المحددة لحقل :attribute غير صالحة.',
     'in'               => 'القيمة المحددة لحقل :attribute غير صالحة.',
     'integer'          => 'يجب أن يكون حقل :attribute عدداً صحيحاً.',
