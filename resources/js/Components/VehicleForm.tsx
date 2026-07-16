@@ -40,8 +40,9 @@ interface VehicleFormData {
 
 interface VehicleFormCustomer {
     id: number;
-    first_name: string;
-    last_name: string;
+    display_name?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
     phone?: string | null;
 }
 

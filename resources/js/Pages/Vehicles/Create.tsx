@@ -5,8 +5,8 @@ import { Head, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
 interface CreateProps {
-    customer?: Pick<Customer, 'id' | 'first_name' | 'last_name'> | null;
-    customers?: Pick<Customer, 'id' | 'first_name' | 'last_name' | 'phone'>[] | null;
+    customer?: Pick<Customer, 'id' | 'display_name'> | null;
+    customers?: Pick<Customer, 'id' | 'display_name' | 'phone'>[] | null;
 }
 
 export default function Create({ customer = null, customers = null }: CreateProps) {
@@ -43,7 +43,7 @@ export default function Create({ customer = null, customers = null }: CreateProp
                             {' '}
                             —{' '}
                             <span className="font-normal text-gray-500">
-                                {customer.first_name} {customer.last_name}
+                                {customer.display_name}
                             </span>
                         </>
                     )}

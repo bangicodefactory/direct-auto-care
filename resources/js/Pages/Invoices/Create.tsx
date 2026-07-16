@@ -44,7 +44,7 @@ interface CreateForm {
 }
 
 interface CreateProps {
-    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    customers: Pick<Customer, 'id' | 'display_name'>[];
     products: Pick<Product, 'id' | 'name' | 'unit' | 'price_sell'>[];
     vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
     types: SelectOption[];
@@ -207,7 +207,7 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                 </SelectItem>
                                                 {customers.map((c) => (
                                                     <SelectItem key={c.id} value={String(c.id)}>
-                                                        {c.first_name} {c.last_name}
+                                                        {c.display_name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

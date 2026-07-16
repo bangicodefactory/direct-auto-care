@@ -42,7 +42,7 @@ interface TodayAppointment {
 }
 
 interface CreateProps {
-    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    customers: Pick<Customer, 'id' | 'display_name'>[];
     vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
     todayAppointments: TodayAppointment[];
 }

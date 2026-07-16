@@ -29,7 +29,8 @@ class VehiclesController extends Controller
                     $q->where('license_plate', 'LIKE', "%{$search}%")
                         ->orWhereHas('customer', function ($q) use ($search) {
                             $q->where('first_name', 'LIKE', "%{$search}%")
-                                ->orWhere('last_name', 'LIKE', "%{$search}%");
+                                ->orWhere('last_name', 'LIKE', "%{$search}%")
+                                ->orWhere('company_name', 'LIKE', "%{$search}%");
                         });
                 });
             })
@@ -45,7 +46,7 @@ class VehiclesController extends Controller
                 'fuel_type'     => $v->fuel_type->value,
                 'customer'      => [
                     'id'   => $v->customer->id,
-                    'name' => $v->customer->first_name . ' ' . $v->customer->last_name,
+                    'name' => $v->customer->display_name,
                 ],
             ]);
 
@@ -63,7 +64,7 @@ class VehiclesController extends Controller
         // Loads the full customer list for the combobox. Acceptable for a small garage;
         // revisit with server-side search if the list grows large.
         return Inertia::render('Vehicles/Create', [
-            'customers' => Customer::select('id', 'first_name', 'last_name', 'phone')
+            'customers' => Customer::select('id', 'type', 'company_name', 'first_name', 'last_name', 'phone')
                 ->orderBy('last_name')
                 ->orderBy('first_name')
                 ->get(),
@@ -83,7 +84,10 @@ class VehiclesController extends Controller
         $this->authorize('create', Vehicle::class);
 
         return Inertia::render('Vehicles/Create', [
-            'customer' => $customer->only('id', 'first_name', 'last_name'),
+            'customer' => [
+                'id'           => $customer->id,
+                'display_name' => $customer->display_name,
+            ],
         ]);
     }
 
@@ -160,9 +164,8 @@ class VehiclesController extends Controller
             'fuel_type'     => $vehicle->fuel_type->value,
             'color'         => $vehicle->color,
             'customer'      => [
-                'id'         => $vehicle->customer->id,
-                'first_name' => $vehicle->customer->first_name,
-                'last_name'  => $vehicle->customer->last_name,
+                'id'           => $vehicle->customer->id,
+                'display_name' => $vehicle->customer->display_name,
             ],
         ];
     }

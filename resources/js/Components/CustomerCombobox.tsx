@@ -5,9 +5,14 @@ import { useEffect, useRef, useState } from 'react';
 
 interface CustomerComboboxCustomer {
     id: number;
-    first_name: string;
-    last_name: string;
+    display_name?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
     phone?: string | null;
+}
+
+function customerLabel(c: CustomerComboboxCustomer): string {
+    return c.display_name || `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim();
 }
 
 interface CustomerComboboxProps {
@@ -36,7 +41,7 @@ export default function CustomerCombobox({
     const filtered = query.trim()
         ? customers.filter(
               (c) =>
-                  `${c.first_name} ${c.last_name}`.toLowerCase().includes(query.toLowerCase()) ||
+                  customerLabel(c).toLowerCase().includes(query.toLowerCase()) ||
                   (c.phone && c.phone.includes(query)),
           )
         : customers;
@@ -117,7 +122,7 @@ export default function CustomerCombobox({
                     )}
                 >
                     <span className="flex-1 font-medium">
-                        {selected.first_name} {selected.last_name}
+                        {customerLabel(selected)}
                         {selected.phone && (
                             <span className="ms-2 font-normal text-muted-foreground">
                                 {selected.phone}
@@ -190,9 +195,7 @@ export default function CustomerCombobox({
                                                 : 'hover:bg-accent hover:text-accent-foreground'
                                         }`}
                                     >
-                                        <span className="font-medium">
-                                            {c.first_name} {c.last_name}
-                                        </span>
+                                        <span className="font-medium">{customerLabel(c)}</span>
                                         {c.phone && (
                                             <span className="ms-2 text-xs text-muted-foreground">
                                                 {c.phone}

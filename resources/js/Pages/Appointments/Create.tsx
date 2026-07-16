@@ -24,7 +24,7 @@ interface StatusOption {
 
 /** Props for the Appointments/Create page (AppointmentsController@create). */
 interface AppointmentsCreateProps {
-    customers: Pick<Customer, 'id' | 'first_name' | 'last_name'>[];
+    customers: Pick<Customer, 'id' | 'display_name'>[];
     vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
     serviceTypes: Pick<ServiceType, 'id' | 'name'>[];
     statuses: StatusOption[];

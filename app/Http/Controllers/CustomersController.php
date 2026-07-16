@@ -25,6 +25,8 @@ class CustomersController extends Controller
                 $q->where(function ($q) use ($search) {
                     $q->where('first_name', 'LIKE', "%{$search}%")
                         ->orWhere('last_name', 'LIKE', "%{$search}%")
+                        ->orWhere('company_name', 'LIKE', "%{$search}%")
+                        ->orWhere('ice', 'LIKE', "%{$search}%")
                         ->orWhere('phone', 'LIKE', "%{$search}%")
                         ->orWhere('email', 'LIKE', "%{$search}%");
                 });
@@ -33,11 +35,14 @@ class CustomersController extends Controller
             ->paginate(20)
             ->withQueryString()
             ->through(fn ($c) => [
-                'id'         => $c->id,
-                'first_name' => $c->first_name,
-                'last_name'  => $c->last_name,
-                'phone'      => $c->phone,
-                'email'      => $c->email,
+                'id'           => $c->id,
+                'type'         => $c->type,
+                'display_name' => $c->display_name,
+                'company_name' => $c->company_name,
+                'first_name'   => $c->first_name,
+                'last_name'    => $c->last_name,
+                'phone'        => $c->phone,
+                'email'        => $c->email,
             ]);
 
         return Inertia::render('Customers/Index', [

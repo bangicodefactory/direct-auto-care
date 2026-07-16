@@ -41,7 +41,7 @@ class InvoicesController extends Controller implements HasMiddleware
         $type = InvoiceType::tryFrom($request->string('type')->value());
 
         $invoices = Invoice::query()
-            ->with('customer:id,first_name,last_name')
+            ->with('customer:id,type,company_name,first_name,last_name')
             ->when($type, fn ($q) => $q->where('type', $type->value))
             ->when(
                 InvoiceStatus::tryFrom($request->string('status')->value()),
@@ -52,7 +52,8 @@ class InvoicesController extends Controller implements HasMiddleware
                 fn ($q, $search) => $q->where(function ($inner) use ($search) {
                     $inner->where('number', 'LIKE', "%{$search}%")
                           ->orWhereHas('customer', fn ($c) => $c->where('first_name', 'LIKE', "%{$search}%")
-                              ->orWhere('last_name', 'LIKE', "%{$search}%"));
+                              ->orWhere('last_name', 'LIKE', "%{$search}%")
+                              ->orWhere('company_name', 'LIKE', "%{$search}%"));
                 })
             )
             ->when($request->string('date_from')->trim()->value(), fn ($q, $d) => $q->whereDate('issue_date', '>=', $d))
@@ -69,7 +70,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 'issue_date' => $inv->issue_date->format('d/m/Y'),
                 'total_ttc'  => $inv->total_ttc,
                 'customer'   => $inv->customer
-                    ? ['id' => $inv->customer->id, 'name' => $inv->customer->first_name . ' ' . $inv->customer->last_name]
+                    ? ['id' => $inv->customer->id, 'name' => $inv->customer->display_name]
                     : null,
             ]);
 
@@ -90,7 +91,7 @@ class InvoicesController extends Controller implements HasMiddleware
         $this->authorize('create', Invoice::class);
 
         return Inertia::render('Invoices/Create', [
-            'customers'   => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'customers'   => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'type', 'company_name', 'first_name', 'last_name']),
             'products'    => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
             'vehicles'    => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
             'types'       => collect(InvoiceType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
@@ -136,7 +137,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 'notes'       => $invoice->notes,
                 'customer'    => $invoice->customer ? [
                     'id'    => $invoice->customer->id,
-                    'name'  => $invoice->customer->first_name . ' ' . $invoice->customer->last_name,
+                    'name'  => $invoice->customer->display_name,
                     'phone' => $invoice->customer->phone,
                     'email' => $invoice->customer->email,
                 ] : null,
@@ -192,7 +193,7 @@ class InvoicesController extends Controller implements HasMiddleware
                     'unit_price_ht' => $item->unit_price_ht,
                 ]),
             ],
-            'customers' => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'customers' => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'type', 'company_name', 'first_name', 'last_name']),
             'products'  => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
             'vehicles'  => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
         ]);

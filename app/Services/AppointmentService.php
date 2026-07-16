@@ -108,7 +108,7 @@ class AppointmentService
 
         if ($customer->notify_email && $customer->email) {
             Notification::route('mail', [
-                $customer->email => "{$customer->first_name} {$customer->last_name}",
+                $customer->email => $customer->display_name,
             ])->notify($notification);
         }
 

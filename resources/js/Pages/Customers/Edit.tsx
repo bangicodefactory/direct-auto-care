@@ -9,8 +9,14 @@ interface EditProps {
 
 export default function Edit({ customer }: EditProps) {
     const { data, setData, put, processing, errors } = useForm({
-        first_name: customer.first_name,
-        last_name: customer.last_name,
+        type: customer.type,
+        company_name: customer.company_name ?? '',
+        ice: customer.ice ?? '',
+        if: customer.if ?? '',
+        patente: customer.patente ?? '',
+        ville: customer.ville ?? '',
+        first_name: customer.first_name ?? '',
+        last_name: customer.last_name ?? '',
         phone: customer.phone,
         email: customer.email ?? '',
         address: customer.address ?? '',

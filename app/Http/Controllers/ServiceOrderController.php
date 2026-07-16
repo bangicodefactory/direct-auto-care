@@ -35,7 +35,8 @@ class ServiceOrderController extends Controller
                     $q->where('number', 'like', "%{$search}%")
                         ->orWhereHas('customer', fn ($c) => $c
                             ->where('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%"))
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('company_name', 'like', "%{$search}%"))
                         ->orWhereHas('vehicle', fn ($v) => $v->where('license_plate', 'like', "%{$search}%"));
                 });
             })
@@ -76,7 +77,7 @@ class ServiceOrderController extends Controller
         $this->authorize('create', ServiceOrder::class);
 
         return Inertia::render('Workshop/Create', [
-            'customers' => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'customers' => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'type', 'company_name', 'first_name', 'last_name']),
             'vehicles'  => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
             'todayAppointments' => Appointment::query()
                 ->whereDate('scheduled_at', today())
@@ -223,7 +224,7 @@ class ServiceOrderController extends Controller
             'status_label' => $order->status->label(),
             'status_color' => $order->status->color(),
             'customer'     => $order->customer
-                ? $order->customer->first_name . ' ' . $order->customer->last_name
+                ? $order->customer->display_name
                 : null,
             'vehicle'      => $order->vehicle
                 ? trim($order->vehicle->license_plate . ' — ' . $order->vehicle->make . ' ' . $order->vehicle->model)

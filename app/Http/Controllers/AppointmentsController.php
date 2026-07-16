@@ -54,7 +54,7 @@ class AppointmentsController extends Controller implements HasMiddleware
         );
 
         $events = Appointment::query()
-            ->with('customer:id,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name')
+            ->with('customer:id,type,company_name,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name')
             ->when(
                 AppointmentStatus::tryFrom($request->string('status')->value()),
                 fn ($q, $status) => $q->where('status', $status->value)
@@ -65,7 +65,7 @@ class AppointmentsController extends Controller implements HasMiddleware
             ->get()
             ->map(fn ($apt) => [
                 'id'               => $apt->id,
-                'title'            => $apt->customer->first_name . ' ' . $apt->customer->last_name
+                'title'            => $apt->customer->display_name
                     . ($apt->vehicle ? ' — ' . $apt->vehicle->license_plate : ''),
                 'start'            => $apt->scheduled_at->toIso8601String(),
                 'end'              => $apt->scheduled_at->copy()->addMinutes($apt->duration)->toIso8601String(),
@@ -75,7 +75,7 @@ class AppointmentsController extends Controller implements HasMiddleware
                 'notes'            => $apt->notes,
                 'customer'         => [
                     'id'   => $apt->customer->id,
-                    'name' => $apt->customer->first_name . ' ' . $apt->customer->last_name,
+                    'name' => $apt->customer->display_name,
                 ],
                 'vehicle_id'       => $apt->vehicle_id,
                 'vehicle'          => $apt->vehicle ? [
@@ -89,7 +89,7 @@ class AppointmentsController extends Controller implements HasMiddleware
             'events'       => $events,
             'filters'      => (object) $request->only(['status', 'start', 'end']),
             'statuses'     => collect(AppointmentStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
-            'customers'    => Inertia::defer(fn () => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']), 'modal'),
+            'customers'    => Inertia::defer(fn () => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'type', 'company_name', 'first_name', 'last_name']), 'modal'),
             'vehicles'     => Inertia::defer(fn () => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']), 'modal'),
             'serviceTypes' => Inertia::defer(fn () => ServiceType::orderBy('name')->get(['id', 'name']), 'modal'),
             'can'          => [
@@ -104,7 +104,7 @@ class AppointmentsController extends Controller implements HasMiddleware
         $this->authorize('create', Appointment::class);
 
         return Inertia::render('Appointments/Create', [
-            'customers'    => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'customers'    => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'type', 'company_name', 'first_name', 'last_name']),
             'vehicles'     => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
             'serviceTypes' => ServiceType::orderBy('name')->get(['id', 'name']),
             'statuses'     => collect(AppointmentStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
@@ -143,7 +143,7 @@ class AppointmentsController extends Controller implements HasMiddleware
                 'notes'        => $appointment->notes,
                 'customer'     => [
                     'id'    => $appointment->customer->id,
-                    'name'  => $appointment->customer->first_name . ' ' . $appointment->customer->last_name,
+                    'name'  => $appointment->customer->display_name,
                     'phone' => $appointment->customer->phone,
                     'email' => $appointment->customer->email,
                 ],
@@ -181,7 +181,7 @@ class AppointmentsController extends Controller implements HasMiddleware
                 'notes'            => $appointment->notes,
                 'service_type_ids' => $appointment->serviceTypes->pluck('id')->all(),
             ],
-            'customers'    => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'customers'    => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'type', 'company_name', 'first_name', 'last_name']),
             'vehicles'     => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
             'serviceTypes' => ServiceType::orderBy('name')->get(['id', 'name']),
             'statuses'     => collect(AppointmentStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
@@ -287,7 +287,7 @@ class AppointmentsController extends Controller implements HasMiddleware
 
         return Inertia::render('Appointments/Today', [
             'todayList' => fn () => Appointment::query()
-                ->with('customer:id,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name', 'serviceOrder:id,appointment_id')
+                ->with('customer:id,type,company_name,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name', 'serviceOrder:id,appointment_id')
                 ->whereDate('scheduled_at', today())
                 ->orderBy('scheduled_at')
                 ->get()
@@ -301,7 +301,7 @@ class AppointmentsController extends Controller implements HasMiddleware
                     'notes'            => $apt->notes,
                     'customer'         => [
                         'id'   => $apt->customer->id,
-                        'name' => $apt->customer->first_name . ' ' . $apt->customer->last_name,
+                        'name' => $apt->customer->display_name,
                     ],
                     'vehicle'          => $apt->vehicle ? [
                         'id'    => $apt->vehicle->id,
@@ -326,7 +326,7 @@ class AppointmentsController extends Controller implements HasMiddleware
         $this->authorize('viewAny', Appointment::class);
 
         $appointments = Appointment::query()
-            ->with('customer:id,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name')
+            ->with('customer:id,type,company_name,first_name,last_name', 'vehicle:id,license_plate,make,model', 'serviceTypes:id,name')
             ->whereDate('scheduled_at', today())
             ->orderBy('scheduled_at')
             ->get()
@@ -340,7 +340,7 @@ class AppointmentsController extends Controller implements HasMiddleware
                 'notes'        => $apt->notes,
                 'customer'     => [
                     'id'   => $apt->customer->id,
-                    'name' => $apt->customer->first_name . ' ' . $apt->customer->last_name,
+                    'name' => $apt->customer->display_name,
                 ],
                 'vehicle'      => $apt->vehicle ? [
                     'id'    => $apt->vehicle->id,

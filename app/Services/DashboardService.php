@@ -186,7 +186,7 @@ class DashboardService
             ->get()
             ->map(fn (Appointment $a) => [
                 'id'           => $a->id,
-                'customer'     => $a->customer->first_name . ' ' . $a->customer->last_name,
+                'customer'     => $a->customer->display_name,
                 'vehicle'      => $a->vehicle->license_plate . ' (' . $a->vehicle->make . ' ' . $a->vehicle->model . ')',
                 'scheduled_at' => $a->scheduled_at->format('H:i'),
                 'status'       => $a->status->value,

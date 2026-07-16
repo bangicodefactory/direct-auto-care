@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CustomerType;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -11,6 +12,38 @@ use Tests\TestCase;
 
 class CustomerModelTest extends TestCase
 {
+    public function test_display_name_uses_company_name_for_company(): void
+    {
+        $customer = new Customer();
+        $customer->type = CustomerType::Company;
+        $customer->company_name = 'Transports Atlas SARL';
+        $customer->first_name = 'Youssef';
+        $customer->last_name = 'Alaoui';
+
+        $this->assertSame('Transports Atlas SARL', $customer->display_name);
+    }
+
+    public function test_display_name_uses_full_name_for_individual(): void
+    {
+        $customer = new Customer();
+        $customer->type = CustomerType::Individual;
+        $customer->first_name = 'Youssef';
+        $customer->last_name = 'Alaoui';
+
+        $this->assertSame('Youssef Alaoui', $customer->display_name);
+    }
+
+    public function test_display_name_falls_back_to_contact_when_company_name_missing(): void
+    {
+        $customer = new Customer();
+        $customer->type = CustomerType::Company;
+        $customer->company_name = null;
+        $customer->first_name = 'Youssef';
+        $customer->last_name = 'Alaoui';
+
+        $this->assertSame('Youssef Alaoui', $customer->display_name);
+    }
+
     public function test_phone_normalized_from_local_format(): void
     {
         $customer = new Customer();

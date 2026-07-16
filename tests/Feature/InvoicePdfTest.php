@@ -128,6 +128,51 @@ class InvoicePdfTest extends TestCase
             ->assertSee('Alaoui');
     }
 
+    public function test_print_view_shows_company_fiscal_identity(): void
+    {
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+        $invoice = Invoice::factory()
+            ->for(Customer::factory()->company()->state([
+                'company_name' => 'Transports Atlas SARL',
+                'ice'          => '001234567000089',
+                'if'           => '19283746',
+                'patente'      => '87654321',
+            ]), 'customer')
+            ->create();
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $invoice))
+            ->assertOk()
+            ->assertViewIs('pdf.invoice')
+            ->assertSee('Transports Atlas SARL')   // raison sociale as the bill-to name
+            ->assertSee('001234567000089')         // ICE — required on a B2B invoice
+            ->assertSee('19283746')                // IF
+            ->assertSee('87654321');               // Patente
+    }
+
+    public function test_print_view_hides_fiscal_ids_for_individual(): void
+    {
+        // Silence the SELLER (garage) fiscal lines so the assertion below is purely
+        // about the BUYER block being gated on customer type, not the header.
+        config(['company.ice' => '', 'company.if' => '', 'company.rc' => '']);
+
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+        $invoice = Invoice::factory()
+            ->for(Customer::factory()->state([
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+            ]), 'customer')
+            ->create();
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $invoice))
+            ->assertOk()
+            ->assertSee('Youssef')
+            ->assertDontSee('ICE :');
+    }
+
     public function test_user_without_role_cannot_access_pdf(): void
     {
         $user = User::factory()->create();

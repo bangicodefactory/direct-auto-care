@@ -1,9 +1,16 @@
 import CustomerForm from '@/Components/CustomerForm';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import type { CustomerType } from '@/types/models';
 import { Head, useForm } from '@inertiajs/react';
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
+        type: 'individual' as CustomerType,
+        company_name: '',
+        ice: '',
+        if: '',
+        patente: '',
+        ville: '',
         first_name: '',
         last_name: '',
         phone: '',

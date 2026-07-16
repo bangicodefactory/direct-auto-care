@@ -29,7 +29,10 @@ import { Head, Link, router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-type CustomerRow = Pick<Customer, 'id' | 'first_name' | 'last_name' | 'phone' | 'email'>;
+type CustomerRow = Pick<
+    Customer,
+    'id' | 'type' | 'display_name' | 'company_name' | 'first_name' | 'last_name' | 'phone' | 'email'
+>;
 
 interface CustomerFilters {
     search?: string;
@@ -154,17 +157,10 @@ export default function Index({ customers, filters, can }: IndexProps) {
                                             href={sortLink('last_name')}
                                             className="inline-flex min-h-[44px] items-center text-xs font-medium uppercase tracking-wider"
                                         >
-                                            Nom{sortIcon('last_name')}
+                                            Nom / Raison sociale{sortIcon('last_name')}
                                         </Link>
                                     </TableHead>
-                                    <TableHead>
-                                        <Link
-                                            href={sortLink('first_name')}
-                                            className="inline-flex min-h-[44px] items-center text-xs font-medium uppercase tracking-wider"
-                                        >
-                                            Prénom{sortIcon('first_name')}
-                                        </Link>
-                                    </TableHead>
+                                    <TableHead>Type</TableHead>
                                     <TableHead>
                                         <Link
                                             href={sortLink('email')}
@@ -181,10 +177,25 @@ export default function Index({ customers, filters, can }: IndexProps) {
                                 {customers.data.map((c) => (
                                     <TableRow key={c.id}>
                                         <TableCell className="whitespace-nowrap font-medium text-foreground">
-                                            {c.last_name}
+                                            <Link
+                                                href={route('customers.show', c.id)}
+                                                className="hover:text-primary hover:underline"
+                                            >
+                                                {c.display_name}
+                                            </Link>
                                         </TableCell>
-                                        <TableCell className="whitespace-nowrap text-muted-foreground">
-                                            {c.first_name}
+                                        <TableCell className="whitespace-nowrap">
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                                    c.type === 'company'
+                                                        ? 'bg-primary/10 text-primary'
+                                                        : 'bg-muted text-muted-foreground'
+                                                }`}
+                                            >
+                                                {c.type === 'company'
+                                                    ? 'Entreprise'
+                                                    : 'Particulier'}
+                                            </span>
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-muted-foreground">
                                             {c.email ?? '—'}
@@ -269,10 +280,8 @@ export default function Index({ customers, filters, can }: IndexProps) {
                 <div className="p-6">
                     <h2 className="text-lg font-medium text-foreground">Supprimer ce client ?</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        <span className="font-medium">
-                            {deletingCustomer?.first_name} {deletingCustomer?.last_name}
-                        </span>{' '}
-                        sera définitivement supprimé. Cette action est irréversible.
+                        <span className="font-medium">{deletingCustomer?.display_name}</span> sera
+                        définitivement supprimé. Cette action est irréversible.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
                         <Button variant="secondary" onClick={() => setDeletingCustomer(null)}>

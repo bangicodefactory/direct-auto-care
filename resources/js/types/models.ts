@@ -20,6 +20,8 @@
  * (Auto-generation from Eloquent is deferred to a future ADR.)
  * ------------------------------------------------------------------ */
 
+export type CustomerType = 'individual' | 'company';
+
 export type FuelType = 'essence' | 'diesel' | 'hybride' | 'electrique';
 
 export type StockMovementType = 'in' | 'out' | 'adjustment';
@@ -67,8 +69,17 @@ export interface User {
 /** `customers` table. */
 export interface Customer {
     id: number;
-    first_name: string;
-    last_name: string;
+    type: CustomerType;
+    /** Raison sociale — set for `company` clients. */
+    company_name: string | null;
+    /** Moroccan fiscal IDs — only meaningful for `company` clients. */
+    ice: string | null;
+    if: string | null;
+    patente: string | null;
+    ville: string | null;
+    /** Optional contact person for companies; the client's name for individuals. */
+    first_name: string | null;
+    last_name: string | null;
     phone: string;
     email: string | null;
     address: string | null;
@@ -78,6 +89,9 @@ export interface Customer {
     created_at: string;
     updated_at: string;
     deleted_at?: string | null;
+
+    /** Computed accessor (appended): raison sociale for companies, else full name. */
+    display_name: string;
 
     // Relationships
     vehicles?: Vehicle[];

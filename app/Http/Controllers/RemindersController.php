@@ -53,7 +53,7 @@ class RemindersController extends Controller implements HasMiddleware
                 'error_message' => $r->error_message,
                 'customer'      => [
                     'id'   => $r->customer->id,
-                    'name' => $r->customer->first_name . ' ' . $r->customer->last_name,
+                    'name' => $r->customer->display_name,
                 ],
                 'vehicle' => [
                     'id'            => $r->vehicle->id,
