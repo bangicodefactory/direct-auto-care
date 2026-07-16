@@ -13,6 +13,13 @@ declare global {
     const route: typeof routeFn;
 }
 
+/** Result of a bulk import, flashed after an import POST. */
+export interface ImportReport {
+    imported: number;
+    failed: { row: number; errors: string[] }[];
+    truncated: boolean;
+}
+
 /** A database notification as shared with the notification bell. */
 export interface AppNotification {
     id: string;
@@ -37,6 +44,7 @@ declare module '@inertiajs/core' {
             flash: {
                 success?: string;
                 error?: string;
+                importReport?: ImportReport | null;
             };
             /** Per-client white-label identity, resolved from config on the server. */
             appSettings: {

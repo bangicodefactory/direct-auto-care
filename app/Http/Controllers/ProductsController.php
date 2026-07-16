@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Enums\ProductCategory;
 use App\Enums\StockMovementType;
 use App\Exceptions\InsufficientStockException;
+use App\Http\Requests\ImportProductsRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\StoreStockAdjustmentRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
+use App\Services\Import\ProductImportService;
 use App\Services\StockService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,13 +18,14 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProductsController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
     {
         return [
-            new Middleware('can:create,' . Product::class, only: ['create', 'store']),
+            new Middleware('can:create,' . Product::class, only: ['create', 'store', 'import', 'importTemplate']),
             new Middleware('can:update,product', only: ['edit', 'update', 'adjustStock']),
             new Middleware('can:delete,product', only: ['destroy']),
         ];
@@ -66,6 +69,7 @@ class ProductsController extends Controller implements HasMiddleware
             'categories' => collect(ProductCategory::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()]),
             'can'        => [
                 'create' => $request->user()->can('create', Product::class),
+                'import' => $request->user()->can('create', Product::class),
                 'edit'   => $request->user()->hasRole('admin'),
                 'delete' => $request->user()->hasRole('admin'),
             ],
@@ -87,6 +91,22 @@ class ProductsController extends Controller implements HasMiddleware
 
         return redirect()->route('products.show', $product)
             ->with('success', 'Produit créé avec succès.');
+    }
+
+    public function importTemplate(ProductImportService $service): BinaryFileResponse
+    {
+        return response()
+            ->download($service->template(), 'modele_produits.xlsx')
+            ->deleteFileAfterSend();
+    }
+
+    public function import(ImportProductsRequest $request, ProductImportService $service): RedirectResponse
+    {
+        $report = $service->import($request->file('file'), $request->user());
+
+        return back()
+            ->with('success', "{$report->importedCount()} produit(s) importé(s), {$report->failedCount()} en erreur.")
+            ->with('importReport', $report->toArray());
     }
 
     public function show(Product $product): Response

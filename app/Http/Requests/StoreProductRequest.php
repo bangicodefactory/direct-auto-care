@@ -16,6 +16,17 @@ class StoreProductRequest extends FormRequest
 
     public function rules(): array
     {
+        return self::fieldRules();
+    }
+
+    /**
+     * Validation rules for a product's fields. Shared with the bulk-import
+     * service so imported rows validate against the same constraints.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    public static function fieldRules(): array
+    {
         return [
             'category'            => ['required', Rule::enum(ProductCategory::class)],
             'name'                => ['required', 'string', 'max:150'],

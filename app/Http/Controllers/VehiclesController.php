@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ImportVehiclesRequest;
 use App\Http\Requests\StoreVehicleRequest;
 use App\Http\Requests\UpdateVehicleRequest;
 use App\Models\Customer;
 use App\Models\ServiceRecord;
 use App\Models\Vehicle;
+use App\Services\Import\VehicleImportService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class VehiclesController extends Controller
 {
@@ -53,7 +56,10 @@ class VehiclesController extends Controller
         return Inertia::render('Vehicles/Index', [
             'vehicles' => $vehicles,
             'filters'  => (object) $request->only(['search', 'sort', 'direction']),
-            'can'      => ['delete' => auth()->user()->can('delete', new Vehicle())],
+            'can'      => [
+                'delete' => auth()->user()->can('delete', new Vehicle()),
+                'import' => auth()->user()->can('create', Vehicle::class),
+            ],
         ]);
     }
 
@@ -77,6 +83,24 @@ class VehiclesController extends Controller
 
         return redirect()->route('vehicles.show', $vehicle)
             ->with('success', 'Véhicule créé avec succès.');
+    }
+
+    public function importTemplate(VehicleImportService $service): BinaryFileResponse
+    {
+        $this->authorize('create', Vehicle::class);
+
+        return response()
+            ->download($service->template(), 'modele_vehicules.xlsx')
+            ->deleteFileAfterSend();
+    }
+
+    public function import(ImportVehiclesRequest $request, VehicleImportService $service): RedirectResponse
+    {
+        $report = $service->import($request->file('file'), $request->user());
+
+        return back()
+            ->with('success', "{$report->importedCount()} véhicule(s) importé(s), {$report->failedCount()} en erreur.")
+            ->with('importReport', $report->toArray());
     }
 
     public function create(Customer $customer): Response

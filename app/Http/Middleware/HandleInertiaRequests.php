@@ -25,8 +25,9 @@ class HandleInertiaRequests extends Middleware
                 'role' => $request->user()?->getRoleNames()->first(),
             ],
             'flash' => [
-                'success' => $request->session()->get('success'),
-                'error'   => $request->session()->get('error'),
+                'success'      => $request->session()->get('success'),
+                'error'        => $request->session()->get('error'),
+                'importReport' => $request->session()->get('importReport'),
             ],
             'appSettings' => [
                 'company_name' => config('company.name'),

@@ -16,8 +16,22 @@ class StoreVehicleRequest extends FormRequest
 
     public function rules(): array
     {
+        return array_merge(
+            ['customer_id' => ['required', 'integer', 'exists:customers,id']],
+            self::fieldRules(),
+        );
+    }
+
+    /**
+     * Validation rules for a vehicle's own attributes (everything except the
+     * customer link). Shared with the bulk-import service, which resolves the
+     * customer separately (by id or phone) and validates these fields per row.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    public static function fieldRules(): array
+    {
         return [
-            'customer_id'   => ['required', 'integer', 'exists:customers,id'],
             'make'          => ['required', 'string', 'max:100'],
             'model'         => ['required', 'string', 'max:100'],
             'year'          => ['required', 'integer', 'between:1950,' . (date('Y') + 1)],
