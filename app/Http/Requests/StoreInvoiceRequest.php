@@ -27,6 +27,8 @@ class StoreInvoiceRequest extends FormRequest
             'notes'                 => ['nullable', 'string', 'max:2000'],
             'items'                 => ['required', 'array', 'min:1'],
             'items.*.product_id'    => ['nullable', 'integer', Rule::exists('products', 'id')->whereNull('deleted_at')],
+            // Per-line vehicle is optional; when present it must belong to this invoice's customer.
+            'items.*.vehicle_id'    => ['nullable', 'integer', Rule::exists('vehicles', 'id')->where('customer_id', $this->integer('customer_id'))->whereNull('deleted_at')],
             'items.*.description'   => ['required', 'string', 'max:500'],
             'items.*.quantity'      => ['required', 'numeric', 'min:0.01'],
             'items.*.unit_price_ht' => ['required', 'numeric', 'min:0'],

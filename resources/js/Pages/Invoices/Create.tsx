@@ -21,6 +21,7 @@ const today = new Date().toISOString().slice(0, 10);
 interface LineItem {
     _key: number;
     product_id: string | number;
+    vehicle_id: string | number;
     description: string;
     quantity: string | number;
     unit_price_ht: string;
@@ -53,7 +54,14 @@ interface CreateProps {
 
 let _nextKey = 0;
 function newItem(): LineItem {
-    return { _key: _nextKey++, product_id: '', description: '', quantity: 1, unit_price_ht: '' };
+    return {
+        _key: _nextKey++,
+        product_id: '',
+        vehicle_id: '',
+        description: '',
+        quantity: 1,
+        unit_price_ht: '',
+    };
 }
 
 export default function Create({ customers, products, vehicles, types, defaultType }: CreateProps) {
@@ -74,6 +82,10 @@ export default function Create({ customers, products, vehicles, types, defaultTy
         [vehicles, data.customer_id],
     );
 
+    // With 2+ vehicles the client can spread services across them on one invoice, so
+    // attribution moves to a per-line Véhicule column and the single header field is hidden.
+    const isMultiVehicle = filteredVehicles.length >= 2;
+
     const subtotalHt = data.items.reduce((sum: number, it: LineItem) => {
         const qty = parseFloat(it.quantity as string) || 0;
         const price = parseFloat(it.unit_price_ht) || 0;
@@ -86,7 +98,14 @@ export default function Create({ customers, products, vehicles, types, defaultTy
     const totalTtc = subtotalHt - discount + tvaAmount;
 
     function handleCustomerChange(id: string) {
-        setData((prev) => ({ ...prev, customer_id: id, vehicle_id: '' }));
+        // Reset both the header vehicle and any per-line vehicles — they belonged to the
+        // previous client's fleet and are no longer valid for the new one.
+        setData((prev) => ({
+            ...prev,
+            customer_id: id,
+            vehicle_id: '',
+            items: prev.items.map((it) => ({ ...it, vehicle_id: '' })),
+        }));
     }
 
     function handleProductChange(index: number, productId: string) {
@@ -215,36 +234,51 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                         <InputError message={errors.customer_id} className="mt-1" />
                                     </div>
 
-                                    <div>
-                                        <InputLabel htmlFor="vehicle_id" value="Véhicule" />
-                                        <Select
-                                            value={
-                                                data.vehicle_id
-                                                    ? String(data.vehicle_id)
-                                                    : '__none__'
-                                            }
-                                            onValueChange={(v) =>
-                                                setData('vehicle_id', v === '__none__' ? '' : v)
-                                            }
-                                            disabled={!data.customer_id}
-                                        >
-                                            <SelectTrigger
-                                                id="vehicle_id"
-                                                className="mt-1 min-h-[44px] w-full"
+                                    {isMultiVehicle ? (
+                                        <div>
+                                            <InputLabel value="Véhicule" />
+                                            <p className="mt-2 text-sm text-muted-foreground">
+                                                Ce client a plusieurs véhicules — précisez le
+                                                véhicule sur chaque ligne ci-dessous.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <InputLabel htmlFor="vehicle_id" value="Véhicule" />
+                                            <Select
+                                                value={
+                                                    data.vehicle_id
+                                                        ? String(data.vehicle_id)
+                                                        : '__none__'
+                                                }
+                                                onValueChange={(v) =>
+                                                    setData('vehicle_id', v === '__none__' ? '' : v)
+                                                }
+                                                disabled={!data.customer_id}
                                             >
-                                                <SelectValue placeholder="— Aucun —" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="__none__">— Aucun —</SelectItem>
-                                                {filteredVehicles.map((v) => (
-                                                    <SelectItem key={v.id} value={String(v.id)}>
-                                                        {v.license_plate} — {v.make} {v.model}
+                                                <SelectTrigger
+                                                    id="vehicle_id"
+                                                    className="mt-1 min-h-[44px] w-full"
+                                                >
+                                                    <SelectValue placeholder="— Aucun —" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="__none__">
+                                                        — Aucun —
                                                     </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <InputError message={errors.vehicle_id} className="mt-1" />
-                                    </div>
+                                                    {filteredVehicles.map((v) => (
+                                                        <SelectItem key={v.id} value={String(v.id)}>
+                                                            {v.license_plate} — {v.make} {v.model}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError
+                                                message={errors.vehicle_id}
+                                                className="mt-1"
+                                            />
+                                        </div>
+                                    )}
 
                                     <div>
                                         <InputLabel
@@ -297,6 +331,9 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                             <tr className="border-b border-border text-start text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                                 <th className="pb-2 pe-3">Produit (optionnel)</th>
                                                 <th className="pb-2 pe-3">Description *</th>
+                                                {isMultiVehicle && (
+                                                    <th className="pb-2 pe-3">Véhicule</th>
+                                                )}
                                                 <th className="pb-2 pe-3">Qté *</th>
                                                 <th className="pb-2 pe-3">P.U. HT *</th>
                                                 <th className="pb-2 pe-3 text-end">Total HT</th>
@@ -351,6 +388,42 @@ export default function Create({ customers, products, vehicles, types, defaultTy
                                                                 className="mt-0.5"
                                                             />
                                                         </td>
+                                                        {isMultiVehicle && (
+                                                            <td className="py-2 pe-3">
+                                                                <select
+                                                                    className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                                                    value={item.vehicle_id}
+                                                                    onChange={(e) =>
+                                                                        updateItem(
+                                                                            index,
+                                                                            'vehicle_id',
+                                                                            e.target.value,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <option value="">
+                                                                        — Aucun —
+                                                                    </option>
+                                                                    {filteredVehicles.map((v) => (
+                                                                        <option
+                                                                            key={v.id}
+                                                                            value={v.id}
+                                                                        >
+                                                                            {v.license_plate} —{' '}
+                                                                            {v.make} {v.model}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                                <InputError
+                                                                    message={
+                                                                        errors[
+                                                                            `items.${index}.vehicle_id`
+                                                                        ]
+                                                                    }
+                                                                    className="mt-0.5"
+                                                                />
+                                                            </td>
+                                                        )}
                                                         <td className="py-2 pe-3">
                                                             <TextInput
                                                                 type="number"

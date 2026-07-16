@@ -28,7 +28,7 @@ class InvoiceService
      *   type, customer_id, issue_date, [vehicle_id, due_date, discount, tva_rate,
      *   notes, converted_from_quote_id], items[]
      *
-     * Each item: {description, quantity, unit_price_ht, [product_id]}
+     * Each item: {description, quantity, unit_price_ht, [product_id], [vehicle_id]}
      * line_total_ht is computed here; callers must not pass it.
      * New invoices are always created as Draft; status transitions are managed elsewhere.
      */
@@ -115,6 +115,7 @@ class InvoiceService
 
             $invoice->items()->create([
                 'product_id'    => $item['product_id'] ?? null,
+                'vehicle_id'    => $item['vehicle_id'] ?? null,
                 'description'   => $item['description'],
                 'quantity'      => $quantity,
                 'unit_price_ht' => $unitPrice,
