@@ -119,7 +119,7 @@ class InvoicesController extends Controller implements HasMiddleware
     {
         $this->authorize('view', $invoice);
 
-        $invoice->load(['customer', 'vehicle', 'items.product', 'creator']);
+        $invoice->load(['customer', 'vehicle', 'items.product', 'items.vehicle', 'creator']);
 
         return Inertia::render('Invoices/Show', [
             'invoice' => [
@@ -154,6 +154,12 @@ class InvoicesController extends Controller implements HasMiddleware
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
                     'line_total_ht' => $item->line_total_ht,
+                    'vehicle'       => $item->vehicle ? [
+                        'id'    => $item->vehicle->id,
+                        'plate' => $item->vehicle->license_plate,
+                        'make'  => $item->vehicle->make,
+                        'model' => $item->vehicle->model,
+                    ] : null,
                 ]),
                 'created_by'  => $invoice->creator?->name,
             ],
@@ -188,6 +194,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 'items'       => $invoice->items->map(fn ($item) => [
                     'id'            => $item->id,
                     'product_id'    => $item->product_id,
+                    'vehicle_id'    => $item->vehicle_id,
                     'description'   => $item->description,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
@@ -260,6 +267,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 'converted_from_quote_id' => $invoice->id,
                 'items'                   => $invoice->items->map(fn ($item) => [
                     'product_id'    => $item->product_id,
+                    'vehicle_id'    => $item->vehicle_id,
                     'description'   => $item->description,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,

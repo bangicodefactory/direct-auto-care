@@ -13,7 +13,7 @@ class InvoicePdfController extends Controller
     {
         $this->authorize('view', $invoice);
 
-        $invoice->load(['customer', 'vehicle', 'items.product']);
+        $invoice->load(['customer', 'vehicle', 'items.product', 'items.vehicle']);
 
         $pdf = Pdf::loadView('pdf.invoice', [
             'invoice' => $invoice,
@@ -27,7 +27,7 @@ class InvoicePdfController extends Controller
     {
         $this->authorize('view', $invoice);
 
-        $invoice->load(['customer', 'vehicle', 'items.product']);
+        $invoice->load(['customer', 'vehicle', 'items.product', 'items.vehicle']);
 
         return view('pdf.invoice', [
             'invoice'   => $invoice,

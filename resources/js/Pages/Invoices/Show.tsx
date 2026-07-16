@@ -15,7 +15,7 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import type { InvoiceItem, InvoiceStatus, InvoiceType } from '@/types/models';
+import type { InvoiceStatus, InvoiceType } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ChevronDown, Printer } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -48,7 +48,14 @@ interface ShowProps {
         notes: string | null;
         customer: { id: number; name: string; phone: string | null; email: string | null } | null;
         vehicle: { id: number; plate: string; make: string; model: string } | null;
-        items: InvoiceItem[];
+        items: {
+            id: number;
+            description: string;
+            quantity: string;
+            unit_price_ht: string;
+            line_total_ht: string;
+            vehicle: { id: number; plate: string; make: string; model: string } | null;
+        }[];
         created_by: string | null;
     };
     can: {
@@ -100,6 +107,7 @@ export default function Show({ invoice, can }: ShowProps) {
     const typeLabel = invoice.type === 'quote' ? 'Devis' : 'Facture';
     const { post, processing } = useForm({});
     const [confirmingCancel, setConfirmingCancel] = useState(false);
+    const hasLineVehicles = invoice.items.some((item) => item.vehicle);
 
     return (
         <AuthenticatedLayout
@@ -241,6 +249,7 @@ export default function Show({ invoice, can }: ShowProps) {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Description</TableHead>
+                                    {hasLineVehicles && <TableHead>Véhicule</TableHead>}
                                     <TableHead className="text-end">Qté</TableHead>
                                     <TableHead className="text-end">P.U. HT</TableHead>
                                     <TableHead className="text-end">Total HT</TableHead>
@@ -252,6 +261,20 @@ export default function Show({ invoice, can }: ShowProps) {
                                         <TableCell className="text-foreground">
                                             {item.description}
                                         </TableCell>
+                                        {hasLineVehicles && (
+                                            <TableCell className="text-muted-foreground">
+                                                {item.vehicle ? (
+                                                    <>
+                                                        {item.vehicle.plate}
+                                                        <span className="ms-1 text-xs text-muted-foreground/70">
+                                                            {item.vehicle.make} {item.vehicle.model}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    '—'
+                                                )}
+                                            </TableCell>
+                                        )}
                                         <TableCell className="text-end text-muted-foreground">
                                             {item.quantity}
                                         </TableCell>

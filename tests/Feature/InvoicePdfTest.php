@@ -173,6 +173,63 @@ class InvoicePdfTest extends TestCase
             ->assertDontSee('ICE :');
     }
 
+    // -------------------------------------------------------------------------
+    // Per-line vehicle column (multi-vehicle invoices)
+    // -------------------------------------------------------------------------
+
+    public function test_print_view_shows_vehicle_column_when_lines_are_attributed(): void
+    {
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+
+        $customer = Customer::factory()->create();
+        $vehicle  = \App\Models\Vehicle::factory()->create([
+            'customer_id'   => $customer->id,
+            'license_plate' => '12345-A-6',
+            'make'          => 'Dacia',
+            'model'         => 'Logan',
+        ]);
+        $invoice = Invoice::factory()->create(['customer_id' => $customer->id]);
+        $invoice->items()->create([
+            'product_id'    => null,
+            'vehicle_id'    => $vehicle->id,
+            'description'   => 'Vidange moteur',
+            'quantity'      => 1,
+            'unit_price_ht' => 150,
+            'line_total_ht' => 150,
+        ]);
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $invoice))
+            ->assertOk()
+            ->assertSee('Véhicule')       // the per-line column header
+            ->assertSee('12345-A-6')      // plate on the attributed line
+            ->assertSee('Dacia');
+    }
+
+    public function test_print_view_hides_vehicle_column_without_line_attribution(): void
+    {
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+
+        $customer = Customer::factory()->create();
+        $invoice  = Invoice::factory()->create(['customer_id' => $customer->id]);
+        $invoice->items()->create([
+            'product_id'    => null,
+            'vehicle_id'    => null,
+            'description'   => "Main d'œuvre",
+            'quantity'      => 1,
+            'unit_price_ht' => 200,
+            'line_total_ht' => 200,
+        ]);
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $invoice))
+            ->assertOk()
+            ->assertSee("Main d'œuvre")
+            ->assertDontSee('<th class="col-veh text-left">Véhicule</th>', false);
+    }
+
     public function test_user_without_role_cannot_access_pdf(): void
     {
         $user = User::factory()->create();
