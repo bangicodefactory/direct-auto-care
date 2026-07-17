@@ -23,6 +23,9 @@ class VehicleImportService
 {
     private const MAX_ROWS = 2000;
 
+    /** Download filename, also the key under the pre-built template cache. */
+    public const TEMPLATE_FILENAME = 'modele_vehicules.xlsx';
+
     /** @var list<string> */
     public const HEADERS = [
         'customer_id', 'customer_phone', 'make', 'model', 'year',
@@ -31,6 +34,24 @@ class VehicleImportService
 
     /** @var list<string> */
     private const ATTRIBUTES = ['make', 'model', 'year', 'license_plate', 'vin', 'mileage', 'fuel_type', 'color'];
+
+    /**
+     * Path to the pre-built template, building it on the fly only if the cache is
+     * missing (normally warmed at deploy time by `import:build-templates`). Serving
+     * this instead of {@see template()} keeps openspout off the request hot path.
+     */
+    public function cachedTemplatePath(): string
+    {
+        $path = SpreadsheetTemplate::cachedPath(self::TEMPLATE_FILENAME);
+
+        return is_file($path) ? $path : $this->rebuildTemplate();
+    }
+
+    /** Rebuild the cached template from scratch and return its path. */
+    public function rebuildTemplate(): string
+    {
+        return SpreadsheetTemplate::persist(self::TEMPLATE_FILENAME, $this->template());
+    }
 
     public function template(): string
     {

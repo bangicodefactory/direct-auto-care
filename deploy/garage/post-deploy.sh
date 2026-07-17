@@ -69,6 +69,12 @@ esac
 # Public storage symlink (company logo, reception photos, signatures).
 "$PHP_BIN" artisan storage:link || echo "storage:link skipped (symlinks may be disabled) — see README"
 
+# Pre-build the bulk-import .xlsx templates into storage. The download route then
+# serves the cached file instead of running openspout (zip compression) on every
+# request — that per-request memory spike can trip shared-host resource limits
+# (LiteSpeed/LVE 503). Non-fatal: the route lazily rebuilds if this is skipped.
+"$PHP_BIN" artisan import:build-templates || echo "import:build-templates skipped"
+
 # Rebuild caches for production performance (clear stale ones from the last deploy first).
 "$PHP_BIN" artisan optimize:clear
 "$PHP_BIN" artisan config:cache
