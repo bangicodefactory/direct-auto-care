@@ -19,8 +19,11 @@ use OpenSpout\Writer\XLSX\Writer;
  */
 class SpreadsheetTemplate
 {
-    /** Directory (under storage) holding the pre-built template cache. */
-    private const CACHE_DIR = 'app/import-templates';
+    /** Directory holding the pre-built template cache (overridable for tests). */
+    public static function cacheDir(): string
+    {
+        return config('import.template_cache_dir');
+    }
 
     /**
      * Absolute path where the cached template for $filename lives (whether or not
@@ -28,20 +31,40 @@ class SpreadsheetTemplate
      */
     public static function cachedPath(string $filename): string
     {
-        return storage_path(self::CACHE_DIR.'/'.$filename);
+        return self::cacheDir().'/'.$filename;
     }
 
     /**
-     * Move a freshly-built temp file into the cache under $filename (overwriting
-     * any previous copy) and return its final absolute path.
+     * Atomically publish a freshly-built temp file into the cache under $filename
+     * and return its final absolute path.
+     *
+     * The build lands in the system temp dir, which may be a different filesystem
+     * than the cache, so we cannot rename() it straight into place (EXDEV). Instead
+     * we copy() it to a sibling of the destination (same filesystem) and rename()
+     * that into place — an atomic swap: a concurrent download always sees either the
+     * old file or the new one, never a missing file mid-publish.
      */
     public static function persist(string $filename, string $tempPath): string
     {
         $destination = self::cachedPath($filename);
         File::ensureDirectoryExists(dirname($destination));
-        // rename() won't overwrite on Windows; drop any stale copy first.
-        File::delete($destination);
-        File::move($tempPath, $destination);
+
+        $staged = $destination.'.'.getmypid().'.tmp';
+        if (! @copy($tempPath, $staged)) {
+            throw new \RuntimeException("Failed to stage import template at {$staged}.");
+        }
+        File::delete($tempPath);
+
+        // Windows rename() cannot overwrite an existing file; POSIX rename() is an
+        // atomic replace, so only clear the destination first on Windows.
+        if (PHP_OS_FAMILY === 'Windows') {
+            File::delete($destination);
+        }
+
+        if (! @rename($staged, $destination)) {
+            File::delete($staged);
+            throw new \RuntimeException("Failed to publish import template to {$destination}.");
+        }
 
         return $destination;
     }

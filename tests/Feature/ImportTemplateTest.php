@@ -15,12 +15,22 @@ class ImportTemplateTest extends TestCase
 {
     use RefreshDatabase;
 
+    private string $cacheDir;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed(RoleSeeder::class);
-        // Start each test from an empty template cache for determinism.
-        File::deleteDirectory(dirname(SpreadsheetTemplate::cachedPath('placeholder')));
+        // Isolate the template cache in a unique temp dir so tests never touch
+        // real storage and can't race each other (e.g. under parallel runs).
+        $this->cacheDir = sys_get_temp_dir().'/import-tpl-test-'.uniqid();
+        config(['import.template_cache_dir' => $this->cacheDir]);
+    }
+
+    protected function tearDown(): void
+    {
+        File::deleteDirectory($this->cacheDir);
+        parent::tearDown();
     }
 
     public function test_build_command_writes_both_templates(): void
@@ -57,5 +67,18 @@ class ImportTemplateTest extends TestCase
         // The controller streamed the existing cached bytes verbatim — it did not
         // regenerate the template (which would have replaced the sentinel).
         $this->assertSame('SENTINEL-NOT-A-REAL-XLSX', File::get($cache));
+    }
+
+    public function test_rebuild_overwrites_a_stale_cached_template(): void
+    {
+        $cache = SpreadsheetTemplate::cachedPath(ProductImportService::TEMPLATE_FILENAME);
+        File::ensureDirectoryExists(dirname($cache));
+        File::put($cache, 'STALE');
+
+        app(ProductImportService::class)->rebuildTemplate();
+
+        // The stale copy was atomically replaced by a real .xlsx (zip magic "PK").
+        $this->assertNotSame('STALE', File::get($cache));
+        $this->assertSame('PK', substr(File::get($cache), 0, 2));
     }
 }
