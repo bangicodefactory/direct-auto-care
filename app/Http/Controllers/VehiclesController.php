@@ -89,9 +89,9 @@ class VehiclesController extends Controller
     {
         $this->authorize('create', Vehicle::class);
 
-        return response()
-            ->download($service->template(), 'modele_vehicules.xlsx')
-            ->deleteFileAfterSend();
+        // Serve the pre-built template (warmed at deploy time). Not deleted after
+        // send — it is a persistent cache, not a per-request temp file.
+        return response()->download($service->cachedTemplatePath(), VehicleImportService::TEMPLATE_FILENAME);
     }
 
     public function import(ImportVehiclesRequest $request, VehicleImportService $service): RedirectResponse

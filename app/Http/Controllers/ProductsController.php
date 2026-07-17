@@ -95,9 +95,9 @@ class ProductsController extends Controller implements HasMiddleware
 
     public function importTemplate(ProductImportService $service): BinaryFileResponse
     {
-        return response()
-            ->download($service->template(), 'modele_produits.xlsx')
-            ->deleteFileAfterSend();
+        // Serve the pre-built template (warmed at deploy time). Not deleted after
+        // send — it is a persistent cache, not a per-request temp file.
+        return response()->download($service->cachedTemplatePath(), ProductImportService::TEMPLATE_FILENAME);
     }
 
     public function import(ImportProductsRequest $request, ProductImportService $service): RedirectResponse
