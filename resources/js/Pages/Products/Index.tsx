@@ -1,3 +1,4 @@
+import BulkImportModal from '@/Components/BulkImportModal';
 import Modal from '@/Components/Modal';
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
@@ -56,12 +57,13 @@ interface IndexProps {
     products: Paginated<ProductRow>;
     filters: ProductFilters;
     categories: CategoryOption[];
-    can: { create: boolean; edit: boolean; delete: boolean };
+    can: { create: boolean; import: boolean; edit: boolean; delete: boolean };
 }
 
 export default function Index({ products, filters, categories, can }: IndexProps) {
     const [search, setSearch] = useState(filters?.search ?? '');
     const [deletingProduct, setDeletingProduct] = useState<ProductRow | null>(null);
+    const [importing, setImporting] = useState(false);
     const [processing, setProcessing] = useState(false);
     const isFirstRender = useRef(true);
     const filtersRef = useRef(filters);
@@ -133,11 +135,18 @@ export default function Index({ products, filters, categories, can }: IndexProps
                     <h2 className="text-xl font-semibold leading-tight text-foreground">
                         Produits
                     </h2>
-                    {can.create && (
-                        <Button asChild>
-                            <Link href={route('products.create')}>+ Ajouter un produit</Link>
-                        </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {can.import && (
+                            <Button variant="outline" onClick={() => setImporting(true)}>
+                                Importer
+                            </Button>
+                        )}
+                        {can.create && (
+                            <Button asChild>
+                                <Link href={route('products.create')}>+ Ajouter un produit</Link>
+                            </Button>
+                        )}
+                    </div>
                 </div>
             }
         >
@@ -319,6 +328,14 @@ export default function Index({ products, filters, categories, can }: IndexProps
                     </div>
                 </div>
             </Modal>
+
+            <BulkImportModal
+                open={importing}
+                onClose={() => setImporting(false)}
+                title="Importer des produits"
+                templateUrl={route('products.import.template')}
+                endpoint={route('products.import')}
+            />
         </AuthenticatedLayout>
     );
 }

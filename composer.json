@@ -7,12 +7,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-zip": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "fakerphp/faker": "^1.23",
         "inertiajs/inertia-laravel": "^3.1",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
+        "openspout/openspout": "^5.8",
         "sentry/sentry-laravel": "^4.0",
         "spatie/laravel-permission": "^7.0",
         "tightenco/ziggy": "^2.0"

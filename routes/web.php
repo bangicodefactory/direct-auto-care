@@ -34,6 +34,14 @@ Route::get('/style-guide', function () {
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
+// Products — bulk import (before the {product} binding so /products/import isn't captured)
+Route::get('products/import/template', [ProductsController::class, 'importTemplate'])
+    ->middleware(['auth', 'verified'])
+    ->name('products.import.template');
+Route::post('products/import', [ProductsController::class, 'import'])
+    ->middleware(['auth', 'verified'])
+    ->name('products.import');
+
 Route::resource('products', ProductsController::class)
     ->middleware(['auth', 'verified']);
 
@@ -124,6 +132,14 @@ Route::get('/vehicles/create', [VehiclesController::class, 'standaloneCreate'])
 Route::post('/vehicles', [VehiclesController::class, 'standaloneStore'])
     ->middleware(['auth', 'verified'])
     ->name('vehicles.store');
+
+// Vehicles — bulk import (before the {vehicle} binding)
+Route::get('/vehicles/import/template', [VehiclesController::class, 'importTemplate'])
+    ->middleware(['auth', 'verified'])
+    ->name('vehicles.import.template');
+Route::post('/vehicles/import', [VehiclesController::class, 'import'])
+    ->middleware(['auth', 'verified'])
+    ->name('vehicles.import');
 
 // Vehicles — create + store nested under customer (customer_id comes from route)
 Route::resource('customers.vehicles', VehiclesController::class)

@@ -1,3 +1,4 @@
+import BulkImportModal from '@/Components/BulkImportModal';
 import Modal from '@/Components/Modal';
 import TextInput from '@/Components/TextInput';
 import { Button } from '@/Components/ui/button';
@@ -47,6 +48,7 @@ interface IndexProps {
     filters: VehicleFilters;
     can: {
         delete: boolean;
+        import: boolean;
     };
 }
 
@@ -97,6 +99,7 @@ function SortableHeader({
 export default function Index({ vehicles, filters, can }: IndexProps) {
     const [search, setSearch] = useState(filters?.search ?? '');
     const [deletingVehicle, setDeletingVehicle] = useState<VehicleRow | null>(null);
+    const [importing, setImporting] = useState(false);
     const [processing, setProcessing] = useState(false);
     const isFirstRender = useRef(true);
 
@@ -147,9 +150,16 @@ export default function Index({ vehicles, filters, can }: IndexProps) {
                     <h2 className="text-xl font-semibold leading-tight text-foreground">
                         Véhicules
                     </h2>
-                    <Button asChild>
-                        <Link href={route('vehicles.create')}>Nouveau véhicule</Link>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        {can.import && (
+                            <Button variant="outline" onClick={() => setImporting(true)}>
+                                Importer
+                            </Button>
+                        )}
+                        <Button asChild>
+                            <Link href={route('vehicles.create')}>Nouveau véhicule</Link>
+                        </Button>
+                    </div>
                 </div>
             }
         >
@@ -322,6 +332,14 @@ export default function Index({ vehicles, filters, can }: IndexProps) {
                     </div>
                 </div>
             </Modal>
+
+            <BulkImportModal
+                open={importing}
+                onClose={() => setImporting(false)}
+                title="Importer des véhicules"
+                templateUrl={route('vehicles.import.template')}
+                endpoint={route('vehicles.import')}
+            />
         </AuthenticatedLayout>
     );
 }
