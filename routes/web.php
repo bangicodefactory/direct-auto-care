@@ -16,17 +16,11 @@ use App\Http\Controllers\ServiceRecordsController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiclesController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return Inertia::render('Welcome');
 });
 
 Route::get('/style-guide', function () {
