@@ -98,6 +98,29 @@ class InvoicePdfTest extends TestCase
             ->assertSee($invoice->number);
     }
 
+    // -------------------------------------------------------------------------
+    // Customer block ("Facturé à")
+    // -------------------------------------------------------------------------
+
+    public function test_individual_customer_keeps_contact_details(): void
+    {
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+        // Note: `ville` is a company-only field — the Customer saving hook nulls
+        // it for individuals, so only phone/email/address apply here.
+        $customer = Customer::factory()->create([
+            'phone'   => '+212612345678',
+            'address' => '12 rue des Fleurs, Tanger',
+        ]);
+        $invoice = Invoice::factory()->create(['customer_id' => $customer->id]);
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $invoice))
+            ->assertOk()
+            ->assertSee('+212612345678')
+            ->assertSee('12 rue des Fleurs, Tanger');
+    }
+
     public function test_admin_can_access_print_view(): void
     {
         $admin = User::factory()->create();
@@ -128,7 +151,7 @@ class InvoicePdfTest extends TestCase
             ->assertSee('Alaoui');
     }
 
-    public function test_print_view_shows_company_fiscal_identity(): void
+    public function test_print_view_shows_company_name_and_ice_only(): void
     {
         $employee = User::factory()->create();
         $employee->assignRole('employee');
@@ -138,17 +161,25 @@ class InvoicePdfTest extends TestCase
                 'ice'          => '001234567000089',
                 'if'           => '19283746',
                 'patente'      => '87654321',
+                'phone'        => '+212693823330',
+                'address'      => 'Av Mohamed Bennouna, Rés Errzini',
+                'ville'        => 'Tétouan',
             ]), 'customer')
             ->create();
 
+        // Per client request (2026-07-21): a company's bill-to block carries the
+        // raison sociale + ICE only — no IF/patente, phone or address.
         $this->actingAs($employee)
             ->get(route('invoices.print', $invoice))
             ->assertOk()
             ->assertViewIs('pdf.invoice')
-            ->assertSee('Transports Atlas SARL')   // raison sociale as the bill-to name
-            ->assertSee('001234567000089')         // ICE — required on a B2B invoice
-            ->assertSee('19283746')                // IF
-            ->assertSee('87654321');               // Patente
+            ->assertSee('Transports Atlas SARL')
+            ->assertSee('ICE : 001234567000089')
+            ->assertDontSee('19283746')            // IF
+            ->assertDontSee('87654321')            // Patente
+            ->assertDontSee('+212693823330')       // phone
+            ->assertDontSee('Av Mohamed Bennouna') // address
+            ->assertDontSee('Rés Errzini');
     }
 
     public function test_print_view_hides_fiscal_ids_for_individual(): void
