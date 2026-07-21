@@ -115,6 +115,7 @@ class InvoiceService
 
             $invoice->items()->create([
                 'product_id'    => $item['product_id'] ?? null,
+                'service_id'    => $item['service_id'] ?? null,
                 'vehicle_id'    => $item['vehicle_id'] ?? null,
                 'description'   => $item['description'],
                 'quantity'      => $quantity,

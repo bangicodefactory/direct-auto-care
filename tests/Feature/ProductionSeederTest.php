@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\ProductionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,6 +20,7 @@ class ProductionSeederTest extends TestCase
         $this->assertTrue(Role::where('name', 'admin')->exists());
         $this->assertTrue(Role::where('name', 'employee')->exists());
         $this->assertDatabaseHas('service_types', []);
+        $this->assertDatabaseHas('services', ['name' => 'Vidange']);
 
         $admin = User::where('email', env('ADMIN_EMAIL', 'admin@directautocare.ma'))->first();
         $this->assertNotNull($admin);
@@ -43,5 +45,6 @@ class ProductionSeederTest extends TestCase
 
         $this->assertSame(1, User::where('email', env('ADMIN_EMAIL', 'admin@directautocare.ma'))->count());
         $this->assertSame(2, Role::count());
+        $this->assertSame(7, Service::count());
     }
 }

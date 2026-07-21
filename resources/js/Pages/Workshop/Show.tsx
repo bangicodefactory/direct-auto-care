@@ -2,7 +2,7 @@ import Modal from '@/Components/Modal';
 import VehicleConditionDiagram from '@/Components/VehicleConditionDiagram';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import type { Product, ServiceOrderItem, ServiceOrderStatus } from '@/types/models';
+import type { Product, Service, ServiceOrderItem, ServiceOrderStatus } from '@/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Check, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -119,17 +119,20 @@ function PhaseStepper({ phases, currentStatus }: PhaseStepperProps) {
 interface PartsManagerProps {
     order: { id: number; items: ServiceOrderItem[] };
     products: Product[];
+    services: Pick<Service, 'id' | 'name' | 'default_price_ht'>[];
     editable: boolean;
 }
 
-function PartsManager({ order, products, editable }: PartsManagerProps) {
+function PartsManager({ order, products, services, editable }: PartsManagerProps) {
     const { data, setData, post, processing, errors, reset } = useForm<{
         product_id: string;
+        service_id: string;
         description: string;
         quantity: number | string;
         unit_price_ht: string;
     }>({
         product_id: '',
+        service_id: '',
         description: '',
         quantity: 1,
         unit_price_ht: '',
@@ -137,15 +140,43 @@ function PartsManager({ order, products, editable }: PartsManagerProps) {
 
     const total = order.items.reduce((sum, item) => sum + Number(item.line_total_ht), 0);
 
-    function pickProduct(id: string) {
-        const product = products.find((p) => String(p.id) === String(id));
-        setData((current) => ({
-            ...current,
-            product_id: id,
-            // Pre-fill price + description from the catalogue; leave the user free to override.
-            unit_price_ht: product ? product.price_sell : current.unit_price_ht,
-            description: product ? '' : current.description,
-        }));
+    // One <select> for both catalogues, encoded "p:12" / "s:3".
+    const catalogSelected = data.product_id
+        ? `p:${data.product_id}`
+        : data.service_id
+          ? `s:${data.service_id}`
+          : '';
+
+    function pickCatalogItem(encoded: string) {
+        const kind = encoded.slice(0, 1);
+        const id = encoded.slice(2);
+        setData((current) => {
+            if (kind === 'p') {
+                const product = products.find((p) => String(p.id) === id);
+                return {
+                    ...current,
+                    product_id: id,
+                    service_id: '',
+                    // Pre-fill the price; description stays hidden and defaults to
+                    // the product name server-side.
+                    unit_price_ht: product ? product.price_sell : current.unit_price_ht,
+                    description: product ? '' : current.description,
+                };
+            }
+            if (kind === 's') {
+                const service = services.find((s) => String(s.id) === id);
+                // Description stays visible for services — the wording is often
+                // car-specific; server defaults to the service name if cleared.
+                return {
+                    ...current,
+                    service_id: id,
+                    product_id: '',
+                    unit_price_ht: service ? service.default_price_ht : current.unit_price_ht,
+                    description: service ? service.name : current.description,
+                };
+            }
+            return { ...current, product_id: '', service_id: '' };
+        });
     }
 
     function submit(e: React.FormEvent) {
@@ -206,22 +237,33 @@ function PartsManager({ order, products, editable }: PartsManagerProps) {
                     <div className="grid gap-3 sm:grid-cols-2">
                         <div className="sm:col-span-2">
                             <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                Produit (stock)
+                                Produit / Service
                             </label>
                             <select
-                                value={data.product_id}
-                                onChange={(e) => pickProduct(e.target.value)}
+                                value={catalogSelected}
+                                onChange={(e) => pickCatalogItem(e.target.value)}
                                 className={FIELD}
                             >
-                                <option value="">— Ligne libre (main d'œuvre)…</option>
-                                {products.map((p) => (
-                                    <option key={p.id} value={p.id}>
-                                        {p.sku} — {p.name} (stock : {p.quantity_on_hand})
-                                    </option>
-                                ))}
+                                <option value="">— Ligne libre…</option>
+                                <optgroup label="Services">
+                                    {services.map((s) => (
+                                        <option key={`s:${s.id}`} value={`s:${s.id}`}>
+                                            {s.name}
+                                        </option>
+                                    ))}
+                                </optgroup>
+                                <optgroup label="Produits (stock)">
+                                    {products.map((p) => (
+                                        <option key={`p:${p.id}`} value={`p:${p.id}`}>
+                                            {p.sku} — {p.name} (stock : {p.quantity_on_hand})
+                                        </option>
+                                    ))}
+                                </optgroup>
                             </select>
-                            {errors.product_id && (
-                                <p className="mt-1 text-sm text-destructive">{errors.product_id}</p>
+                            {(errors.product_id || errors.service_id) && (
+                                <p className="mt-1 text-sm text-destructive">
+                                    {errors.service_id ?? errors.product_id}
+                                </p>
                             )}
                         </div>
 
@@ -284,7 +326,7 @@ function PartsManager({ order, products, editable }: PartsManagerProps) {
 
                     <div className="flex justify-end">
                         <Button type="submit" disabled={processing}>
-                            Ajouter la pièce
+                            Ajouter la ligne
                         </Button>
                     </div>
                 </form>
@@ -328,9 +370,17 @@ interface ShowProps {
     next: { value: ServiceOrderStatus; label: string } | null;
     can: { update: boolean };
     products?: Product[];
+    services?: Pick<Service, 'id' | 'name' | 'default_price_ht'>[];
 }
 
-export default function Show({ order, phases, next, can, products = [] }: ShowProps) {
+export default function Show({
+    order,
+    phases,
+    next,
+    can,
+    products = [],
+    services = [],
+}: ShowProps) {
     const isCancelled = order.status === 'cancelled';
     const isClosed = order.status === 'closed';
     const diagnosisEditable = order.status === 'diagnosis' || order.status === 'in_progress';
@@ -561,6 +611,7 @@ export default function Show({ order, phases, next, can, products = [] }: ShowPr
                     <PartsManager
                         order={order}
                         products={products}
+                        services={services}
                         editable={can.update && order.status === 'in_progress'}
                     />
 

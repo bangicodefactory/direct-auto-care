@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateServiceOrderRequest;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Service;
 use App\Models\ServiceOrder;
 use App\Models\Vehicle;
 use App\Services\ServiceOrderService;
@@ -161,6 +162,9 @@ class ServiceOrderController extends Controller
                         'price_sell'       => $p->price_sell,
                         'quantity_on_hand' => $p->quantity_on_hand,
                     ])
+                : [],
+            'services' => ($canUpdate && $serviceOrder->status === ServiceOrderStatus::InProgress)
+                ? Service::active()->orderBy('name')->get(['id', 'name', 'default_price_ht'])
                 : [],
         ]);
     }

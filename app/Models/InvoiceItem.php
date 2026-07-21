@@ -13,6 +13,7 @@ class InvoiceItem extends Model
     protected $fillable = [
         'invoice_id',
         'product_id',
+        'service_id',
         'vehicle_id',
         'description',
         'quantity',
@@ -37,6 +38,12 @@ class InvoiceItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function service(): BelongsTo
+    {
+        // withTrashed: historical lines must still resolve soft-deleted services.
+        return $this->belongsTo(Service::class)->withTrashed();
     }
 
     public function vehicle(): BelongsTo

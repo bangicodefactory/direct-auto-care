@@ -13,6 +13,7 @@ class ServiceOrderItem extends Model
     protected $fillable = [
         'service_order_id',
         'product_id',
+        'service_id',
         'description',
         'quantity',
         'unit_price_ht',
@@ -36,5 +37,11 @@ class ServiceOrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function service(): BelongsTo
+    {
+        // withTrashed: historical lines must still resolve soft-deleted services.
+        return $this->belongsTo(Service::class)->withTrashed();
     }
 }

@@ -10,6 +10,7 @@ use App\Enums\StockMovementType;
 use App\Models\Appointment;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\Service;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderItem;
 use App\Models\ServiceRecord;
@@ -201,9 +202,9 @@ class ServiceOrderService
      *
      * When a product is linked, its stock is decremented in the same transaction as
      * the item insert, so a stock shortfall (InsufficientStockException) rolls back
-     * the whole add. A line with no product is free-text labour and touches no stock.
+     * the whole add. A line with a service or no reference touches no stock.
      *
-     * @param  array{product_id?: int|null, description?: string|null, quantity: int|string, unit_price_ht: int|float|string}  $data
+     * @param  array{product_id?: int|null, service_id?: int|null, description?: string|null, quantity: int|string, unit_price_ht: int|float|string}  $data
      */
     public function addItem(ServiceOrder $order, array $data, User $user): ServiceOrderItem
     {
@@ -212,6 +213,7 @@ class ServiceOrderService
 
         return DB::transaction(function () use ($order, $data, $user, $quantity, $unitPrice): ServiceOrderItem {
             $product     = null;
+            $service     = null;
             $description = $data['description'] ?? null;
 
             if (! empty($data['product_id'])) {
@@ -227,8 +229,14 @@ class ServiceOrderService
                 $description ??= $product->name;
             }
 
+            if (! empty($data['service_id'])) {
+                $service = Service::findOrFail($data['service_id']);
+                $description ??= $service->name;
+            }
+
             return $order->items()->create([
                 'product_id'    => $product?->id,
+                'service_id'    => $service?->id,
                 'description'   => $description,
                 'quantity'      => $quantity,
                 'unit_price_ht' => $unitPrice,
