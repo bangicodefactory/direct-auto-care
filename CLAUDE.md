@@ -120,7 +120,8 @@ Drafts on Ahmed's machine: `~/Documents/Claude/Projects/SiyanaPlus/adrs/`.
 ## Laravel Boost — safety rules
 
 - `laravel/boost` is `--dev` **only**. Verify it stays under `require-dev` in `composer.json`. Production deploys must run `composer install --no-dev`.
-- Tinker via Boost runs arbitrary PHP and can read **and** mutate the local DB. **Never run Claude Code against a production database**, even read-only.
+- Tinker via Boost runs arbitrary PHP and can read **and** mutate the DB — it is **not** a safe read-only channel. **Never run Boost/tinker against production**, and **never write to production** by any means.
+- Read-only prod DB access is allowed **only** via an explicitly read-only channel (a dedicated read-only DB user, or a plain `SELECT` over a read-only connection) — never via tinker/Boost. Confirm each prod query with Ahmed before running it, and never expose customer PII beyond what the task needs.
 - Boost MCP is **localhost-only**. Do not tunnel it through `ngrok`, Tailscale, or any reverse proxy.
 - Boost MCP is NOT installed on CI runners (blocked by Mini Shai-Hulud hardening — IST-88).
 - Junior devs: run `php artisan boost:install --guidelines --mcp --no-interaction` once locally after pulling main. Document in onboarding README.
