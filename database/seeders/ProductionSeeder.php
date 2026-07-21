@@ -18,6 +18,7 @@ class ProductionSeeder extends Seeder
     {
         $this->call(RoleSeeder::class);
         $this->call(ServiceTypeSeeder::class);
+        $this->call(ServiceSeeder::class);
 
         $admin = User::firstOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@directautocare.ma')],

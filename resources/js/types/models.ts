@@ -159,6 +159,8 @@ export interface InvoiceItem {
     id: number;
     invoice_id: number;
     product_id: number | null;
+    /** Sellable service (prestation) — mutually exclusive with product_id. */
+    service_id: number | null;
     /** Optional per-line vehicle attribution (multi-vehicle invoices). */
     vehicle_id: number | null;
     description: string;
@@ -194,6 +196,18 @@ export interface Product {
 
     // Relationships
     stockMovements?: StockMovement[];
+}
+
+/** `services` table — sellable prestations (main d'œuvre) with a default price. */
+export interface Service {
+    id: number;
+    name: string;
+    description: string | null;
+    default_price_ht: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at?: string | null;
 }
 
 /** `stock_movements` table. */
@@ -338,6 +352,8 @@ export interface ServiceOrderItem {
     id: number;
     service_order_id: number;
     product_id: number | null;
+    /** Sellable service (prestation) — mutually exclusive with product_id. */
+    service_id: number | null;
     description: string;
     quantity: number;
     unit_price_ht: string;

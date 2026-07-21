@@ -17,6 +17,7 @@ return [
     'nav_vehicles'     => 'المركبات',
     'nav_invoices'     => 'الفواتير والعروض',
     'nav_products'     => 'المنتجات',
+    'nav_services'     => 'الخدمات',
     'nav_appointments' => 'المواعيد',
     'nav_today'        => 'اليوم',
     'nav_workshop'     => 'الورشة',

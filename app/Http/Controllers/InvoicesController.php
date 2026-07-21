@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateInvoiceRequest;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\Service;
 use App\Models\Vehicle;
 use App\Services\InvoiceService;
 use Illuminate\Http\RedirectResponse;
@@ -93,6 +94,7 @@ class InvoicesController extends Controller implements HasMiddleware
         return Inertia::render('Invoices/Create', [
             'customers'   => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'type', 'company_name', 'first_name', 'last_name']),
             'products'    => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
+            'services'    => Service::active()->orderBy('name')->get(['id', 'name', 'default_price_ht']),
             'vehicles'    => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
             'types'       => collect(InvoiceType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
             'defaultType' => InvoiceType::tryFrom($request->string('type')->value())?->value ?? InvoiceType::Invoice->value,
@@ -150,6 +152,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 'items'       => $invoice->items->map(fn ($item) => [
                     'id'            => $item->id,
                     'product_id'    => $item->product_id,
+                    'service_id'    => $item->service_id,
                     'description'   => $item->description,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
@@ -194,6 +197,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 'items'       => $invoice->items->map(fn ($item) => [
                     'id'            => $item->id,
                     'product_id'    => $item->product_id,
+                    'service_id'    => $item->service_id,
                     'vehicle_id'    => $item->vehicle_id,
                     'description'   => $item->description,
                     'quantity'      => $item->quantity,
@@ -202,6 +206,7 @@ class InvoicesController extends Controller implements HasMiddleware
             ],
             'customers' => Customer::orderBy('last_name')->orderBy('first_name')->get(['id', 'type', 'company_name', 'first_name', 'last_name']),
             'products'  => Product::orderBy('name')->get(['id', 'name', 'unit', 'price_sell']),
+            'services'  => Service::active()->orderBy('name')->get(['id', 'name', 'default_price_ht']),
             'vehicles'  => Vehicle::orderBy('license_plate')->get(['id', 'customer_id', 'license_plate', 'make', 'model']),
         ]);
     }
@@ -267,6 +272,7 @@ class InvoicesController extends Controller implements HasMiddleware
                 'converted_from_quote_id' => $invoice->id,
                 'items'                   => $invoice->items->map(fn ($item) => [
                     'product_id'    => $item->product_id,
+                    'service_id'    => $item->service_id,
                     'vehicle_id'    => $item->vehicle_id,
                     'description'   => $item->description,
                     'quantity'      => $item->quantity,

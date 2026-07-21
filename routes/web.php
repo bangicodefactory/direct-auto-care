@@ -13,6 +13,7 @@ use App\Http\Controllers\RemindersController;
 use App\Http\Controllers\ServiceOrderController;
 use App\Http\Controllers\ServiceOrderItemController;
 use App\Http\Controllers\ServiceRecordsController;
+use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiclesController;
 use Illuminate\Foundation\Application;
@@ -48,6 +49,10 @@ Route::resource('products', ProductsController::class)
 Route::post('products/{product}/adjust-stock', [ProductsController::class, 'adjustStock'])
     ->middleware(['auth', 'verified'])
     ->name('products.adjust-stock');
+
+Route::resource('services', ServicesController::class)
+    ->except(['show'])
+    ->middleware(['auth', 'verified']);
 
 // Workshop — service orders (Module 12). `create` before `{serviceOrder}` binding.
 Route::middleware(['auth', 'verified'])->group(function () {

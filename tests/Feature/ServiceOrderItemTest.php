@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ServiceOrderStatus;
 use App\Models\Product;
+use App\Models\Service;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderItem;
 use App\Models\User;
@@ -199,6 +200,48 @@ class ServiceOrderItemTest extends TestCase
                 'unit_price_ht' => 100,
             ])
             ->assertSessionHasErrors('description');
+    }
+
+    public function test_service_line_defaults_description_and_touches_no_stock(): void
+    {
+        $order   = ServiceOrder::factory()->inProgress()->create();
+        $service = Service::factory()->create(['name' => 'Recharge climatisation']);
+
+        $this->actingAs($this->employee())
+            ->post(route('workshop.items.store', $order), [
+                'service_id'    => $service->id,
+                'quantity'      => 1,
+                'unit_price_ht' => 350,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('service_order_items', [
+            'service_order_id' => $order->id,
+            'service_id'       => $service->id,
+            'product_id'       => null,
+            'description'      => 'Recharge climatisation',
+            'line_total_ht'    => 350,
+        ]);
+        $this->assertDatabaseCount('stock_movements', 0);
+    }
+
+    public function test_line_cannot_reference_both_product_and_service(): void
+    {
+        $order   = ServiceOrder::factory()->inProgress()->create();
+        $product = Product::factory()->create(['quantity_on_hand' => 10]);
+        $service = Service::factory()->create();
+
+        $this->actingAs($this->employee())
+            ->post(route('workshop.items.store', $order), [
+                'product_id'    => $product->id,
+                'service_id'    => $service->id,
+                'quantity'      => 1,
+                'unit_price_ht' => 100,
+            ])
+            ->assertSessionHasErrors('service_id');
+
+        $this->assertSame(10, $product->refresh()->quantity_on_hand);
+        $this->assertDatabaseMissing('service_order_items', ['service_order_id' => $order->id]);
     }
 
     public function test_guest_cannot_add_parts(): void

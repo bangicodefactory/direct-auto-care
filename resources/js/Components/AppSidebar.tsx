@@ -29,6 +29,7 @@ import {
     Car,
     ChevronsUpDown,
     FileText,
+    Hammer,
     LayoutDashboard,
     LogOut,
     type LucideIcon,
@@ -65,6 +66,12 @@ const navMain: NavItem[] = [
         routeName: 'products.index',
         icon: Package,
         match: 'products.*',
+    },
+    {
+        labelKey: 'ui.nav_services',
+        routeName: 'services.index',
+        icon: Hammer,
+        match: 'services.*',
     },
     {
         labelKey: 'ui.nav_appointments',

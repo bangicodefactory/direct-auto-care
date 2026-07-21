@@ -17,6 +17,7 @@ return [
     'nav_vehicles'     => 'Véhicules',
     'nav_invoices'     => 'Factures & Devis',
     'nav_products'     => 'Produits',
+    'nav_services'     => 'Services',
     'nav_appointments' => 'Rendez-vous',
     'nav_today'        => "Aujourd'hui",
     'nav_workshop'     => 'Atelier',

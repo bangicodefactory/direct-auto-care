@@ -13,7 +13,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InvoiceVehicleField from '@/Pages/Invoices/Partials/InvoiceVehicleField';
 import LineVehicleSelect from '@/Pages/Invoices/Partials/LineVehicleSelect';
-import type { Customer, Invoice, InvoiceItem, Product, Vehicle } from '@/types/models';
+import type { Customer, Invoice, InvoiceItem, Product, Service, Vehicle } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
@@ -23,6 +23,7 @@ const TYPE_LABELS: Record<string, string> = { invoice: 'Facture', quote: 'Devis'
 interface LineItem {
     _key: number;
     product_id: string | number | null;
+    service_id: string | number | null;
     vehicle_id: string | number | null;
     description: string;
     quantity: string | number;
@@ -44,6 +45,7 @@ interface EditProps {
     invoice: Invoice & { items: InvoiceItem[] };
     customers: Pick<Customer, 'id' | 'display_name'>[];
     products: Pick<Product, 'id' | 'name' | 'unit' | 'price_sell'>[];
+    services: Pick<Service, 'id' | 'name' | 'default_price_ht'>[];
     vehicles: Pick<Vehicle, 'id' | 'customer_id' | 'license_plate' | 'make' | 'model'>[];
 }
 
@@ -52,7 +54,14 @@ function withKey<T>(item: T): T & { _key: number } {
     return { ...item, _key: _nextKey++ };
 }
 
-export default function Edit({ invoice, customers, products, vehicles }: EditProps) {
+// Encodes the product/service pick into one <select> value ("p:12" / "s:3").
+function catalogValue(item: Pick<LineItem, 'product_id' | 'service_id'>): string {
+    if (item.product_id) return `p:${item.product_id}`;
+    if (item.service_id) return `s:${item.service_id}`;
+    return '';
+}
+
+export default function Edit({ invoice, customers, products, services, vehicles }: EditProps) {
     const { data, setData, put, processing, errors } = useForm<EditForm>({
         customer_id: invoice.customer_id ?? '',
         vehicle_id: invoice.vehicle_id ?? '',
@@ -95,20 +104,38 @@ export default function Edit({ invoice, customers, products, vehicles }: EditPro
         }));
     }
 
-    function handleProductChange(index: number, productId: string) {
-        const product = products.find((p) => String(p.id) === String(productId));
+    // Prefills description + price on pick; both stay editable afterwards.
+    function handleCatalogChange(index: number, encoded: string) {
+        const kind = encoded.slice(0, 1);
+        const id = encoded.slice(2);
         setData(
             'items',
-            data.items.map((it, i) =>
-                i === index
-                    ? {
-                          ...it,
-                          product_id: productId,
-                          description: product ? product.name : it.description,
-                          unit_price_ht: product ? String(product.price_sell) : it.unit_price_ht,
-                      }
-                    : it,
-            ),
+            data.items.map((it, i) => {
+                if (i !== index) return it;
+                if (kind === 'p') {
+                    const product = products.find((p) => String(p.id) === id);
+                    return {
+                        ...it,
+                        product_id: id,
+                        service_id: '',
+                        description: product ? product.name : it.description,
+                        unit_price_ht: product ? String(product.price_sell) : it.unit_price_ht,
+                    };
+                }
+                if (kind === 's') {
+                    const service = services.find((s) => String(s.id) === id);
+                    return {
+                        ...it,
+                        service_id: id,
+                        product_id: '',
+                        description: service ? service.name : it.description,
+                        unit_price_ht: service
+                            ? String(service.default_price_ht)
+                            : it.unit_price_ht,
+                    };
+                }
+                return { ...it, product_id: '', service_id: '' };
+            }),
         );
     }
 
@@ -124,6 +151,7 @@ export default function Edit({ invoice, customers, products, vehicles }: EditPro
             ...data.items,
             withKey({
                 product_id: '',
+                service_id: '',
                 vehicle_id: '',
                 description: '',
                 quantity: 1,
@@ -274,7 +302,7 @@ export default function Edit({ invoice, customers, products, vehicles }: EditPro
                                     <table className="min-w-full text-sm">
                                         <thead>
                                             <tr className="border-b border-border text-start text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                                                <th className="pb-2 pe-3">Produit (optionnel)</th>
+                                                <th className="pb-2 pe-3">Produit / Service</th>
                                                 <th className="pb-2 pe-3">Description *</th>
                                                 {isMultiVehicle && (
                                                     <th className="pb-2 pe-3">Véhicule</th>
@@ -293,23 +321,79 @@ export default function Edit({ invoice, customers, products, vehicles }: EditPro
                                                 return (
                                                     <tr key={item._key}>
                                                         <td className="py-2 pe-3">
-                                                            <select
-                                                                className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                                                value={item.product_id ?? ''}
-                                                                onChange={(e) =>
-                                                                    handleProductChange(
-                                                                        index,
-                                                                        e.target.value,
-                                                                    )
+                                                            {(() => {
+                                                                // A line may reference a product/service no longer in the
+                                                                // pickable lists (soft-deleted or deactivated since). Render
+                                                                // a fallback option so re-saving keeps the link intact.
+                                                                const selected = catalogValue(item);
+                                                                const missing =
+                                                                    selected !== '' &&
+                                                                    !products.some(
+                                                                        (p) =>
+                                                                            `p:${p.id}` ===
+                                                                            selected,
+                                                                    ) &&
+                                                                    !services.some(
+                                                                        (s) =>
+                                                                            `s:${s.id}` ===
+                                                                            selected,
+                                                                    );
+                                                                return (
+                                                                    <select
+                                                                        className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                                                        value={selected}
+                                                                        onChange={(e) =>
+                                                                            handleCatalogChange(
+                                                                                index,
+                                                                                e.target.value,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <option value="">
+                                                                            — Aucun —
+                                                                        </option>
+                                                                        {missing && (
+                                                                            <option
+                                                                                value={selected}
+                                                                            >
+                                                                                {item.description ||
+                                                                                    '(indisponible)'}
+                                                                            </option>
+                                                                        )}
+                                                                        <optgroup label="Services">
+                                                                            {services.map((s) => (
+                                                                                <option
+                                                                                    key={`s:${s.id}`}
+                                                                                    value={`s:${s.id}`}
+                                                                                >
+                                                                                    {s.name}
+                                                                                </option>
+                                                                            ))}
+                                                                        </optgroup>
+                                                                        <optgroup label="Produits">
+                                                                            {products.map((p) => (
+                                                                                <option
+                                                                                    key={`p:${p.id}`}
+                                                                                    value={`p:${p.id}`}
+                                                                                >
+                                                                                    {p.name}
+                                                                                </option>
+                                                                            ))}
+                                                                        </optgroup>
+                                                                    </select>
+                                                                );
+                                                            })()}
+                                                            <InputError
+                                                                message={
+                                                                    errors[
+                                                                        `items.${index}.service_id`
+                                                                    ] ??
+                                                                    errors[
+                                                                        `items.${index}.product_id`
+                                                                    ]
                                                                 }
-                                                            >
-                                                                <option value="">— Aucun —</option>
-                                                                {products.map((p) => (
-                                                                    <option key={p.id} value={p.id}>
-                                                                        {p.name}
-                                                                    </option>
-                                                                ))}
-                                                            </select>
+                                                                className="mt-0.5"
+                                                            />
                                                         </td>
                                                         <td className="py-2 pe-3">
                                                             <TextInput
