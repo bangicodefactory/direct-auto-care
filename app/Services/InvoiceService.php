@@ -110,7 +110,14 @@ class InvoiceService
     public function cancel(Invoice $invoice, User $user): Invoice
     {
         return DB::transaction(function () use ($invoice, $user): Invoice {
-            if ($invoice->status !== InvoiceStatus::Cancelled) {
+            // Re-read under a row lock: the route-bound model's status predates the
+            // transaction, and two concurrent cancel/delete requests must not both
+            // observe a non-cancelled status and restore stock twice. A concurrent
+            // delete that already committed makes findOrFail throw (soft-deleted
+            // rows are excluded), aborting this cancel — which is the right outcome.
+            $current = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
+
+            if ($current->status !== InvoiceStatus::Cancelled) {
                 $this->reverseItemStock($invoice, $user, 'Annulation facture');
             }
 
@@ -131,7 +138,12 @@ class InvoiceService
     public function delete(Invoice $invoice, User $user): void
     {
         DB::transaction(function () use ($invoice, $user): void {
-            if ($invoice->status !== InvoiceStatus::Cancelled) {
+            // Same row-locked re-read as cancel(): a cancel that commits first is
+            // seen here as Cancelled (restore skipped); a delete that commits first
+            // makes findOrFail throw and this request no-ops.
+            $current = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
+
+            if ($current->status !== InvoiceStatus::Cancelled) {
                 $this->reverseItemStock($invoice, $user, 'Suppression facture');
             }
 
