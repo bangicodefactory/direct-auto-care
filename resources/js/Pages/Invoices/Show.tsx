@@ -50,6 +50,8 @@ interface ShowProps {
         vehicle: { id: number; plate: string; make: string; model: string } | null;
         items: {
             id: number;
+            product_id: number | null;
+            service_id: number | null;
             description: string;
             quantity: string;
             unit_price_ht: string;
@@ -340,6 +342,13 @@ export default function Show({ invoice, can }: ShowProps) {
                     <p className="mt-1 text-sm text-muted-foreground">
                         {typeLabel} <span className="font-medium">{invoice.number}</span> sera
                         marqué(e) comme annulé(e). Cette action est irréversible.
+                        {invoice.type === 'invoice' &&
+                            invoice.items.some((item) => item.product_id !== null) && (
+                                <>
+                                    {' '}
+                                    Le stock des pièces facturées sera restitué à l&apos;inventaire.
+                                </>
+                            )}
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
                         <Button variant="secondary" onClick={() => setConfirmingCancel(false)}>

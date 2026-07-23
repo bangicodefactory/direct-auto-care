@@ -99,6 +99,58 @@ class InvoiceService
         });
     }
 
+    /**
+     * Cancel an invoice, returning consumed stock to inventory.
+     *
+     * Restore + status change share one transaction so the document can never be
+     * cancelled without its stock coming back (or vice-versa). The policy blocks
+     * cancelling an already-cancelled document, but the status guard makes the
+     * restore idempotent regardless of caller.
+     */
+    public function cancel(Invoice $invoice, User $user): Invoice
+    {
+        return DB::transaction(function () use ($invoice, $user): Invoice {
+            // Re-read under a row lock: the route-bound model's status predates the
+            // transaction, and two concurrent cancel/delete requests must not both
+            // observe a non-cancelled status and restore stock twice. A concurrent
+            // delete that already committed makes findOrFail throw (soft-deleted
+            // rows are excluded), aborting this cancel — which is the right outcome.
+            $current = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
+
+            if ($current->status !== InvoiceStatus::Cancelled) {
+                $this->reverseItemStock($invoice, $user, 'Annulation facture');
+            }
+
+            $invoice->update(['status' => InvoiceStatus::Cancelled->value]);
+
+            return $invoice;
+        });
+    }
+
+    /**
+     * Soft-delete an invoice, returning consumed stock to inventory.
+     *
+     * A cancelled facture already had its stock restored at cancellation time, so
+     * deleting one must not restore again — that is the cancel→delete guard.
+     * (Factures cancelled before this behaviour existed never had stock restored;
+     * deleting those still skips the restore — square manually via an adjustment.)
+     */
+    public function delete(Invoice $invoice, User $user): void
+    {
+        DB::transaction(function () use ($invoice, $user): void {
+            // Same row-locked re-read as cancel(): a cancel that commits first is
+            // seen here as Cancelled (restore skipped); a delete that commits first
+            // makes findOrFail throw and this request no-ops.
+            $current = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
+
+            if ($current->status !== InvoiceStatus::Cancelled) {
+                $this->reverseItemStock($invoice, $user, 'Suppression facture');
+            }
+
+            $invoice->delete();
+        });
+    }
+
     // -------------------------------------------------------------------------
     // Internals
     // -------------------------------------------------------------------------
@@ -142,7 +194,7 @@ class InvoiceService
         }
     }
 
-    private function reverseItemStock(Invoice $invoice, User $user): void
+    private function reverseItemStock(Invoice $invoice, User $user, string $reason = 'Correction facture'): void
     {
         // Quotes never had stock decremented, nothing to reverse.
         if ($invoice->type !== InvoiceType::Invoice) {
@@ -177,7 +229,7 @@ class InvoiceService
                 product: $product,
                 type: StockMovementType::In,
                 quantity: (int) round((float) $item->quantity),
-                reason: 'Correction facture',
+                reason: $reason,
                 invoice: $invoice,
                 user: $user,
             );
