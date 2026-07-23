@@ -243,9 +243,9 @@ class InvoicesController extends Controller implements HasMiddleware
             ->with('success', "Facture {$invoice->number} marquée comme payée.");
     }
 
-    public function cancel(Invoice $invoice): RedirectResponse
+    public function cancel(Request $request, Invoice $invoice, InvoiceService $service): RedirectResponse
     {
-        $invoice->update(['status' => InvoiceStatus::Cancelled->value]);
+        $service->cancel($invoice, $request->user());
 
         [$label, $past] = $invoice->type === InvoiceType::Quote
             ? ['Devis', 'annulé']
@@ -287,9 +287,9 @@ class InvoicesController extends Controller implements HasMiddleware
             ->with('success', "Facture {$newInvoice->number} créée depuis le devis {$invoice->number}.");
     }
 
-    public function destroy(Invoice $invoice): RedirectResponse
+    public function destroy(Request $request, Invoice $invoice, InvoiceService $service): RedirectResponse
     {
-        $invoice->delete();
+        $service->delete($invoice, $request->user());
 
         return redirect()->route('invoices.index')
             ->with('success', 'Document supprimé.');
