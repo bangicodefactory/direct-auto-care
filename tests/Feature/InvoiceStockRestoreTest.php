@@ -146,17 +146,23 @@ class InvoiceStockRestoreTest extends TestCase
         $this->assertDatabaseCount('stock_movements', 0);
     }
 
-    public function test_deleting_a_paid_facture_restores_stock(): void
+    public function test_paid_facture_cannot_be_deleted_directly(): void
     {
+        // Deletion is draft/cancelled-only: a paid facture must be cancelled
+        // first (which restores its stock), then deleted if truly unwanted.
         $admin   = $this->admin();
         $product = Product::factory()->create(['quantity_on_hand' => 10]);
         $invoice = $this->storeDocument($admin, $product);
 
         $invoice->update(['status' => InvoiceStatus::Paid->value]);
 
-        $this->actingAs($admin)->delete(route('invoices.destroy', $invoice));
+        $this->actingAs($admin)
+            ->delete(route('invoices.destroy', $invoice))
+            ->assertForbidden();
 
-        $this->assertSame(10, $product->refresh()->quantity_on_hand);
+        // Nothing happened: stock still consumed, document still present.
+        $this->assertSame(7, $product->refresh()->quantity_on_hand);
+        $this->assertNotSoftDeleted('invoices', ['id' => $invoice->id]);
     }
 
     public function test_cancelling_with_soft_deleted_product_skips_restore_but_cancels(): void

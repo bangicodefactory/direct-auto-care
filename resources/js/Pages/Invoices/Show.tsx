@@ -66,6 +66,7 @@ interface ShowProps {
         convert?: boolean;
         edit?: boolean;
         cancel?: boolean;
+        delete?: boolean;
     };
 }
 
@@ -107,9 +108,11 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function Show({ invoice, can }: ShowProps) {
     const typeLabel = invoice.type === 'quote' ? 'Devis' : 'Facture';
-    const { post, processing } = useForm({});
+    const { post, delete: destroy, processing } = useForm({});
     const [confirmingCancel, setConfirmingCancel] = useState(false);
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
     const hasLineVehicles = invoice.items.some((item) => item.vehicle);
+    const hasProductLines = invoice.items.some((item) => item.product_id !== null);
 
     return (
         <AuthenticatedLayout
@@ -198,6 +201,16 @@ export default function Show({ invoice, can }: ShowProps) {
                                 onClick={() => setConfirmingCancel(true)}
                             >
                                 Annuler
+                            </Button>
+                        )}
+                        {can.delete && (
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                disabled={processing}
+                                onClick={() => setConfirmingDelete(true)}
+                            >
+                                Supprimer
                             </Button>
                         )}
                     </div>
@@ -342,13 +355,9 @@ export default function Show({ invoice, can }: ShowProps) {
                     <p className="mt-1 text-sm text-muted-foreground">
                         {typeLabel} <span className="font-medium">{invoice.number}</span> sera
                         marqué(e) comme annulé(e). Cette action est irréversible.
-                        {invoice.type === 'invoice' &&
-                            invoice.items.some((item) => item.product_id !== null) && (
-                                <>
-                                    {' '}
-                                    Le stock des pièces facturées sera restitué à l&apos;inventaire.
-                                </>
-                            )}
+                        {invoice.type === 'invoice' && hasProductLines && (
+                            <> Le stock des pièces facturées sera restitué à l&apos;inventaire.</>
+                        )}
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
                         <Button variant="secondary" onClick={() => setConfirmingCancel(false)}>
@@ -363,6 +372,40 @@ export default function Show({ invoice, can }: ShowProps) {
                             }}
                         >
                             Confirmer l&apos;annulation
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal show={confirmingDelete} maxWidth="sm" onClose={() => setConfirmingDelete(false)}>
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-foreground">Supprimer ce document ?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {typeLabel} <span className="font-medium">{invoice.number}</span> sera
+                        supprimé(e) de l&apos;application. S&apos;il porte le dernier numéro de la
+                        série, ce numéro sera réutilisé pour le prochain document.
+                        {invoice.type === 'invoice' &&
+                            hasProductLines &&
+                            invoice.status !== 'cancelled' && (
+                                <>
+                                    {' '}
+                                    Le stock des pièces facturées sera restitué à l&apos;inventaire.
+                                </>
+                            )}
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <Button variant="secondary" onClick={() => setConfirmingDelete(false)}>
+                            Fermer
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            disabled={processing}
+                            onClick={() => {
+                                setConfirmingDelete(false);
+                                destroy(route('invoices.destroy', invoice.id));
+                            }}
+                        >
+                            Confirmer la suppression
                         </Button>
                     </div>
                 </div>

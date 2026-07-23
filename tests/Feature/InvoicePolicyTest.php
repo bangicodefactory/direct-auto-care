@@ -240,11 +240,26 @@ class InvoicePolicyTest extends TestCase
         $this->assertSoftDeleted($invoice);
     }
 
-    public function test_admin_can_soft_delete_issued_invoice(): void
+    public function test_admin_cannot_delete_issued_invoice(): void
     {
+        // An issued facture must be cancelled first (stock restored, audit
+        // trail kept), then deleted. Direct deletion is denied.
         $admin   = User::factory()->create();
         $admin->assignRole('admin');
         $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Issued->value]);
+
+        $this->actingAs($admin)
+            ->delete(route('invoices.destroy', $invoice))
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted($invoice);
+    }
+
+    public function test_admin_can_delete_cancelled_invoice(): void
+    {
+        $admin   = User::factory()->create();
+        $admin->assignRole('admin');
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Cancelled->value]);
 
         $this->actingAs($admin)
             ->delete(route('invoices.destroy', $invoice))

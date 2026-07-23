@@ -56,9 +56,15 @@ class InvoicePolicy
             && in_array($invoice->status, [InvoiceStatus::Draft, InvoiceStatus::Issued]);
     }
 
+    /**
+     * Only drafts and cancelled documents may be deleted: an issued or paid
+     * facture must be cancelled first (restoring stock and keeping the audit
+     * trail), then deleted if truly unwanted.
+     */
     public function delete(User $user, Invoice $invoice): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasRole('admin')
+            && in_array($invoice->status, [InvoiceStatus::Draft, InvoiceStatus::Cancelled]);
     }
 
     public function restore(User $user, Invoice $invoice): bool

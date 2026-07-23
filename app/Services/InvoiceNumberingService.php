@@ -66,4 +66,38 @@ class InvoiceNumberingService
             $sequence,
         );
     }
+
+    /**
+     * Roll the counter back by one IF the given number is the tail of its
+     * sequence, so a just-created mistake can be deleted without burning a
+     * fiscal number. A mid-sequence number can never be reclaimed (that would
+     * require renumbering every later document) — the counter is left alone
+     * and the deletion simply leaves a gap.
+     *
+     * MUST be called inside an open DB::transaction(). The conditional UPDATE
+     * is atomic and takes an X lock on the sequence row, so a concurrent
+     * next() cannot interleave between the tail check and the decrement.
+     *
+     * Returns true when the counter was rolled back — the caller must then
+     * free the number on the soft-deleted row (the unique index on
+     * invoices.number spans trashed rows, so an unrenamed trashed row would
+     * collide with the reissued number).
+     */
+    public function release(InvoiceType $type, int $fiscalYear, string $number): bool
+    {
+        throw_if(
+            DB::transactionLevel() === 0,
+            \LogicException::class,
+            'InvoiceNumberingService::release() must be called inside a DB::transaction().',
+        );
+
+        $sequence = (int) substr($number, strrpos($number, '-') + 1);
+
+        $affected = DB::update(
+            'UPDATE invoice_sequences SET last_sequence = last_sequence - 1 WHERE type = ? AND fiscal_year = ? AND last_sequence = ?',
+            [$type->value, $fiscalYear, $sequence],
+        );
+
+        return $affected === 1;
+    }
 }
