@@ -147,6 +147,14 @@ class InvoiceService
                 $this->reverseItemStock($invoice, $user, 'Suppression facture');
             }
 
+            // Tail numbers are reclaimed so a just-created mistake doesn't burn a
+            // fiscal number. The trashed row is renamed to free the slot — the
+            // unique index on invoices.number spans soft-deleted rows. Mid-sequence
+            // deletions release nothing and simply leave a gap.
+            if ($this->numbering->release($current->type, $current->fiscal_year, $current->number)) {
+                $invoice->update(['number' => "{$current->number}#{$invoice->id}"]);
+            }
+
             $invoice->delete();
         });
     }
