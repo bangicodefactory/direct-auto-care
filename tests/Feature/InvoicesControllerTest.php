@@ -260,7 +260,8 @@ class InvoicesControllerTest extends TestCase
     public function test_admin_can_delete_invoice(): void
     {
         $admin   = User::factory()->create()->assignRole('admin');
-        $invoice = Invoice::factory()->create();
+        // Deletion is draft/cancelled-only — pin the status (factory randomizes it).
+        $invoice = Invoice::factory()->create(['status' => InvoiceStatus::Draft->value]);
 
         $this->actingAs($admin)
             ->delete(route('invoices.destroy', $invoice))
