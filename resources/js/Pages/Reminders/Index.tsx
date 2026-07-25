@@ -126,8 +126,8 @@ export default function Index({ reminders, filters, statuses, types }: IndexProp
         >
             <Head title="Rappels" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="py-8">
+                <div className="px-4 sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         {/* FILTERS */}
                         <div className="flex flex-wrap items-end gap-3 border-b border-border p-4">

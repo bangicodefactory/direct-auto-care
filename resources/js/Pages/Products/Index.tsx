@@ -24,6 +24,7 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { pluralizeUnit } from '@/lib/utils';
 import type { Product, ProductCategory } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
@@ -152,8 +153,8 @@ export default function Index({ products, filters, categories, can }: IndexProps
         >
             <Head title="Produits" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="py-8">
+                <div className="px-4 sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         {/* TOOLBAR */}
                         <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">
@@ -232,7 +233,8 @@ export default function Index({ products, filters, categories, can }: IndexProps
                                                     : 'text-foreground'
                                             }`}
                                         >
-                                            {p.quantity_on_hand} {p.unit}
+                                            {p.quantity_on_hand}{' '}
+                                            {pluralizeUnit(p.quantity_on_hand, p.unit)}
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-end">
                                             <DropdownMenu>

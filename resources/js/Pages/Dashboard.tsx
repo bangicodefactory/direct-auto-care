@@ -1,6 +1,7 @@
 import BarChartCard from '@/Components/Charts/BarChartCard';
 import LineChartCard from '@/Components/Charts/LineChartCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { pluralizeUnit } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import { ReactNode } from 'react';
 
@@ -171,7 +172,7 @@ export default function Dashboard({ kpis, isAdmin }: DashboardProps) {
                                             </Link>
                                             <span className="text-destructive">
                                                 {p.quantity_on_hand} / {p.low_stock_threshold}{' '}
-                                                {p.unit}
+                                                {pluralizeUnit(p.quantity_on_hand, p.unit)}
                                             </span>
                                         </li>
                                     ))}

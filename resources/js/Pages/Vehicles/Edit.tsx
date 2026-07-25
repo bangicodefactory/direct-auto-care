@@ -52,7 +52,7 @@ export default function Edit({ vehicle }: EditProps) {
         >
             <Head title="Modifier le véhicule" />
 
-            <div className="py-12">
+            <div className="py-8">
                 <div className="mx-auto max-w-2xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <VehicleForm

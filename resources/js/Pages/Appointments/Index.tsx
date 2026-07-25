@@ -271,7 +271,7 @@ export default function AppointmentsIndex({
             <Head title="Rendez-vous" />
 
             <div className="py-8">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="px-4 sm:px-6 lg:px-8">
                     <div
                         className="overflow-hidden rounded-lg border border-border bg-card p-4 shadow-sm"
                         style={{ height: '72vh' }}
