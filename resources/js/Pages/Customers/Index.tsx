@@ -115,8 +115,8 @@ export default function Index({ customers, filters, can }: IndexProps) {
         >
             <Head title="Clients" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="py-8">
+                <div className="px-4 sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         {/* TOOLBAR */}
                         <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:flex-wrap sm:items-center">
@@ -155,7 +155,7 @@ export default function Index({ customers, filters, can }: IndexProps) {
                                     <TableHead>
                                         <Link
                                             href={sortLink('last_name')}
-                                            className="inline-flex min-h-[44px] items-center text-xs font-medium uppercase tracking-wider"
+                                            className="inline-flex min-h-[44px] items-center"
                                         >
                                             Nom / Raison sociale{sortIcon('last_name')}
                                         </Link>
@@ -164,7 +164,7 @@ export default function Index({ customers, filters, can }: IndexProps) {
                                     <TableHead>
                                         <Link
                                             href={sortLink('email')}
-                                            className="inline-flex min-h-[44px] items-center text-xs font-medium uppercase tracking-wider"
+                                            className="inline-flex min-h-[44px] items-center"
                                         >
                                             E-mail{sortIcon('email')}
                                         </Link>

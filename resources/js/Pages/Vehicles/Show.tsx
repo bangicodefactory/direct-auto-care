@@ -209,7 +209,7 @@ export default function Show({ vehicle, can }: ShowProps) {
         >
             <Head title={`${vehicle.make} ${vehicle.model}`} />
 
-            <div className="py-12">
+            <div className="py-8">
                 <div className="mx-auto max-w-4xl space-y-6 sm:px-6 lg:px-8">
                     {/* INFO CARD */}
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">

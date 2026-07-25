@@ -109,8 +109,8 @@ export default function Index({ services, filters, can }: IndexProps) {
         >
             <Head title="Services" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="py-8">
+                <div className="px-4 sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         {/* TOOLBAR */}
                         <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">

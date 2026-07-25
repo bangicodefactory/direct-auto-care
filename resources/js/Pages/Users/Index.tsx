@@ -56,8 +56,8 @@ export default function Index({ users }: IndexProps) {
         >
             <Head title="Utilisateurs" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="py-8">
+                <div className="px-4 sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         <Table>
                             <TableHeader>

@@ -49,7 +49,7 @@ export default function Edit({ user, roles }: EditProps) {
         >
             <Head title="Modifier l'utilisateur" />
 
-            <div className="py-12">
+            <div className="py-8">
                 <div className="mx-auto max-w-2xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         <form onSubmit={submit} className="space-y-6 p-6">

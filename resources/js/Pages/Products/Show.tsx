@@ -12,6 +12,7 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { pluralizeUnit } from '@/lib/utils';
 import type { ProductCategory, StockMovementType } from '@/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
@@ -85,7 +86,7 @@ export default function Show({ product, movements, can }: ShowProps) {
         >
             <Head title={product.name} />
 
-            <div className="py-12">
+            <div className="py-8">
                 <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                     {/* Product info */}
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
@@ -103,7 +104,7 @@ export default function Show({ product, movements, can }: ShowProps) {
                                 ['Prix de vente', `${Number(product.price_sell).toFixed(2)} DH`],
                                 [
                                     'Quantité en stock',
-                                    `${product.quantity_on_hand} ${product.unit}`,
+                                    `${product.quantity_on_hand} ${pluralizeUnit(product.quantity_on_hand, product.unit)}`,
                                 ],
                                 ["Seuil d'alerte", product.low_stock_threshold],
                             ].map(([label, value]) => (
@@ -233,7 +234,8 @@ export default function Show({ product, movements, can }: ShowProps) {
                     <p className="mt-1 text-sm text-muted-foreground">
                         Stock actuel :{' '}
                         <span className="font-semibold">
-                            {product.quantity_on_hand} {product.unit}
+                            {product.quantity_on_hand}{' '}
+                            {pluralizeUnit(product.quantity_on_hand, product.unit)}
                         </span>
                         . Entrez une valeur positive pour ajouter, négative pour retirer.
                     </p>

@@ -60,7 +60,7 @@ export default function Show({ record, can }: ShowProps) {
         >
             <Head title="Compte rendu de service" />
 
-            <div className="py-12">
+            <div className="py-8">
                 <div className="mx-auto max-w-2xl space-y-6 sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         <div className="border-b border-border p-6">
