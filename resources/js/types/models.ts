@@ -32,6 +32,18 @@ export type InvoiceType = 'quote' | 'invoice';
 
 export type ProductCategory = 'huile' | 'filtre' | 'piece' | 'autre';
 
+export type ProductUnit =
+    | 'unite'
+    | 'litre'
+    | 'millilitre'
+    | 'kg'
+    | 'bidon'
+    | 'flacon'
+    | 'boite'
+    | 'paire'
+    | 'jeu'
+    | 'kit';
+
 export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
 export type ReminderStatus = 'pending' | 'sent' | 'acknowledged' | 'cancelled';
@@ -182,7 +194,7 @@ export interface Product {
     category: ProductCategory;
     name: string;
     sku: string | null;
-    unit: string;
+    unit: ProductUnit;
     price_buy: string | null;
     price_sell: string;
     quantity_on_hand: number;

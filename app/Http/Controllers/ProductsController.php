@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProductCategory;
+use App\Enums\ProductUnit;
 use App\Enums\StockMovementType;
 use App\Exceptions\InsufficientStockException;
 use App\Http\Requests\ImportProductsRequest;
@@ -81,7 +82,9 @@ class ProductsController extends Controller implements HasMiddleware
         $this->authorize('create', Product::class);
 
         return Inertia::render('Products/Create', [
-            'categories' => collect(ProductCategory::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()]),
+            'categories'   => collect(ProductCategory::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()]),
+            'units'        => collect(ProductUnit::cases())->map(fn ($u) => ['value' => $u->value, 'label' => $u->label()]),
+            'unitDefaults' => collect(ProductCategory::cases())->mapWithKeys(fn ($c) => [$c->value => ProductUnit::defaultFor($c)->value]),
         ]);
     }
 
@@ -187,6 +190,7 @@ class ProductsController extends Controller implements HasMiddleware
                 'low_stock_threshold' => $product->low_stock_threshold,
             ],
             'categories' => collect(ProductCategory::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()]),
+            'units'      => collect(ProductUnit::cases())->map(fn ($u) => ['value' => $u->value, 'label' => $u->label()]),
         ]);
     }
 

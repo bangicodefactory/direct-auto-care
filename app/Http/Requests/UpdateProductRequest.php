@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\ProductCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,19 +12,18 @@ class UpdateProductRequest extends FormRequest
         return $this->user()->can('update', $this->route('product'));
     }
 
+    /**
+     * Same field rules as creation — product fields have identical constraints
+     * on both paths — with only the sku unique rule relaxed to ignore the
+     * product being edited. Overriding a key here is the escape hatch if the
+     * two paths ever need to diverge on another field.
+     */
     public function rules(): array
     {
-        $product = $this->route('product');
+        $rules = StoreProductRequest::fieldRules();
 
-        return [
-            'category'            => ['required', Rule::enum(ProductCategory::class)],
-            'name'                => ['required', 'string', 'max:150'],
-            'sku'                 => ['nullable', 'string', 'max:50', Rule::unique('products', 'sku')->ignore($product)],
-            'unit'                => ['required', 'string', 'max:20'],
-            'price_buy'           => ['nullable', 'numeric', 'min:0'],
-            'price_sell'          => ['required', 'numeric', 'min:0'],
-            'quantity_on_hand'    => ['required', 'integer', 'min:0'],
-            'low_stock_threshold' => ['required', 'integer', 'min:1'],
-        ];
+        $rules['sku'] = ['nullable', 'string', 'max:50', Rule::unique('products', 'sku')->ignore($this->route('product'))];
+
+        return $rules;
     }
 }

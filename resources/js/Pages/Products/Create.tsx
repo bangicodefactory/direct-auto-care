@@ -10,20 +10,33 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import type { ProductCategory } from '@/types/models';
+import type { ProductCategory, ProductUnit } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { useRef } from 'react';
 
 interface CategoryOption {
     value: ProductCategory;
     label: string;
 }
 
-interface CreateProps {
-    categories: CategoryOption[];
+interface UnitOption {
+    value: ProductUnit;
+    label: string;
 }
 
-export default function Create({ categories }: CreateProps) {
+interface CreateProps {
+    categories: CategoryOption[];
+    units: UnitOption[];
+    unitDefaults: Record<ProductCategory, ProductUnit>;
+}
+
+export default function Create({ categories, units, unitDefaults }: CreateProps) {
+    // Picking a category pre-selects its usual unit (huile → litre), but only
+    // until the user touches the unit themselves — their explicit choice must
+    // survive later category changes.
+    const unitTouched = useRef(false);
+
     const { data, setData, post, processing, errors } = useForm<{
         category: string;
         name: string;
@@ -69,7 +82,15 @@ export default function Create({ categories }: CreateProps) {
                             <InputLabel htmlFor="category" value="Catégorie *" />
                             <Select
                                 value={data.category}
-                                onValueChange={(v) => setData('category', v)}
+                                onValueChange={(v) =>
+                                    setData((d) => ({
+                                        ...d,
+                                        category: v,
+                                        unit: unitTouched.current
+                                            ? d.unit
+                                            : unitDefaults[v as ProductCategory],
+                                    }))
+                                }
                             >
                                 <SelectTrigger id="category" className="mt-1 min-h-[44px] w-full">
                                     <SelectValue placeholder="— Choisir —" />
@@ -109,12 +130,24 @@ export default function Create({ categories }: CreateProps) {
                             </div>
                             <div>
                                 <InputLabel htmlFor="unit" value="Unité *" />
-                                <TextInput
-                                    id="unit"
-                                    className="mt-1 block w-full"
+                                <Select
                                     value={data.unit}
-                                    onChange={(e) => setData('unit', e.target.value)}
-                                />
+                                    onValueChange={(v) => {
+                                        unitTouched.current = true;
+                                        setData('unit', v);
+                                    }}
+                                >
+                                    <SelectTrigger id="unit" className="mt-1 min-h-[44px] w-full">
+                                        <SelectValue placeholder="— Choisir —" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {units.map((u) => (
+                                            <SelectItem key={u.value} value={u.value}>
+                                                {u.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 <InputError message={errors.unit} className="mt-1" />
                             </div>
                         </div>
