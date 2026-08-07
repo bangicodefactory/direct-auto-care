@@ -3,11 +3,25 @@ import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { CustomerType } from '@/types/models';
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useRef } from 'react';
 
 export default function Create() {
     // Not a form field, so it is not part of useForm's error shape: the server
     // raises it when the submitted phone belongs to a deleted client.
     const restoreError = usePage().props.errors?.confirm_restore as string | undefined;
+
+    // The panel sits above the form, so on a phone it lands off-screen: the
+    // user taps Enregistrer at the bottom of a long form and nothing appears to
+    // happen. Bring it into view and move focus to it — CustomerForm only
+    // focuses fields that have errors, and this one has no field.
+    const restorePanelRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (restoreError) {
+            restorePanelRef.current?.focus({ preventScroll: true });
+            restorePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [restoreError]);
 
     const { data, setData, post, processing, errors, transform } = useForm({
         type: 'individual' as CustomerType,
@@ -55,7 +69,12 @@ export default function Create() {
                 <div className="mx-auto max-w-2xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         {restoreError && (
-                            <div role="alert" className="border-b border-amber-300 bg-amber-50 p-4">
+                            <div
+                                role="alert"
+                                ref={restorePanelRef}
+                                tabIndex={-1}
+                                className="border-b border-amber-300 bg-amber-50 p-4 outline-none"
+                            >
                                 <h3 className="text-sm font-semibold text-amber-900">
                                     Client supprimé trouvé
                                 </h3>
