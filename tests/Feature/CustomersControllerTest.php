@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\User;
+use App\Models\Vehicle;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -393,6 +394,144 @@ class CustomersControllerTest extends TestCase
             'last_name'       => 'Chraibi',
             'notify_whatsapp' => true,
             'notify_email'    => false,
+        ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // store — restoring a soft-deleted client
+    // -------------------------------------------------------------------------
+
+    public function test_store_restores_soft_deleted_customer_with_same_phone(): void
+    {
+        $deleted = Customer::factory()->create(['phone' => '+212611111111']);
+        $deleted->delete();
+
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '0611111111',
+            ])
+            ->assertRedirect(route('customers.show', $deleted->id));
+
+        $this->assertNotSoftDeleted('customers', ['id' => $deleted->id]);
+        $this->assertSame(1, Customer::withTrashed()->count());
+    }
+
+    public function test_store_restore_overwrites_details_with_submitted_values(): void
+    {
+        $deleted = Customer::factory()->create([
+            'first_name' => 'Ancien',
+            'last_name'  => 'Nom',
+            'phone'      => '+212611111111',
+            'email'      => 'ancien@example.com',
+            'notes'      => 'Notes obsolètes',
+        ]);
+        $deleted->delete();
+
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '0611111111',
+                'email'      => 'youssef@example.com',
+                'notes'      => 'Client revenu',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('customers', [
+            'id'         => $deleted->id,
+            'first_name' => 'Youssef',
+            'last_name'  => 'Alaoui',
+            'email'      => 'youssef@example.com',
+            'notes'      => 'Client revenu',
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_store_restore_keeps_the_customers_existing_vehicles(): void
+    {
+        $deleted = Customer::factory()->create(['phone' => '+212611111111']);
+        $vehicle = Vehicle::factory()->create(['customer_id' => $deleted->id]);
+        $deleted->delete();
+
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '0611111111',
+            ])
+            ->assertRedirect();
+
+        $this->assertTrue($deleted->fresh()->vehicles->contains($vehicle));
+    }
+
+    public function test_store_restore_flashes_a_restored_message_not_a_created_one(): void
+    {
+        $deleted = Customer::factory()->create(['phone' => '+212611111111']);
+        $deleted->delete();
+
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '0611111111',
+            ])
+            ->assertSessionHas('success', fn (string $message) => str_contains($message, 'restauré'));
+    }
+
+    public function test_store_still_rejects_the_phone_of_an_active_customer(): void
+    {
+        Customer::factory()->create(['phone' => '+212611111111']);
+
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '0611111111',
+            ])
+            ->assertSessionHasErrors(['phone']);
+    }
+
+    public function test_store_restore_rejects_an_email_held_by_another_customer(): void
+    {
+        $deleted = Customer::factory()->create([
+            'phone' => '+212611111111',
+            'email' => 'ancien@example.com',
+        ]);
+        $deleted->delete();
+        Customer::factory()->create(['email' => 'taken@example.com']);
+
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '0611111111',
+                'email'      => 'taken@example.com',
+            ])
+            ->assertSessionHasErrors(['email']);
+
+        $this->assertSoftDeleted('customers', ['id' => $deleted->id]);
+    }
+
+    public function test_store_creates_a_new_customer_when_a_different_client_is_trashed(): void
+    {
+        $deleted = Customer::factory()->create(['phone' => '+212611111111']);
+        $deleted->delete();
+
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Sara',
+                'last_name'  => 'Bennani',
+                'phone'      => '0622222222',
+            ])
+            ->assertRedirect();
+
+        $this->assertSoftDeleted('customers', ['id' => $deleted->id]);
+        $this->assertDatabaseHas('customers', [
+            'phone'      => '+212622222222',
+            'last_name'  => 'Bennani',
+            'deleted_at' => null,
         ]);
     }
 

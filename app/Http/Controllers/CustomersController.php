@@ -61,6 +61,18 @@ class CustomersController extends Controller
 
     public function store(StoreCustomerRequest $request)
     {
+        // A returning client whose record was soft-deleted still owns their
+        // phone number, so re-adding them revives the existing row instead of
+        // being rejected as a duplicate. fill() before restore() keeps this to
+        // a single save; their vehicles, invoices and appointments were never
+        // deleted and become visible again with them.
+        if ($existing = $request->trashedCustomer()) {
+            $existing->fill($request->validated())->restore();
+
+            return redirect()->route('customers.show', $existing)
+                ->with('success', 'Client restauré : ce client avait été supprimé, son historique est de nouveau visible.');
+        }
+
         $customer = Customer::create($request->validated());
 
         return redirect()->route('customers.show', $customer)
