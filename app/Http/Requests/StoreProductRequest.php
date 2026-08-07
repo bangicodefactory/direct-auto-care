@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\ProductCategory;
+use App\Enums\ProductUnit;
 use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -21,7 +22,8 @@ class StoreProductRequest extends FormRequest
 
     /**
      * Validation rules for a product's fields. Shared with the bulk-import
-     * service so imported rows validate against the same constraints.
+     * service and with UpdateProductRequest so every write path validates
+     * against the same constraints — a rule added here applies to all three.
      *
      * @return array<string, array<int, mixed>>
      */
@@ -31,7 +33,7 @@ class StoreProductRequest extends FormRequest
             'category'            => ['required', Rule::enum(ProductCategory::class)],
             'name'                => ['required', 'string', 'max:150'],
             'sku'                 => ['nullable', 'string', 'max:50', Rule::unique('products', 'sku')],
-            'unit'                => ['required', 'string', 'max:20'],
+            'unit'                => ['required', Rule::enum(ProductUnit::class)],
             'price_buy'           => ['nullable', 'numeric', 'min:0'],
             'price_sell'          => ['required', 'numeric', 'min:0'],
             'quantity_on_hand'    => ['required', 'integer', 'min:0'],

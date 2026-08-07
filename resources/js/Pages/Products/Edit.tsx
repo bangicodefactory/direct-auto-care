@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import type { ProductCategory } from '@/types/models';
+import type { ProductCategory, ProductUnit } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
@@ -31,12 +31,18 @@ interface CategoryOption {
     label: string;
 }
 
+interface UnitOption {
+    value: ProductUnit;
+    label: string;
+}
+
 interface EditProps {
     product: ProductForEdit;
     categories: CategoryOption[];
+    units: UnitOption[];
 }
 
-export default function Edit({ product, categories }: EditProps) {
+export default function Edit({ product, categories, units }: EditProps) {
     const { data, setData, put, processing, errors } = useForm<{
         category: string;
         name: string;
@@ -122,12 +128,21 @@ export default function Edit({ product, categories }: EditProps) {
                             </div>
                             <div>
                                 <InputLabel htmlFor="unit" value="Unité *" />
-                                <TextInput
-                                    id="unit"
-                                    className="mt-1 block w-full"
-                                    value={data.unit}
-                                    onChange={(e) => setData('unit', e.target.value)}
-                                />
+                                {/* No auto-default on category change here: the
+                                    existing unit was chosen deliberately and
+                                    recategorizing must not silently swap it. */}
+                                <Select value={data.unit} onValueChange={(v) => setData('unit', v)}>
+                                    <SelectTrigger id="unit" className="mt-1 min-h-[44px] w-full">
+                                        <SelectValue placeholder="— Choisir —" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {units.map((u) => (
+                                            <SelectItem key={u.value} value={u.value}>
+                                                {u.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 <InputError message={errors.unit} className="mt-1" />
                             </div>
                         </div>

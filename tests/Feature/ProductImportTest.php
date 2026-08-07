@@ -69,8 +69,48 @@ class ProductImportTest extends TestCase
             ->assertRedirect(route('products.index'))
             ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 2 && $r['failed'] === []);
 
-        $this->assertDatabaseHas('products', ['sku' => 'SKU-A', 'quantity_on_hand' => 20]);
-        $this->assertDatabaseHas('products', ['sku' => 'SKU-B', 'name' => 'Filtre à huile']);
+        // The rows deliberately use the legacy spellings 'L' and 'unité':
+        // the import must accept them and store the canonical vocabulary.
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-A', 'quantity_on_hand' => 20, 'unit' => 'litre']);
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-B', 'name' => 'Filtre à huile', 'unit' => 'unite']);
+    }
+
+    public function test_unit_synonyms_are_normalized_on_import(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $file = $this->xlsx([
+            ['piece', 'Plaquettes avant', 'SKU-P', 'pièce', 50, 90, 10, 2],
+            ['piece', 'Disques avant', 'SKU-D', 'PAIRES', 200, 350, 6, 2],
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('products.index'))
+            ->post(route('products.import'), ['file' => $file])
+            ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 2);
+
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-P', 'unit' => 'unite']);
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-D', 'unit' => 'paire']);
+    }
+
+    public function test_unknown_unit_row_is_reported_and_skipped(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $file = $this->xlsx([
+            ['piece', 'Unité inconnue', 'SKU-TON', 'tonneau', 10, 20, 5, 2],
+            ['huile', 'Bonne ligne', 'SKU-OK2', 'L', 10, 20, 5, 2],
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('products.index'))
+            ->post(route('products.import'), ['file' => $file])
+            ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 1
+                && count($r['failed']) === 1
+                && $r['failed'][0]['row'] === 2);
+
+        $this->assertDatabaseMissing('products', ['sku' => 'SKU-TON']);
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-OK2', 'unit' => 'litre']);
     }
 
     public function test_import_writes_quantity_without_stock_movement(): void

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\ProductCategory;
+use App\Enums\ProductUnit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProductFactory extends Factory
@@ -13,7 +14,7 @@ class ProductFactory extends Factory
             'category'            => fake()->randomElement(ProductCategory::cases())->value,
             'name'                => fake()->words(3, true),
             'sku'                 => fake()->unique()->bothify('SKU-####-??'),
-            'unit'                => fake()->randomElement(['L', 'unité', 'paire']),
+            'unit'                => fake()->randomElement(ProductUnit::cases())->value,
             'price_buy'           => $buy = fake()->randomFloat(2, 10, 500),
             'price_sell'          => fake()->randomFloat(2, $buy * 1.1, $buy * 2),
             'quantity_on_hand'    => fake()->numberBetween(0, 100),

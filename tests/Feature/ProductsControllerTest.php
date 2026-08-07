@@ -153,6 +153,34 @@ class ProductsControllerTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->component('Products/Create'));
     }
 
+    public function test_create_exposes_the_unit_list_and_per_category_defaults(): void
+    {
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('products.create'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->has('units', 10)
+                ->where('units.0.value', 'unite')
+                ->where('units.0.label', 'Unité')
+                ->where('unitDefaults.huile', 'litre')
+                ->where('unitDefaults.filtre', 'unite')
+                ->where('unitDefaults.piece', 'unite')
+                ->where('unitDefaults.autre', 'unite')
+            );
+    }
+
+    public function test_edit_exposes_the_unit_list(): void
+    {
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create();
+
+        $this->actingAs($admin)
+            ->get(route('products.edit', $product))
+            ->assertInertia(fn (Assert $page) => $page->has('units', 10));
+    }
+
     public function test_admin_can_store_product(): void
     {
         $admin = User::factory()->create()->assignRole('admin');
@@ -161,7 +189,7 @@ class ProductsControllerTest extends TestCase
             'category'            => ProductCategory::Huile->value,
             'name'                => 'Huile 5W-30 1L',
             'sku'                 => 'TEST-SKU-001',
-            'unit'                => 'L',
+            'unit'                => 'litre',
             'price_sell'          => 55.00,
             'quantity_on_hand'    => 10,
             'low_stock_threshold' => 3,

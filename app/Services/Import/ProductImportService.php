@@ -2,6 +2,7 @@
 
 namespace App\Services\Import;
 
+use App\Enums\ProductUnit;
 use App\Http\Requests\StoreProductRequest;
 use App\Models\Product;
 use App\Support\Import\ImportReport;
@@ -54,9 +55,10 @@ class ProductImportService
     {
         return SpreadsheetTemplate::build(
             self::HEADERS,
-            ['huile', 'Huile moteur 5W-30 5L', 'HUI-5W30-5L', 'L', 180, 260, 24, 5],
+            ['huile', 'Huile moteur 5W-30 5L', 'HUI-5W30-5L', 'litre', 180, 260, 24, 5],
             [
                 'category doit être l\'une des valeurs : huile, filtre, piece, autre.',
+                'unit doit être l\'une des valeurs : unite, litre, millilitre, kg, bidon, flacon, boite, paire, jeu, kit (synonymes courants acceptés : L, ml, pcs, pièce, unité…).',
                 'sku : optionnel mais unique s\'il est renseigné.',
                 'price_buy : optionnel. price_sell : obligatoire.',
                 'quantity_on_hand : entier ≥ 0 (stock initial).',
@@ -95,6 +97,15 @@ class ProductImportService
         foreach ($parsed['rows'] as $entry) {
             $data = $this->only($entry['data'], self::HEADERS);
             $errors = [];
+
+            // Accept common unit spellings ("L", "pièce", "PCS") by resolving
+            // them to the canonical vocabulary before validation. Unrecognized
+            // values are left as-is on purpose: the enum rule then rejects the
+            // row into the report, where a human can fix the file — unlike the
+            // data migration, which has nobody to ask and must coerce.
+            if (isset($data['unit']) && is_string($data['unit'])) {
+                $data['unit'] = ProductUnit::tryFromSynonym($data['unit'])?->value ?? $data['unit'];
+            }
 
             $validator = Validator::make($data, $rules);
             foreach ($validator->errors()->all() as $message) {

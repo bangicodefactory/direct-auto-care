@@ -12,7 +12,7 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { pluralizeUnit } from '@/lib/utils';
+import { CATEGORY_LABELS, pluralizeUnit } from '@/lib/utils';
 import type { ProductCategory, StockMovementType } from '@/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
@@ -92,9 +92,12 @@ export default function Show({ product, movements, can }: ShowProps) {
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         <dl className="divide-y divide-border">
                             {[
-                                ['Catégorie', product.category],
+                                [
+                                    'Catégorie',
+                                    CATEGORY_LABELS[product.category] ?? product.category,
+                                ],
                                 ['Référence', product.sku ?? '—'],
-                                ['Unité', product.unit],
+                                ['Unité', pluralizeUnit(1, product.unit)],
                                 [
                                     "Prix d'achat",
                                     product.price_buy

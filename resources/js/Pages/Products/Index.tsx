@@ -24,7 +24,7 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { pluralizeUnit } from '@/lib/utils';
+import { CATEGORY_LABELS, pluralizeUnit } from '@/lib/utils';
 import type { Product, ProductCategory } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
@@ -221,7 +221,7 @@ export default function Index({ products, filters, categories, can }: IndexProps
                                             {p.sku ?? '—'}
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-muted-foreground">
-                                            {p.category}
+                                            {CATEGORY_LABELS[p.category] ?? p.category}
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-end tabular-nums text-foreground">
                                             {Number(p.price_sell).toFixed(2)} DH

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ProductCategory;
+use App\Enums\ProductUnit;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
@@ -43,7 +44,7 @@ class ProductRequestTest extends TestCase
             'category'            => ProductCategory::Huile->value,
             'name'                => 'Huile moteur 5W-30 1L',
             'sku'                 => 'HU-5W30-1L',
-            'unit'                => 'L',
+            'unit'                => 'litre',
             'price_buy'           => 35.00,
             'price_sell'          => 55.00,
             'quantity_on_hand'    => 10,
@@ -266,13 +267,45 @@ class ProductRequestTest extends TestCase
         $this->assertArrayHasKey('name', $v->errors()->toArray());
     }
 
-    public function test_store_unit_max_length_is_enforced(): void
+    public function test_store_unit_must_be_a_known_unit(): void
     {
-        $payload = array_merge($this->validPayload(), ['unit' => str_repeat('a', 21)]);
+        $payload = array_merge($this->validPayload(), ['unit' => 'tonneau']);
 
         $v = Validator::make($payload, (new StoreProductRequest())->rules());
 
         $this->assertArrayHasKey('unit', $v->errors()->toArray());
+    }
+
+    public function test_store_unit_rejects_non_canonical_synonyms(): void
+    {
+        // The form submits canonical values; raw synonyms ("L") are only
+        // accepted on the import path, which normalizes before validating.
+        $payload = array_merge($this->validPayload(), ['unit' => 'L']);
+
+        $v = Validator::make($payload, (new StoreProductRequest())->rules());
+
+        $this->assertArrayHasKey('unit', $v->errors()->toArray());
+    }
+
+    public function test_update_unit_must_be_a_known_unit(): void
+    {
+        $product = Product::factory()->create();
+        $payload = array_merge($this->validPayload(), ['sku' => null, 'unit' => 'tonneau']);
+
+        $v = Validator::make($payload, $this->makeUpdateRequest($product)->rules());
+
+        $this->assertArrayHasKey('unit', $v->errors()->toArray());
+    }
+
+    public function test_store_unit_accepts_every_canonical_unit(): void
+    {
+        foreach (ProductUnit::cases() as $unit) {
+            $payload = array_merge($this->validPayload(), ['sku' => null, 'unit' => $unit->value]);
+
+            $v = Validator::make($payload, (new StoreProductRequest())->rules());
+
+            $this->assertArrayNotHasKey('unit', $v->errors()->toArray(), "Expected unit '{$unit->value}' to pass");
+        }
     }
 
     // -------------------------------------------------------------------------
