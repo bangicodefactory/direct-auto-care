@@ -94,6 +94,32 @@ class ProductUnitMigrationTest extends TestCase
         $this->assertSame('litre', DB::table('products')->where('id', $id)->value('unit'));
     }
 
+    public function test_accented_spelling_is_normalized_even_when_its_canonical_form_already_exists(): void
+    {
+        // Regression: utf8mb4_unicode_ci is accent-insensitive, so a SQL
+        // DISTINCT collapses « unité » and « unite » into one representative.
+        // When that representative was the canonical spelling, the accented
+        // rows silently skipped normalization. The canonical row must be
+        // inserted FIRST so it becomes the representative — that is the order
+        // that used to reproduce the bug.
+        $canonicalId = $this->insertProductWithRawUnit('unite');
+        $accentedId  = $this->insertProductWithRawUnit('unité');
+
+        $this->runMigration();
+
+        // Byte-exact check: the accent-insensitive collation would report
+        // « unité » as equal to « unite » and mask the failure.
+        $this->assertSame(
+            ['unite', 'unite'],
+            DB::table('products')
+                ->whereIn('id', [$canonicalId, $accentedId])
+                ->orderBy('id')
+                ->selectRaw('BINARY unit AS u')
+                ->pluck('u')
+                ->all(),
+        );
+    }
+
     public function test_migration_is_idempotent(): void
     {
         $id = $this->insertProductWithRawUnit('L');

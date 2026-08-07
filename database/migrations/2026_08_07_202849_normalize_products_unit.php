@@ -61,7 +61,12 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        $distinctUnits = DB::table('products')->distinct()->pluck('unit');
+        // Deduplicated in PHP, NOT via SQL DISTINCT: the column's collation
+        // (utf8mb4_unicode_ci) is accent-insensitive, so DISTINCT collapses
+        // « unité » and « unite » into one representative — and when that
+        // representative happens to be the canonical spelling, the accented
+        // rows would silently skip normalization. PHP uniqueness is byte-exact.
+        $distinctUnits = DB::table('products')->pluck('unit')->unique();
 
         foreach ($distinctUnits as $raw) {
             $key = strtr(mb_strtolower(trim((string) $raw)), [
