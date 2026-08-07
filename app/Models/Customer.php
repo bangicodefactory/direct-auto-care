@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CustomerType;
+use App\Enums\InvoiceType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -93,6 +94,37 @@ class Customer extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Factures only. Devis live in the same table but are a separate kind of
+     * document — {@see hasFactures()} for why the two are not interchangeable.
+     */
+    public function factures(): HasMany
+    {
+        return $this->invoices()->where('type', InvoiceType::Invoice->value);
+    }
+
+    /**
+     * Whether a facture is attached to this client, soft-deleted ones included.
+     *
+     * InvoiceService assigns the fiscal number when the row is created, before
+     * the status is set to draft, so even a facture still in brouillon has
+     * already burned a number in the sequence. Deleting its client would orphan
+     * a numbered fiscal document, which is why CustomerPolicy blocks it. Devis
+     * are numbered on their own sequence and are not fiscal documents, so they
+     * never stand in the way of deleting a client.
+     *
+     * Prefers a `factures_count` loaded via withCount so a listing can check a
+     * whole page of clients without a query each.
+     */
+    public function hasFactures(): bool
+    {
+        if (! is_null($this->factures_count)) {
+            return $this->factures_count > 0;
+        }
+
+        return $this->factures()->withTrashed()->exists();
     }
 
     public function setPhoneAttribute(string $value): void

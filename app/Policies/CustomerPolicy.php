@@ -27,9 +27,15 @@ class CustomerPolicy
         return $user->hasAnyRole(['admin', 'employee']);
     }
 
+    /**
+     * A client holding a facture cannot be deleted, by anyone.
+     *
+     * The facture carries a fiscal number issued the moment it was created, so
+     * removing its client would orphan a numbered document. Devis do not count.
+     */
     public function delete(User $user, Customer $customer): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasRole('admin') && ! $customer->hasFactures();
     }
 
     public function restore(User $user, Customer $customer): bool

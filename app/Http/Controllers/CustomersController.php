@@ -23,6 +23,10 @@ class CustomersController extends Controller
         $sortDirection = $request->get('direction') === 'desc' ? 'desc' : 'asc';
 
         $customers = Customer::query()
+            // Counted up front so the per-row delete check below costs no query
+            // of its own. withTrashed: a soft-deleted facture keeps its fiscal
+            // number and still pins the client.
+            ->withCount(['factures as factures_count' => fn ($q) => $q->withTrashed()])
             ->when($request->string('search')->trim()->value(), function ($q, $search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('first_name', 'LIKE', "%{$search}%")
@@ -45,12 +49,15 @@ class CustomersController extends Controller
                 'last_name'    => $c->last_name,
                 'phone'        => $c->phone,
                 'email'        => $c->email,
+                // Per row: whether a client can be deleted depends on the
+                // client, not only on the role, so a blanket flag would offer
+                // Supprimer on rows the policy then refuses.
+                'can_delete'   => $request->user()->can('delete', $c),
             ]);
 
         return Inertia::render('Customers/Index', [
             'customers' => $customers,
             'filters'   => (object) $request->only(['search', 'sort', 'direction']),
-            'can'       => ['delete' => auth()->user()->can('delete', new Customer())],
         ]);
     }
 
@@ -112,9 +119,23 @@ class CustomersController extends Controller
 
         $customer->load(['vehicles', 'invoices', 'appointments']);
 
+        // Soft-deleted factures pin the client too, so they are counted here
+        // even though they never show in the Factures tab — without saying so,
+        // the missing Supprimer button would look like a bug.
+        $factureCount = $customer->factures()->withTrashed()->count();
+
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
-            'can'      => ['delete' => auth()->user()->can('delete', $customer)],
+            'can'      => [
+                'delete'                => auth()->user()->can('delete', $customer),
+                'delete_blocked_reason' => $factureCount > 0
+                    ? sprintf(
+                        'Ce client a %d %s : sa fiche ne peut pas être supprimée, la numérotation fiscale doit rester intacte.',
+                        $factureCount,
+                        $factureCount > 1 ? 'factures' : 'facture',
+                    )
+                    : null,
+            ],
         ]);
     }
 
