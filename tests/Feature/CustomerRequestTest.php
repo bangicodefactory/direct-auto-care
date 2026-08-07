@@ -243,6 +243,16 @@ class CustomerRequestTest extends TestCase
         $this->assertNull($request->trashedCustomer());
     }
 
+    public function test_store_does_not_treat_an_active_customer_as_restorable(): void
+    {
+        Customer::factory()->create(['phone' => '+212611111111']);
+
+        $request = new StoreCustomerRequest();
+        $request->merge(['phone' => '+212611111111']);
+
+        $this->assertNull($request->trashedCustomer());
+    }
+
     public function test_store_email_unique_still_blocks_a_different_trashed_customer(): void
     {
         $deleted = Customer::factory()->create(['phone' => '+212611111111', 'email' => 'ancien@example.com']);

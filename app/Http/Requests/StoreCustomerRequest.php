@@ -4,16 +4,19 @@ namespace App\Http\Requests;
 
 use App\Enums\CustomerType;
 use App\Models\Customer;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreCustomerRequest extends FormRequest
 {
+    private ?Customer $trashedCustomer = null;
+
     /**
-     * Memoised result of the trashed-client lookup so the unique rules and the
-     * controller share a single query. `false` means "not looked up yet".
+     * Whether the trashed-client lookup has run, so the unique rules, the
+     * confirmation check and the controller share a single query.
      */
-    private Customer|false|null $trashedCustomer = false;
+    private bool $trashedCustomerResolved = false;
 
     public function authorize(): bool
     {
@@ -31,12 +34,14 @@ class StoreCustomerRequest extends FormRequest
      */
     public function trashedCustomer(): ?Customer
     {
-        if ($this->trashedCustomer === false) {
+        if (! $this->trashedCustomerResolved) {
             $phone = $this->input('phone');
 
             $this->trashedCustomer = $phone
                 ? Customer::onlyTrashed()->where('phone', $phone)->first()
                 : null;
+
+            $this->trashedCustomerResolved = true;
         }
 
         return $this->trashedCustomer;
@@ -82,7 +87,77 @@ class StoreCustomerRequest extends FormRequest
             'notes'           => ['nullable', 'string'],
             'notify_email'    => ['boolean'],
             'notify_whatsapp' => ['boolean'],
+            'confirm_restore' => ['boolean'],
         ];
+    }
+
+    /**
+     * Guard the restore behind an explicit confirmation whenever the trashed
+     * client carries history.
+     *
+     * Phone numbers get recycled, so the person at the counter is not
+     * necessarily the client who owned this number before. Restoring silently
+     * would hand them someone else's vehicles and invoices — and because the
+     * invoice PDF reads the customer live rather than from a snapshot, it
+     * would also rewrite the client block on documents already issued. A
+     * record with nothing attached carries none of that risk, so it is still
+     * restored without interrupting the user.
+     */
+    protected function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $customer = $this->trashedCustomer();
+
+            if (! $customer || $this->boolean('confirm_restore')) {
+                return;
+            }
+
+            $history = $this->historySummary($customer);
+
+            if (! $history) {
+                return;
+            }
+
+            $validator->errors()->add('confirm_restore', sprintf(
+                'Ce numéro appartient à %s, un client supprimé (%s). Confirmez pour restaurer sa fiche et tout son historique, ou saisissez un autre numéro.',
+                $customer->display_name ?: 'un client sans nom',
+                $history,
+            ));
+        });
+    }
+
+    /**
+     * A French summary of what a trashed client would drag back with them,
+     * e.g. "2 véhicules, 10 factures et 1 rendez-vous". Null when the record
+     * has nothing attached.
+     */
+    private function historySummary(Customer $customer): ?string
+    {
+        $counts = [
+            ['count' => $customer->vehicles()->count(), 'singular' => 'véhicule', 'plural' => 'véhicules'],
+            ['count' => $customer->invoices()->count(), 'singular' => 'facture', 'plural' => 'factures'],
+            ['count' => $customer->appointments()->count(), 'singular' => 'rendez-vous', 'plural' => 'rendez-vous'],
+        ];
+
+        $parts = [];
+
+        foreach ($counts as $item) {
+            if ($item['count'] > 0) {
+                $parts[] = $item['count'] . ' ' . ($item['count'] > 1 ? $item['plural'] : $item['singular']);
+            }
+        }
+
+        if ($parts === []) {
+            return null;
+        }
+
+        if (count($parts) === 1) {
+            return $parts[0];
+        }
+
+        $last = array_pop($parts);
+
+        return implode(', ', $parts) . ' et ' . $last;
     }
 
     /**
