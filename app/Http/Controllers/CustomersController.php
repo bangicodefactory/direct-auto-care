@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CustomerType;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 
 class CustomersController extends Controller
@@ -61,10 +63,47 @@ class CustomersController extends Controller
 
     public function store(StoreCustomerRequest $request)
     {
+        // A returning client whose record was soft-deleted still owns their
+        // phone number, so re-adding them revives the existing row instead of
+        // being rejected as a duplicate. StoreCustomerRequest has already made
+        // the user confirm if this client carries history. fill() before
+        // restore() keeps it to a single save; their vehicles, invoices and
+        // appointments were never deleted and become visible again with them.
+        if ($existing = $request->trashedCustomer()) {
+            $existing->fill($this->restoredAttributes($request))->restore();
+
+            return redirect()->route('customers.show', $existing)
+                ->with('success', 'Client restauré : ce client avait été supprimé, son historique est de nouveau visible.');
+        }
+
         $customer = Customer::create($request->validated());
 
         return redirect()->route('customers.show', $customer)
             ->with('success', 'Client créé avec succès.');
+    }
+
+    /**
+     * The attribute set a restored client is rebuilt from.
+     *
+     * A restore starts from a clean slate rather than patching the deleted
+     * row: every column the form owns is reset first, so a returning client
+     * never silently inherits leftovers the payload happens to omit — stale
+     * fiscal identifiers on an invoice, or notification preferences the user
+     * never agreed to. Only what was just submitted survives.
+     *
+     * @return array<string, mixed>
+     */
+    private function restoredAttributes(StoreCustomerRequest $request): array
+    {
+        $blank = array_fill_keys((new Customer())->getFillable(), null);
+
+        $defaults = [
+            'type'            => CustomerType::Individual->value,
+            'notify_email'    => false,
+            'notify_whatsapp' => false,
+        ];
+
+        return array_merge($blank, $defaults, Arr::except($request->validated(), ['confirm_restore']));
     }
 
     public function show(Customer $customer)

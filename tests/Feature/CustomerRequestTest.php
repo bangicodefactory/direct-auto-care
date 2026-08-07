@@ -207,6 +207,75 @@ class CustomerRequestTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // StoreCustomerRequest — trashed clients are restorable, not duplicates
+    // -------------------------------------------------------------------------
+
+    public function test_store_phone_unique_ignores_the_trashed_customer_holding_it(): void
+    {
+        $deleted = Customer::factory()->create(['phone' => '+212611111111']);
+        $deleted->delete();
+
+        $request = new StoreCustomerRequest();
+        $request->merge(['phone' => '+212611111111']);
+        $rules = $request->rules();
+
+        $v = Validator::make(['first_name' => 'A', 'last_name' => 'B', 'phone' => '+212611111111'], $rules);
+
+        $this->assertArrayNotHasKey('phone', $v->errors()->toArray());
+    }
+
+    public function test_store_resolves_the_trashed_customer_for_the_submitted_phone(): void
+    {
+        $deleted = Customer::factory()->create(['phone' => '+212611111111']);
+        $deleted->delete();
+
+        $request = new StoreCustomerRequest();
+        $request->merge(['phone' => '+212611111111']);
+
+        $this->assertSame($deleted->id, $request->trashedCustomer()?->id);
+    }
+
+    public function test_store_resolves_no_trashed_customer_when_the_phone_is_free(): void
+    {
+        $request = new StoreCustomerRequest();
+        $request->merge(['phone' => '+212611111111']);
+
+        $this->assertNull($request->trashedCustomer());
+    }
+
+    public function test_store_does_not_treat_an_active_customer_as_restorable(): void
+    {
+        Customer::factory()->create(['phone' => '+212611111111']);
+
+        $request = new StoreCustomerRequest();
+        $request->merge(['phone' => '+212611111111']);
+
+        $this->assertNull($request->trashedCustomer());
+    }
+
+    public function test_store_email_unique_still_blocks_a_different_trashed_customer(): void
+    {
+        $deleted = Customer::factory()->create(['phone' => '+212611111111', 'email' => 'ancien@example.com']);
+        $deleted->delete();
+
+        $other = Customer::factory()->create(['email' => 'autre@example.com']);
+        $other->delete();
+
+        $request = new StoreCustomerRequest();
+        $request->merge(['phone' => '+212611111111']);
+        $rules = $request->rules();
+
+        $v = Validator::make([
+            'first_name' => 'A',
+            'last_name'  => 'B',
+            'phone'      => '+212611111111',
+            'email'      => 'autre@example.com',
+        ], $rules);
+
+        $this->assertArrayHasKey('email', $v->errors()->toArray());
+    }
+
+    // -------------------------------------------------------------------------
     // StoreCustomerRequest — company clients
     // -------------------------------------------------------------------------
 
