@@ -6,8 +6,10 @@ use App\Enums\CustomerType;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
+use App\Policies\CustomerPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class CustomersController extends Controller
@@ -24,9 +26,8 @@ class CustomersController extends Controller
 
         $customers = Customer::query()
             // Counted up front so the per-row delete check below costs no query
-            // of its own. withTrashed: a soft-deleted facture keeps its fiscal
-            // number and still pins the client.
-            ->withCount(['factures as factures_count' => fn ($q) => $q->withTrashed()])
+            // of its own.
+            ->withFactureCount()
             ->when($request->string('search')->trim()->value(), function ($q, $search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('first_name', 'LIKE', "%{$search}%")
@@ -119,21 +120,21 @@ class CustomersController extends Controller
 
         $customer->load(['vehicles', 'invoices', 'appointments']);
 
-        // Soft-deleted factures pin the client too, so they are counted here
-        // even though they never show in the Factures tab — without saying so,
-        // the missing Supprimer button would look like a bug.
-        $factureCount = $customer->factures()->withTrashed()->count();
+        // One count answers both halves of the question below, so the policy
+        // does not go back to the database for it.
+        $customer->loadFactureCount();
+
+        // Soft-deleted factures pin the client too, so the policy's explanation
+        // covers factures the Factures tab never shows — without it, a missing
+        // Supprimer button would look like a bug.
+        $decision = Gate::inspect('delete', $customer);
 
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
             'can'      => [
-                'delete'                => auth()->user()->can('delete', $customer),
-                'delete_blocked_reason' => $factureCount > 0
-                    ? sprintf(
-                        'Ce client a %d %s : sa fiche ne peut pas être supprimée, la numérotation fiscale doit rester intacte.',
-                        $factureCount,
-                        $factureCount > 1 ? 'factures' : 'facture',
-                    )
+                'delete'                => $decision->allowed(),
+                'delete_blocked_reason' => $decision->code() === CustomerPolicy::DENIED_HAS_FACTURES
+                    ? $decision->message()
                     : null,
             ],
         ]);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\CustomerType;
 use App\Enums\InvoiceType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,13 @@ class Customer extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
+    /**
+     * Attribute holding the preloaded facture count. Named apart from the
+     * `factures_count` a plain withCount() would produce on purpose — see
+     * {@see facturesCount()}.
+     */
+    public const FACTURES_COUNT = 'factures_including_trashed_count';
 
     protected $fillable = [
         'type',
@@ -106,6 +114,48 @@ class Customer extends Model
     }
 
     /**
+     * Eager-load {@see facturesCount()} for a whole page of clients at once.
+     *
+     * Going through this scope is the only supported way to preload the count:
+     * it is what guarantees the withTrashed() the guard depends on.
+     */
+    public function scopeWithFactureCount(Builder $query): void
+    {
+        $query->withCount([
+            'factures as ' . self::FACTURES_COUNT => fn ($q) => $q->withTrashed(),
+        ]);
+    }
+
+    /**
+     * Preload {@see facturesCount()} on a single client already in memory.
+     */
+    public function loadFactureCount(): static
+    {
+        return $this->loadCount([
+            'factures as ' . self::FACTURES_COUNT => fn ($q) => $q->withTrashed(),
+        ]);
+    }
+
+    /**
+     * How many factures are attached to this client, soft-deleted ones included.
+     *
+     * Only the count this class loads itself is trusted. A plain
+     * withCount('factures') elsewhere would write `factures_count` and silently
+     * miss soft-deleted factures, turning the deletion guard permissive; the
+     * deliberately distinct attribute name means such a count is ignored and we
+     * fall back to querying. A wasted query is a cheaper mistake than a wrong
+     * answer about whether a fiscal document may be orphaned.
+     */
+    public function facturesCount(): int
+    {
+        if (! is_null($this->{self::FACTURES_COUNT})) {
+            return (int) $this->{self::FACTURES_COUNT};
+        }
+
+        return $this->factures()->withTrashed()->count();
+    }
+
+    /**
      * Whether a facture is attached to this client, soft-deleted ones included.
      *
      * InvoiceService assigns the fiscal number when the row is created, before
@@ -114,17 +164,10 @@ class Customer extends Model
      * a numbered fiscal document, which is why CustomerPolicy blocks it. Devis
      * are numbered on their own sequence and are not fiscal documents, so they
      * never stand in the way of deleting a client.
-     *
-     * Prefers a `factures_count` loaded via withCount so a listing can check a
-     * whole page of clients without a query each.
      */
     public function hasFactures(): bool
     {
-        if (! is_null($this->factures_count)) {
-            return $this->factures_count > 0;
-        }
-
-        return $this->factures()->withTrashed()->exists();
+        return $this->facturesCount() > 0;
     }
 
     public function setPhoneAttribute(string $value): void

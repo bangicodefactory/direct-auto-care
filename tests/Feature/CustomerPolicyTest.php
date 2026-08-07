@@ -276,6 +276,40 @@ class CustomerPolicyTest extends TestCase
         $this->assertSoftDeleted('customers', ['id' => $customer->id]);
     }
 
+    public function test_a_foreign_facture_count_cannot_make_the_guard_permissive(): void
+    {
+        // withCount('factures') applies the SoftDeletes scope and would report
+        // 0 here. The guard must ignore that count rather than trust it, or a
+        // client holding a trashed facture becomes deletable.
+        $customer = Customer::factory()->create();
+        $facture  = Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+        ]);
+        $facture->delete();
+
+        $misloaded = Customer::query()->withCount('factures')->findOrFail($customer->id);
+
+        $this->assertSame(0, (int) $misloaded->factures_count);
+        $this->assertTrue($misloaded->hasFactures());
+        $this->assertFalse($this->admin()->can('delete', $misloaded));
+    }
+
+    public function test_the_supported_preload_counts_trashed_factures(): void
+    {
+        $customer = Customer::factory()->create();
+        $facture  = Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+        ]);
+        $facture->delete();
+
+        $preloaded = Customer::query()->withFactureCount()->findOrFail($customer->id);
+
+        $this->assertSame(1, $preloaded->facturesCount());
+        $this->assertFalse($this->admin()->can('delete', $preloaded));
+    }
+
     public function test_another_customers_facture_does_not_block_deletion(): void
     {
         $customer = Customer::factory()->create();
