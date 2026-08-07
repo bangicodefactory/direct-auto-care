@@ -526,6 +526,26 @@ class CustomersControllerTest extends TestCase
         $this->assertNotSoftDeleted('customers', ['id' => $deleted->id]);
     }
 
+    public function test_store_requires_confirmation_when_the_history_is_itself_soft_deleted(): void
+    {
+        $deleted = Customer::factory()->create(['phone' => '+212611111111']);
+        $vehicle = Vehicle::factory()->create(['customer_id' => $deleted->id]);
+        $vehicle->delete();
+        $deleted->delete();
+
+        // The vehicle no longer shows on the client's page, but it stays
+        // attached and service records resolve it with withTrashed().
+        $this->actingAs($this->employee)
+            ->post(route('customers.store'), [
+                'first_name' => 'Youssef',
+                'last_name'  => 'Alaoui',
+                'phone'      => '0611111111',
+            ])
+            ->assertSessionHasErrors(['confirm_restore']);
+
+        $this->assertSoftDeleted('customers', ['id' => $deleted->id]);
+    }
+
     public function test_store_restores_a_client_without_history_without_confirmation(): void
     {
         $deleted = Customer::factory()->create(['phone' => '+212611111111']);

@@ -3,7 +3,7 @@ import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { CustomerType } from '@/types/models';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Create() {
     // Not a form field, so it is not part of useForm's error shape: the server
@@ -14,14 +14,21 @@ export default function Create() {
     // user taps Enregistrer at the bottom of a long form and nothing appears to
     // happen. Bring it into view and move focus to it — CustomerForm only
     // focuses fields that have errors, and this one has no field.
+    //
+    // Keyed on a counter rather than on the message: resubmitting an unchanged
+    // phone returns the identical string, and React would skip the effect and
+    // leave the panel off-screen again.
     const restorePanelRef = useRef<HTMLDivElement>(null);
+    const [restorePrompts, setRestorePrompts] = useState(0);
 
     useEffect(() => {
-        if (restoreError) {
-            restorePanelRef.current?.focus({ preventScroll: true });
-            restorePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (restorePrompts === 0) {
+            return;
         }
-    }, [restoreError]);
+
+        restorePanelRef.current?.focus({ preventScroll: true });
+        restorePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, [restorePrompts]);
 
     const { data, setData, post, processing, errors, transform } = useForm({
         type: 'individual' as CustomerType,
@@ -47,7 +54,13 @@ export default function Create() {
     // confirmation can never be carried over into a later, unrelated submit.
     function submitWith(confirmRestore: boolean) {
         transform((current) => ({ ...current, confirm_restore: confirmRestore }));
-        post(route('customers.store'));
+        post(route('customers.store'), {
+            onError: (formErrors) => {
+                if (formErrors.confirm_restore) {
+                    setRestorePrompts((count) => count + 1);
+                }
+            },
+        });
     }
 
     function submit(e: React.FormEvent) {

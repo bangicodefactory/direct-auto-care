@@ -130,13 +130,18 @@ class StoreCustomerRequest extends FormRequest
      * A French summary of what a trashed client would drag back with them,
      * e.g. "2 véhicules, 10 factures et 1 rendez-vous". Null when the record
      * has nothing attached.
+     *
+     * Soft-deleted children count too. They stay attached to the record and
+     * can resurface — service records resolve their vehicle with `withTrashed`
+     * — so a client whose vehicles were all deleted still carries history worth
+     * confirming, even though none of it shows on their page.
      */
     private function historySummary(Customer $customer): ?string
     {
         $counts = [
-            ['count' => $customer->vehicles()->count(), 'singular' => 'véhicule', 'plural' => 'véhicules'],
-            ['count' => $customer->invoices()->count(), 'singular' => 'facture', 'plural' => 'factures'],
-            ['count' => $customer->appointments()->count(), 'singular' => 'rendez-vous', 'plural' => 'rendez-vous'],
+            ['count' => $customer->vehicles()->withTrashed()->count(), 'singular' => 'véhicule', 'plural' => 'véhicules'],
+            ['count' => $customer->invoices()->withTrashed()->count(), 'singular' => 'facture', 'plural' => 'factures'],
+            ['count' => $customer->appointments()->withTrashed()->count(), 'singular' => 'rendez-vous', 'plural' => 'rendez-vous'],
         ];
 
         $parts = [];
