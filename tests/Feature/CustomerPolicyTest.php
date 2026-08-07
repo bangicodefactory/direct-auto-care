@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -192,5 +195,130 @@ class CustomerPolicyTest extends TestCase
             ->assertRedirect(route('customers.index'));
 
         $this->assertSoftDeleted($customer);
+    }
+
+    // -------------------------------------------------------------------------
+    // A facture pins its client — nobody may delete them
+    // -------------------------------------------------------------------------
+
+    private function admin(): User
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        return $admin;
+    }
+
+    public function test_admin_cannot_delete_a_customer_holding_a_facture(): void
+    {
+        $customer = Customer::factory()->create();
+        Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Paid->value,
+        ]);
+
+        $this->actingAs($this->admin())
+            ->delete(route('customers.destroy', $customer))
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted('customers', ['id' => $customer->id]);
+    }
+
+    public function test_a_draft_facture_still_blocks_deletion(): void
+    {
+        // The fiscal number is assigned when the row is created, so a facture
+        // sitting in brouillon has already burned one.
+        $customer = Customer::factory()->create();
+        Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Draft->value,
+        ]);
+
+        $this->actingAs($this->admin())
+            ->delete(route('customers.destroy', $customer))
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted('customers', ['id' => $customer->id]);
+    }
+
+    public function test_a_soft_deleted_facture_still_blocks_deletion(): void
+    {
+        $customer = Customer::factory()->create();
+        $facture  = Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Issued->value,
+        ]);
+        $facture->delete();
+
+        $this->actingAs($this->admin())
+            ->delete(route('customers.destroy', $customer))
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted('customers', ['id' => $customer->id]);
+    }
+
+    public function test_a_devis_does_not_block_deletion(): void
+    {
+        $customer = Customer::factory()->create();
+        Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Quote->value,
+            'status'      => InvoiceStatus::Issued->value,
+        ]);
+
+        $this->actingAs($this->admin())
+            ->delete(route('customers.destroy', $customer))
+            ->assertRedirect(route('customers.index'));
+
+        $this->assertSoftDeleted('customers', ['id' => $customer->id]);
+    }
+
+    public function test_a_foreign_facture_count_cannot_make_the_guard_permissive(): void
+    {
+        // withCount('factures') applies the SoftDeletes scope and would report
+        // 0 here. The guard must ignore that count rather than trust it, or a
+        // client holding a trashed facture becomes deletable.
+        $customer = Customer::factory()->create();
+        $facture  = Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+        ]);
+        $facture->delete();
+
+        $misloaded = Customer::query()->withCount('factures')->findOrFail($customer->id);
+
+        $this->assertSame(0, (int) $misloaded->factures_count);
+        $this->assertTrue($misloaded->hasFactures());
+        $this->assertFalse($this->admin()->can('delete', $misloaded));
+    }
+
+    public function test_the_supported_preload_counts_trashed_factures(): void
+    {
+        $customer = Customer::factory()->create();
+        $facture  = Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+        ]);
+        $facture->delete();
+
+        $preloaded = Customer::query()->withFactureCount()->findOrFail($customer->id);
+
+        $this->assertSame(1, $preloaded->facturesCount());
+        $this->assertFalse($this->admin()->can('delete', $preloaded));
+    }
+
+    public function test_another_customers_facture_does_not_block_deletion(): void
+    {
+        $customer = Customer::factory()->create();
+        Invoice::factory()->create(['type' => InvoiceType::Invoice->value]);
+
+        $this->actingAs($this->admin())
+            ->delete(route('customers.destroy', $customer))
+            ->assertRedirect(route('customers.index'));
+
+        $this->assertSoftDeleted('customers', ['id' => $customer->id]);
     }
 }

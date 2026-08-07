@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\InvoiceType;
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\User;
 use App\Models\Vehicle;
 use Database\Seeders\RoleSeeder;
@@ -177,11 +179,13 @@ class CustomersControllerTest extends TestCase
 
     public function test_index_exposes_can_delete_false_for_employee(): void
     {
+        Customer::factory()->create();
+
         $this->actingAs($this->employee)
             ->get(route('customers.index'))
             ->assertInertia(
                 fn (Assert $page) => $page
-                ->where('can.delete', false)
+                ->where('customers.data.0.can_delete', false)
             );
     }
 
@@ -189,12 +193,75 @@ class CustomersControllerTest extends TestCase
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
+        Customer::factory()->create();
 
         $this->actingAs($admin)
             ->get(route('customers.index'))
             ->assertInertia(
                 fn (Assert $page) => $page
-                ->where('can.delete', true)
+                ->where('customers.data.0.can_delete', true)
+            );
+    }
+
+    public function test_index_marks_a_customer_holding_a_facture_as_undeletable(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $withFacture = Customer::factory()->create(['last_name' => 'Aaaa']);
+        Customer::factory()->create(['last_name' => 'Bbbb']);
+        Invoice::factory()->create([
+            'customer_id' => $withFacture->id,
+            'type'        => InvoiceType::Invoice->value,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('customers.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('customers.data.0.can_delete', false)
+                ->where('customers.data.1.can_delete', true)
+            );
+    }
+
+    public function test_index_marks_a_customer_whose_facture_is_soft_deleted_as_undeletable(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $customer = Customer::factory()->create();
+        $facture  = Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+        ]);
+        $facture->delete();
+
+        // The listing preloads the count, so this pins that the preload keeps
+        // counting trashed factures — they keep their fiscal number.
+        $this->actingAs($admin)
+            ->get(route('customers.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('customers.data.0.can_delete', false)
+            );
+    }
+
+    public function test_index_still_allows_deleting_a_customer_with_only_a_devis(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $customer = Customer::factory()->create();
+        Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Quote->value,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('customers.index'))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('customers.data.0.can_delete', true)
             );
     }
 
@@ -254,6 +321,73 @@ class CustomersControllerTest extends TestCase
             ->get(route('customers.show', $customer))
             ->assertInertia(
                 fn (Assert $page) => $page->where('can.delete', true)
+            );
+    }
+
+    public function test_show_explains_why_a_customer_holding_factures_cannot_be_deleted(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $customer = Customer::factory()->create();
+        Invoice::factory(2)->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('customers.show', $customer))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('can.delete', false)
+                ->where('can.delete_blocked_reason', fn (string $reason) => str_contains($reason, '2 factures'))
+            );
+    }
+
+    public function test_show_reason_is_singular_for_a_single_facture(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $customer = Customer::factory()->create();
+        Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('customers.show', $customer))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('can.delete_blocked_reason', fn (string $reason) => str_contains($reason, '1 facture :'))
+            );
+    }
+
+    public function test_show_has_no_blocked_reason_when_the_customer_has_no_facture(): void
+    {
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($this->employee)
+            ->get(route('customers.show', $customer))
+            ->assertInertia(
+                fn (Assert $page) => $page->where('can.delete_blocked_reason', null)
+            );
+    }
+
+    public function test_show_does_not_blame_factures_when_the_user_simply_lacks_the_role(): void
+    {
+        // An employee is refused for their role, not for the factures. Telling
+        // them otherwise would explain a restriction that is not theirs.
+        $customer = Customer::factory()->create();
+        Invoice::factory()->create([
+            'customer_id' => $customer->id,
+            'type'        => InvoiceType::Invoice->value,
+        ]);
+
+        $this->actingAs($this->employee)
+            ->get(route('customers.show', $customer))
+            ->assertInertia(
+                fn (Assert $page) => $page
+                ->where('can.delete', false)
+                ->where('can.delete_blocked_reason', null)
             );
     }
 

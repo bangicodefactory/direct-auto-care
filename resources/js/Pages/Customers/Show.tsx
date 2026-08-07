@@ -68,7 +68,7 @@ interface ShowProps {
         invoices: Invoice[];
         appointments: Appointment[];
     };
-    can: { delete: boolean };
+    can: { delete: boolean; delete_blocked_reason: string | null };
 }
 
 export default function Show({ customer, can }: ShowProps) {
@@ -113,6 +113,12 @@ export default function Show({ customer, can }: ShowProps) {
 
             <div className="py-8">
                 <div className="mx-auto max-w-4xl space-y-6 sm:px-6 lg:px-8">
+                    {!can.delete && can.delete_blocked_reason && (
+                        <p className="rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+                            {can.delete_blocked_reason}
+                        </p>
+                    )}
+
                     <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                         <div className="p-6">
                             <h3 className="mb-4 text-lg font-medium text-foreground">

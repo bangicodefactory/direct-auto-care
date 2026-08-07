@@ -6,8 +6,10 @@ use App\Enums\CustomerType;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
+use App\Policies\CustomerPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class CustomersController extends Controller
@@ -23,6 +25,9 @@ class CustomersController extends Controller
         $sortDirection = $request->get('direction') === 'desc' ? 'desc' : 'asc';
 
         $customers = Customer::query()
+            // Counted up front so the per-row delete check below costs no query
+            // of its own.
+            ->withFactureCount()
             ->when($request->string('search')->trim()->value(), function ($q, $search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('first_name', 'LIKE', "%{$search}%")
@@ -45,12 +50,15 @@ class CustomersController extends Controller
                 'last_name'    => $c->last_name,
                 'phone'        => $c->phone,
                 'email'        => $c->email,
+                // Per row: whether a client can be deleted depends on the
+                // client, not only on the role, so a blanket flag would offer
+                // Supprimer on rows the policy then refuses.
+                'can_delete'   => $request->user()->can('delete', $c),
             ]);
 
         return Inertia::render('Customers/Index', [
             'customers' => $customers,
             'filters'   => (object) $request->only(['search', 'sort', 'direction']),
-            'can'       => ['delete' => auth()->user()->can('delete', new Customer())],
         ]);
     }
 
@@ -112,9 +120,23 @@ class CustomersController extends Controller
 
         $customer->load(['vehicles', 'invoices', 'appointments']);
 
+        // One count answers both halves of the question below, so the policy
+        // does not go back to the database for it.
+        $customer->loadFactureCount();
+
+        // Soft-deleted factures pin the client too, so the policy's explanation
+        // covers factures the Factures tab never shows — without it, a missing
+        // Supprimer button would look like a bug.
+        $decision = Gate::inspect('delete', $customer);
+
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
-            'can'      => ['delete' => auth()->user()->can('delete', $customer)],
+            'can'      => [
+                'delete'                => $decision->allowed(),
+                'delete_blocked_reason' => $decision->code() === CustomerPolicy::DENIED_HAS_FACTURES
+                    ? $decision->message()
+                    : null,
+            ],
         ]);
     }
 

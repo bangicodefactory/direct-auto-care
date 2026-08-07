@@ -32,7 +32,10 @@ import { useEffect, useRef, useState } from 'react';
 type CustomerRow = Pick<
     Customer,
     'id' | 'type' | 'display_name' | 'company_name' | 'first_name' | 'last_name' | 'phone' | 'email'
->;
+> & {
+    // Per row: a client holding a facture cannot be deleted, whatever the role.
+    can_delete: boolean;
+};
 
 interface CustomerFilters {
     search?: string;
@@ -43,10 +46,9 @@ interface CustomerFilters {
 interface IndexProps {
     customers: Paginated<CustomerRow>;
     filters: CustomerFilters;
-    can: { delete: boolean };
 }
 
-export default function Index({ customers, filters, can }: IndexProps) {
+export default function Index({ customers, filters }: IndexProps) {
     const [search, setSearch] = useState(filters?.search ?? '');
     const [deletingCustomer, setDeletingCustomer] = useState<CustomerRow | null>(null);
     const [processing, setProcessing] = useState(false);
@@ -221,7 +223,7 @@ export default function Index({ customers, filters, can }: IndexProps) {
                                                             Modifier
                                                         </Link>
                                                     </DropdownMenuItem>
-                                                    {can.delete && (
+                                                    {c.can_delete && (
                                                         <DropdownMenuItem
                                                             className="text-destructive focus:text-destructive"
                                                             onClick={() => setDeletingCustomer(c)}
