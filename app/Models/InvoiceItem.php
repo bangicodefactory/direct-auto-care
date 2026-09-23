@@ -16,6 +16,7 @@ class InvoiceItem extends Model
         'service_id',
         'vehicle_id',
         'description',
+        'unit',
         'quantity',
         'unit_price_ht',
         'line_total_ht',

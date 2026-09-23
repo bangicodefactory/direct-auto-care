@@ -10,7 +10,9 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
+import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { pluralizeUnit } from '@/lib/utils';
 import InvoiceVehicleField from '@/Pages/Invoices/Partials/InvoiceVehicleField';
 import LineVehicleSelect from '@/Pages/Invoices/Partials/LineVehicleSelect';
 import type { Customer, InvoiceType, Product, Service, Vehicle } from '@/types/models';
@@ -84,6 +86,7 @@ export default function Create({
     types,
     defaultType,
 }: CreateProps) {
+    const showUnits = useShowUnits();
     const { data, setData, post, processing, errors } = useForm<CreateForm>({
         type: defaultType,
         customer_id: '',
@@ -345,6 +348,13 @@ export default function Create({
                                                 const lineTotal =
                                                     (parseFloat(item.quantity as string) || 0) *
                                                     (parseFloat(item.unit_price_ht) || 0);
+                                                const lineUnit = item.product_id
+                                                    ? products.find(
+                                                          (p) =>
+                                                              String(p.id) ===
+                                                              String(item.product_id),
+                                                      )?.unit
+                                                    : undefined;
                                                 return (
                                                     <tr key={item._key}>
                                                         <td className="py-2 pe-3">
@@ -435,20 +445,30 @@ export default function Create({
                                                             </td>
                                                         )}
                                                         <td className="py-2 pe-3">
-                                                            <TextInput
-                                                                type="number"
-                                                                className="w-20"
-                                                                min="0.01"
-                                                                step="0.01"
-                                                                value={item.quantity}
-                                                                onChange={(e) =>
-                                                                    updateItem(
-                                                                        index,
-                                                                        'quantity',
-                                                                        e.target.value,
-                                                                    )
-                                                                }
-                                                            />
+                                                            <div className="flex items-center gap-1">
+                                                                <TextInput
+                                                                    type="number"
+                                                                    className="w-20"
+                                                                    min="0.01"
+                                                                    step="0.01"
+                                                                    value={item.quantity}
+                                                                    onChange={(e) =>
+                                                                        updateItem(
+                                                                            index,
+                                                                            'quantity',
+                                                                            e.target.value,
+                                                                        )
+                                                                    }
+                                                                />
+                                                                {showUnits && lineUnit && (
+                                                                    <span className="whitespace-nowrap text-xs text-muted-foreground">
+                                                                        {pluralizeUnit(
+                                                                            Number(item.quantity),
+                                                                            lineUnit,
+                                                                        )}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                             <InputError
                                                                 message={
                                                                     errors[

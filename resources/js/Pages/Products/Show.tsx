@@ -11,6 +11,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table';
+import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { CATEGORY_LABELS, pluralizeUnit } from '@/lib/utils';
 import type { ProductCategory, StockMovementType } from '@/types/models';
@@ -53,6 +54,7 @@ interface ShowProps {
 }
 
 export default function Show({ product, movements, can }: ShowProps) {
+    const showUnits = useShowUnits();
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [adjusting, setAdjusting] = useState(false);
 
@@ -97,7 +99,7 @@ export default function Show({ product, movements, can }: ShowProps) {
                                     CATEGORY_LABELS[product.category] ?? product.category,
                                 ],
                                 ['Référence', product.sku ?? '—'],
-                                ['Unité', pluralizeUnit(1, product.unit)],
+                                ...(showUnits ? [['Unité', pluralizeUnit(1, product.unit)]] : []),
                                 [
                                     "Prix d'achat",
                                     product.price_buy
@@ -107,7 +109,9 @@ export default function Show({ product, movements, can }: ShowProps) {
                                 ['Prix de vente', `${Number(product.price_sell).toFixed(2)} DH`],
                                 [
                                     'Quantité en stock',
-                                    `${product.quantity_on_hand} ${pluralizeUnit(product.quantity_on_hand, product.unit)}`,
+                                    showUnits
+                                        ? `${product.quantity_on_hand} ${pluralizeUnit(product.quantity_on_hand, product.unit)}`
+                                        : product.quantity_on_hand,
                                 ],
                                 ["Seuil d'alerte", product.low_stock_threshold],
                             ].map(([label, value]) => (
@@ -237,8 +241,9 @@ export default function Show({ product, movements, can }: ShowProps) {
                     <p className="mt-1 text-sm text-muted-foreground">
                         Stock actuel :{' '}
                         <span className="font-semibold">
-                            {product.quantity_on_hand}{' '}
-                            {pluralizeUnit(product.quantity_on_hand, product.unit)}
+                            {product.quantity_on_hand}
+                            {showUnits &&
+                                ` ${pluralizeUnit(product.quantity_on_hand, product.unit)}`}
                         </span>
                         . Entrez une valeur positive pour ajouter, négative pour retirer.
                     </p>

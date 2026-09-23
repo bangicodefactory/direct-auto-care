@@ -153,6 +153,7 @@ class InvoiceSeeder extends Seeder
                         'invoice_id'    => $invoice->id,
                         'product_id'    => $product?->id,
                         'description'   => $item['description'],
+                        'unit'          => $product?->unit,
                         'quantity'      => $item['qty'],
                         'unit_price_ht' => $item['unit_price'],
                         'line_total_ht' => $lineTotal,

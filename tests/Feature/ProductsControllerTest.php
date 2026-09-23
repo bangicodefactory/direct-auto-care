@@ -202,6 +202,66 @@ class ProductsControllerTest extends TestCase
         $this->assertDatabaseHas('products', ['sku' => 'TEST-SKU-001', 'name' => 'Huile 5W-30 1L']);
     }
 
+    public function test_store_without_unit_fails_when_units_are_shown(): void
+    {
+        config(['company.show_product_units' => true]);
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->from(route('products.create'))
+            ->post(route('products.store'), [
+                'category'            => ProductCategory::Huile->value,
+                'name'                => 'Huile sans unité',
+                'price_sell'          => 55.00,
+                'quantity_on_hand'    => 10,
+                'low_stock_threshold' => 3,
+            ])
+            ->assertRedirect(route('products.create'))
+            ->assertSessionHasErrors('unit');
+
+        $this->assertDatabaseMissing('products', ['name' => 'Huile sans unité']);
+    }
+
+    public function test_store_without_unit_defaults_by_category_when_units_are_hidden(): void
+    {
+        config(['company.show_product_units' => false]);
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $base = ['price_sell' => 55.00, 'quantity_on_hand' => 10, 'low_stock_threshold' => 3];
+
+        $this->actingAs($admin)
+            ->post(route('products.store'), $base + ['category' => 'huile', 'name' => 'Huile cachée'])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+        $this->actingAs($admin)
+            ->post(route('products.store'), $base + ['category' => 'piece', 'name' => 'Pièce cachée', 'unit' => ''])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('products', ['name' => 'Huile cachée', 'unit' => 'litre']);
+        $this->assertDatabaseHas('products', ['name' => 'Pièce cachée', 'unit' => 'unite']);
+    }
+
+    public function test_update_without_unit_defaults_by_category_when_units_are_hidden(): void
+    {
+        config(['company.show_product_units' => false]);
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['category' => ProductCategory::Huile, 'unit' => 'bidon']);
+
+        $this->actingAs($admin)
+            ->put(route('products.update', $product), [
+                'category'            => 'huile',
+                'name'                => 'Renommée',
+                'price_sell'          => $product->price_sell,
+                'quantity_on_hand'    => $product->quantity_on_hand,
+                'low_stock_threshold' => $product->low_stock_threshold,
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('litre', $product->refresh()->unit);
+    }
+
     public function test_admin_can_access_edit(): void
     {
         $admin   = User::factory()->create()->assignRole('admin');

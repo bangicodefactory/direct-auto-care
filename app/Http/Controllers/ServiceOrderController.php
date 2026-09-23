@@ -131,6 +131,7 @@ class ServiceOrderController extends Controller
                     'id'            => $item->id,
                     'product_id'    => $item->product_id,
                     'description'   => $item->description,
+                    'unit'          => $item->unit,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
                     'line_total_ht' => $item->line_total_ht,
@@ -154,11 +155,12 @@ class ServiceOrderController extends Controller
             ],
             // Catalogue for the parts picker — only sent while parts are editable.
             'products' => ($canUpdate && $serviceOrder->status === ServiceOrderStatus::InProgress)
-                ? Product::orderBy('name')->get(['id', 'name', 'sku', 'price_sell', 'quantity_on_hand'])
+                ? Product::orderBy('name')->get(['id', 'name', 'sku', 'unit', 'price_sell', 'quantity_on_hand'])
                     ->map(fn (Product $p) => [
                         'id'               => $p->id,
                         'name'             => $p->name,
                         'sku'              => $p->sku,
+                        'unit'             => $p->unit,
                         'price_sell'       => $p->price_sell,
                         'quantity_on_hand' => $p->quantity_on_hand,
                     ])

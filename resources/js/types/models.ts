@@ -176,6 +176,8 @@ export interface InvoiceItem {
     /** Optional per-line vehicle attribution (multi-vehicle invoices). */
     vehicle_id: number | null;
     description: string;
+    /** Product stock unit snapshotted at line creation; null for service / free-text lines. */
+    unit?: string | null;
     quantity: string;
     unit_price_ht: string;
     line_total_ht: string;
@@ -367,6 +369,8 @@ export interface ServiceOrderItem {
     /** Sellable service (prestation) — mutually exclusive with product_id. */
     service_id: number | null;
     description: string;
+    /** Product stock unit snapshotted at line creation; null for service / free-text lines. */
+    unit?: string | null;
     quantity: number;
     unit_price_ht: string;
     line_total_ht: string;

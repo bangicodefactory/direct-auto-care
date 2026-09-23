@@ -9,6 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select';
+import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ProductCategory, ProductUnit } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -43,6 +44,7 @@ interface EditProps {
 }
 
 export default function Edit({ product, categories, units }: EditProps) {
+    const showUnits = useShowUnits();
     const { data, setData, put, processing, errors } = useForm<{
         category: string;
         name: string;
@@ -126,25 +128,33 @@ export default function Edit({ product, categories, units }: EditProps) {
                                 />
                                 <InputError message={errors.sku} className="mt-1" />
                             </div>
-                            <div>
-                                <InputLabel htmlFor="unit" value="Unité *" />
-                                {/* No auto-default on category change here: the
+                            {showUnits && (
+                                <div>
+                                    <InputLabel htmlFor="unit" value="Unité *" />
+                                    {/* No auto-default on category change here: the
                                     existing unit was chosen deliberately and
                                     recategorizing must not silently swap it. */}
-                                <Select value={data.unit} onValueChange={(v) => setData('unit', v)}>
-                                    <SelectTrigger id="unit" className="mt-1 min-h-[44px] w-full">
-                                        <SelectValue placeholder="— Choisir —" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {units.map((u) => (
-                                            <SelectItem key={u.value} value={u.value}>
-                                                {u.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.unit} className="mt-1" />
-                            </div>
+                                    <Select
+                                        value={data.unit}
+                                        onValueChange={(v) => setData('unit', v)}
+                                    >
+                                        <SelectTrigger
+                                            id="unit"
+                                            className="mt-1 min-h-[44px] w-full"
+                                        >
+                                            <SelectValue placeholder="— Choisir —" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {units.map((u) => (
+                                                <SelectItem key={u.value} value={u.value}>
+                                                    {u.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.unit} className="mt-1" />
+                                </div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

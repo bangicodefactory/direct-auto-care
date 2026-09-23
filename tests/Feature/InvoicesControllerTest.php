@@ -466,6 +466,51 @@ class InvoicesControllerTest extends TestCase
         $this->assertSame($vehicle->id, $invoice->items->first()->vehicle_id);
     }
 
+    public function test_convert_keeps_the_line_unit_even_when_the_product_was_deleted(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['unit' => 'paire', 'quantity_on_hand' => 5]);
+        $quote    = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'customer_id' => $customer->id,
+        ]);
+        $quote->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Disques avant',
+            'unit'          => 'paire',
+            'quantity'      => 1,
+            'unit_price_ht' => 300,
+            'line_total_ht' => 300,
+        ]);
+        // Quote conversion is a facture and decrements stock, so the product must
+        // still exist; the snapshot on the quote line is what carries the unit.
+        $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertRedirect();
+
+        $invoice = Invoice::where('converted_from_quote_id', $quote->id)->first();
+        $this->assertNotNull($invoice);
+        $this->assertSame('paire', $invoice->items->first()->unit);
+    }
+
+    public function test_show_payload_includes_line_unit(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $invoice  = Invoice::factory()->create(['customer_id' => $customer->id]);
+        $invoice->items()->create([
+            'product_id'    => null,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.show', $invoice))
+            ->assertInertia(fn (Assert $page) => $page->where('invoice.items.0.unit', 'litre'));
+    }
+
     public function test_show_payload_includes_per_line_vehicle(): void
     {
         $admin    = User::factory()->create()->assignRole('admin');

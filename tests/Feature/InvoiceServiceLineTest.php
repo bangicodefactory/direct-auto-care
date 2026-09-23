@@ -43,6 +43,34 @@ class InvoiceServiceLineTest extends TestCase
         ];
     }
 
+    public function test_product_line_snapshots_the_product_unit_and_service_line_has_none(): void
+    {
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['unit' => 'litre', 'quantity_on_hand' => 10]);
+        $service  = Service::factory()->create();
+
+        $this->actingAs($this->employee())
+            ->post(route('invoices.store'), $this->payload($customer, [
+                [
+                    'product_id'    => $product->id,
+                    'description'   => 'Huile 5W30',
+                    'quantity'      => 2,
+                    'unit_price_ht' => 100,
+                ],
+                [
+                    'service_id'    => $service->id,
+                    'description'   => 'Vidange',
+                    'quantity'      => 1,
+                    'unit_price_ht' => 150,
+                ],
+            ]))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('invoice_items', ['product_id' => $product->id, 'unit' => 'litre']);
+        $this->assertDatabaseHas('invoice_items', ['service_id' => $service->id, 'unit' => null]);
+    }
+
     public function test_invoice_service_line_persists_and_touches_no_stock(): void
     {
         $customer = Customer::factory()->create();

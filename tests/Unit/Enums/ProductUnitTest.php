@@ -76,6 +76,52 @@ class ProductUnitTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // quantityLabel — mirrors UNIT_DISPLAY in resources/js/lib/utils.ts
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<string, array{ProductUnit, string, string}>
+     */
+    public static function quantityLabelProvider(): array
+    {
+        return [
+            'unite'      => [ProductUnit::Unite, 'unité', 'unités'],
+            'litre'      => [ProductUnit::Litre, 'L', 'L'],
+            'millilitre' => [ProductUnit::Millilitre, 'mL', 'mL'],
+            'kg'         => [ProductUnit::Kg, 'kg', 'kg'],
+            'bidon'      => [ProductUnit::Bidon, 'bidon', 'bidons'],
+            'flacon'     => [ProductUnit::Flacon, 'flacon', 'flacons'],
+            'boite'      => [ProductUnit::Boite, 'boîte', 'boîtes'],
+            'paire'      => [ProductUnit::Paire, 'paire', 'paires'],
+            'jeu'        => [ProductUnit::Jeu, 'jeu', 'jeux'],
+            'kit'        => [ProductUnit::Kit, 'kit', 'kits'],
+        ];
+    }
+
+    #[DataProvider('quantityLabelProvider')]
+    public function test_quantity_label_is_singular_up_to_one_and_plural_above(
+        ProductUnit $unit,
+        string $singular,
+        string $plural,
+    ): void {
+        $this->assertSame($singular, $unit->quantityLabel(0));
+        $this->assertSame($singular, $unit->quantityLabel(1));
+        $this->assertSame($singular, $unit->quantityLabel(0.5));
+        $this->assertSame($singular, $unit->quantityLabel(-1));
+        $this->assertSame($plural, $unit->quantityLabel(1.5));
+        $this->assertSame($plural, $unit->quantityLabel(2));
+        $this->assertSame($plural, $unit->quantityLabel(-2));
+    }
+
+    public function test_every_case_has_a_quantity_label(): void
+    {
+        foreach (ProductUnit::cases() as $unit) {
+            $this->assertNotSame('', $unit->quantityLabel(1));
+            $this->assertNotSame('', $unit->quantityLabel(2));
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Canonical values are their own synonyms (migration idempotence relies on it)
     // -------------------------------------------------------------------------
 

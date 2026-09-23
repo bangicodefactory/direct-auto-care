@@ -16,8 +16,9 @@ class InvoicePdfController extends Controller
         $invoice->load(['customer', 'vehicle', 'items.product', 'items.vehicle']);
 
         $pdf = Pdf::loadView('pdf.invoice', [
-            'invoice' => $invoice,
-            'company' => config('company'),
+            'invoice'   => $invoice,
+            'company'   => config('company'),
+            'showUnits' => (bool) config('company.show_product_units'),
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream($invoice->number . '.pdf');
@@ -32,6 +33,7 @@ class InvoicePdfController extends Controller
         return view('pdf.invoice', [
             'invoice'   => $invoice,
             'company'   => config('company'),
+            'showUnits' => (bool) config('company.show_product_units'),
             'printMode' => true,
         ]);
     }

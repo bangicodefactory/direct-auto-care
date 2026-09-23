@@ -14,7 +14,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table';
+import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { pluralizeUnit } from '@/lib/utils';
 import type { InvoiceStatus, InvoiceType } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ChevronDown, Printer } from 'lucide-react';
@@ -53,6 +55,7 @@ interface ShowProps {
             product_id: number | null;
             service_id: number | null;
             description: string;
+            unit: string | null;
             quantity: string;
             unit_price_ht: string;
             line_total_ht: string;
@@ -107,6 +110,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function Show({ invoice, can }: ShowProps) {
+    const showUnits = useShowUnits();
     const typeLabel = invoice.type === 'quote' ? 'Devis' : 'Facture';
     const { post, delete: destroy, processing } = useForm({});
     const [confirmingCancel, setConfirmingCancel] = useState(false);
@@ -292,6 +296,9 @@ export default function Show({ invoice, can }: ShowProps) {
                                         )}
                                         <TableCell className="text-end text-muted-foreground">
                                             {item.quantity}
+                                            {showUnits &&
+                                                item.unit &&
+                                                ` ${pluralizeUnit(Number(item.quantity), item.unit)}`}
                                         </TableCell>
                                         <TableCell className="text-end text-muted-foreground">
                                             {Number(item.unit_price_ht).toFixed(2)} DH

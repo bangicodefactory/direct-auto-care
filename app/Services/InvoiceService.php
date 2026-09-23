@@ -172,22 +172,25 @@ class InvoiceService
         foreach ($items as $item) {
             $quantity  = (float) $item['quantity'];
             $unitPrice = (float) $item['unit_price_ht'];
+            $productId = ! empty($item['product_id']) ? (int) $item['product_id'] : null;
+            $product   = $productId !== null ? $products->get($productId) : null;
 
             $invoice->items()->create([
-                'product_id'    => $item['product_id'] ?? null,
+                'product_id'    => $productId,
                 'service_id'    => $item['service_id'] ?? null,
                 'vehicle_id'    => $item['vehicle_id'] ?? null,
                 'description'   => $item['description'],
+                // Snapshot the stock unit so the line survives later product
+                // edits/deletes. A caller-supplied unit (quote conversion) wins.
+                'unit'          => $item['unit'] ?? $product?->unit,
                 'quantity'      => $quantity,
                 'unit_price_ht' => $unitPrice,
                 'line_total_ht' => round($quantity * $unitPrice, 2),
             ]);
 
             // Only invoices (not quotes) decrement stock.
-            if (! empty($item['product_id']) && $invoice->type === InvoiceType::Invoice) {
-                $productId = (int) $item['product_id'];
-                $product   = $products->get($productId)
-                    ?? throw new ModelNotFoundException("Product [{$productId}] not found.");
+            if ($productId !== null && $invoice->type === InvoiceType::Invoice) {
+                $product ?? throw new ModelNotFoundException("Product [{$productId}] not found.");
 
                 // stock_movements.quantity is int — fractional item quantities are rounded.
                 $this->stock->recordMovement(

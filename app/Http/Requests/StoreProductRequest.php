@@ -20,6 +20,40 @@ class StoreProductRequest extends FormRequest
         return self::fieldRules();
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge(self::withDefaultUnit($this->all()));
+    }
+
+    /**
+     * When the deployment hides product units, the form has no unit field:
+     * fill the category default so the unchanged `required` rule still holds.
+     * When units are shown, an empty unit is left alone and rejected as usual.
+     *
+     * Shared with UpdateProductRequest and the bulk import.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function withDefaultUnit(array $data): array
+    {
+        if (config('company.show_product_units')) {
+            return $data;
+        }
+
+        $unit = $data['unit'] ?? null;
+
+        if ($unit !== null && $unit !== '') {
+            return $data;
+        }
+
+        $category = ProductCategory::tryFrom((string) ($data['category'] ?? '')) ?? ProductCategory::Autre;
+
+        $data['unit'] = ProductUnit::defaultFor($category)->value;
+
+        return $data;
+    }
+
     /**
      * Validation rules for a product's fields. Shared with the bulk-import
      * service and with UpdateProductRequest so every write path validates

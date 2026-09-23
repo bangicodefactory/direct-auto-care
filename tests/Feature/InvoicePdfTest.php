@@ -261,6 +261,50 @@ class InvoicePdfTest extends TestCase
             ->assertDontSee('<th class="col-veh text-left">Véhicule</th>', false);
     }
 
+    // -------------------------------------------------------------------------
+    // Product units on lines (COMPANY_SHOW_PRODUCT_UNITS)
+    // -------------------------------------------------------------------------
+
+    private function invoiceWithUnitLine(): Invoice
+    {
+        $invoice = Invoice::factory()->create(['customer_id' => Customer::factory()->create()->id]);
+        $invoice->items()->create([
+            'product_id'    => null,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        return $invoice;
+    }
+
+    public function test_print_view_shows_line_unit_when_units_are_enabled(): void
+    {
+        config(['company.show_product_units' => true]);
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $this->invoiceWithUnitLine()))
+            ->assertOk()
+            ->assertSee('2,00 L');
+    }
+
+    public function test_print_view_hides_line_unit_when_units_are_disabled(): void
+    {
+        config(['company.show_product_units' => false]);
+        $employee = User::factory()->create();
+        $employee->assignRole('employee');
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $this->invoiceWithUnitLine()))
+            ->assertOk()
+            ->assertSee('2,00')
+            ->assertDontSee('2,00 L');
+    }
+
     public function test_user_without_role_cannot_access_pdf(): void
     {
         $user = User::factory()->create();

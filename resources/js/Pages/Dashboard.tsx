@@ -1,5 +1,6 @@
 import BarChartCard from '@/Components/Charts/BarChartCard';
 import LineChartCard from '@/Components/Charts/LineChartCard';
+import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { pluralizeUnit } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
@@ -68,6 +69,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ kpis, isAdmin }: DashboardProps) {
+    const showUnits = useShowUnits();
     return (
         <AuthenticatedLayout
             header={
@@ -171,8 +173,9 @@ export default function Dashboard({ kpis, isAdmin }: DashboardProps) {
                                                 {p.name}
                                             </Link>
                                             <span className="text-destructive">
-                                                {p.quantity_on_hand} / {p.low_stock_threshold}{' '}
-                                                {pluralizeUnit(p.quantity_on_hand, p.unit)}
+                                                {p.quantity_on_hand} / {p.low_stock_threshold}
+                                                {showUnits &&
+                                                    ` ${pluralizeUnit(p.quantity_on_hand, p.unit)}`}
                                             </span>
                                         </li>
                                     ))}

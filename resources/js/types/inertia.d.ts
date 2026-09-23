@@ -50,6 +50,8 @@ declare module '@inertiajs/core' {
             appSettings: {
                 company_name: string;
                 logo_url: string | null;
+                /** COMPANY_SHOW_PRODUCT_UNITS — show stock units next to product quantities. */
+                show_product_units: boolean;
             };
             locale: string;
             notifications: AppNotification[];

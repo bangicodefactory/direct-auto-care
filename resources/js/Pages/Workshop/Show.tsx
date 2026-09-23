@@ -1,7 +1,9 @@
 import Modal from '@/Components/Modal';
 import VehicleConditionDiagram from '@/Components/VehicleConditionDiagram';
 import { Button } from '@/Components/ui/button';
+import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { pluralizeUnit } from '@/lib/utils';
 import type { Product, Service, ServiceOrderItem, ServiceOrderStatus } from '@/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Check, Trash2 } from 'lucide-react';
@@ -124,6 +126,7 @@ interface PartsManagerProps {
 }
 
 function PartsManager({ order, products, services, editable }: PartsManagerProps) {
+    const showUnits = useShowUnits();
     const { data, setData, post, processing, errors, reset } = useForm<{
         product_id: string;
         service_id: string;
@@ -139,6 +142,10 @@ function PartsManager({ order, products, services, editable }: PartsManagerProps
     });
 
     const total = order.items.reduce((sum, item) => sum + Number(item.line_total_ht), 0);
+
+    const selectedProduct = data.product_id
+        ? products.find((p) => String(p.id) === String(data.product_id))
+        : undefined;
 
     // One <select> for both catalogues, encoded "p:12" / "s:3".
     const catalogSelected = data.product_id
@@ -204,7 +211,11 @@ function PartsManager({ order, products, services, editable }: PartsManagerProps
                     {order.items.map((item) => (
                         <li key={item.id} className="flex items-center justify-between gap-3 py-2">
                             <span className="text-foreground">
-                                {item.quantity} × {item.description}
+                                {item.quantity}
+                                {showUnits &&
+                                    item.unit &&
+                                    ` ${pluralizeUnit(item.quantity, item.unit)}`}{' '}
+                                × {item.description}
                             </span>
                             <span className="flex items-center gap-3">
                                 <span className="text-muted-foreground">
@@ -255,7 +266,10 @@ function PartsManager({ order, products, services, editable }: PartsManagerProps
                                 <optgroup label="Produits (stock)">
                                     {products.map((p) => (
                                         <option key={`p:${p.id}`} value={`p:${p.id}`}>
-                                            {p.sku} — {p.name} (stock : {p.quantity_on_hand})
+                                            {p.sku} — {p.name} (stock : {p.quantity_on_hand}
+                                            {showUnits &&
+                                                ` ${pluralizeUnit(p.quantity_on_hand, p.unit)}`}
+                                            )
                                         </option>
                                     ))}
                                 </optgroup>
@@ -291,14 +305,21 @@ function PartsManager({ order, products, services, editable }: PartsManagerProps
                             <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                 Quantité
                             </label>
-                            <input
-                                type="number"
-                                min="1"
-                                step="1"
-                                value={data.quantity}
-                                onChange={(e) => setData('quantity', e.target.value)}
-                                className={FIELD}
-                            />
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value={data.quantity}
+                                    onChange={(e) => setData('quantity', e.target.value)}
+                                    className={FIELD}
+                                />
+                                {showUnits && selectedProduct && (
+                                    <span className="whitespace-nowrap text-xs text-muted-foreground">
+                                        {pluralizeUnit(Number(data.quantity), selectedProduct.unit)}
+                                    </span>
+                                )}
+                            </div>
                             {errors.quantity && (
                                 <p className="mt-1 text-sm text-destructive">{errors.quantity}</p>
                             )}

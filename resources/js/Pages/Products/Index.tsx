@@ -23,6 +23,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table';
+import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { CATEGORY_LABELS, pluralizeUnit } from '@/lib/utils';
 import type { Product, ProductCategory } from '@/types/models';
@@ -62,6 +63,7 @@ interface IndexProps {
 }
 
 export default function Index({ products, filters, categories, can }: IndexProps) {
+    const showUnits = useShowUnits();
     const [search, setSearch] = useState(filters?.search ?? '');
     const [deletingProduct, setDeletingProduct] = useState<ProductRow | null>(null);
     const [importing, setImporting] = useState(false);
@@ -233,8 +235,9 @@ export default function Index({ products, filters, categories, can }: IndexProps
                                                     : 'text-foreground'
                                             }`}
                                         >
-                                            {p.quantity_on_hand}{' '}
-                                            {pluralizeUnit(p.quantity_on_hand, p.unit)}
+                                            {p.quantity_on_hand}
+                                            {showUnits &&
+                                                ` ${pluralizeUnit(p.quantity_on_hand, p.unit)}`}
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-end">
                                             <DropdownMenu>

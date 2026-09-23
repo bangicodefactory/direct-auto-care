@@ -58,7 +58,8 @@ class ProductImportService
             ['huile', 'Huile moteur 5W-30 5L', 'HUI-5W30-5L', 'litre', 180, 260, 24, 5],
             [
                 'category doit être l\'une des valeurs : huile, filtre, piece, autre.',
-                'unit doit être l\'une des valeurs : unite, litre, millilitre, kg, bidon, flacon, boite, paire, jeu, kit (synonymes courants acceptés : L, ml, pcs, pièce, unité…).',
+                (config('company.show_product_units') ? 'unit doit être' : 'unit : optionnel (défaut selon la catégorie), sinon')
+                    . ' l\'une des valeurs : unite, litre, millilitre, kg, bidon, flacon, boite, paire, jeu, kit (synonymes courants acceptés : L, ml, pcs, pièce, unité…).',
                 'sku : optionnel mais unique s\'il est renseigné.',
                 'price_buy : optionnel. price_sell : obligatoire.',
                 'quantity_on_hand : entier ≥ 0 (stock initial).',
@@ -106,6 +107,9 @@ class ProductImportService
             if (isset($data['unit']) && is_string($data['unit'])) {
                 $data['unit'] = ProductUnit::tryFromSynonym($data['unit'])?->value ?? $data['unit'];
             }
+
+            // Deployments that hide units accept a blank cell (category default).
+            $data = StoreProductRequest::withDefaultUnit($data);
 
             $validator = Validator::make($data, $rules);
             foreach ($validator->errors()->all() as $message) {

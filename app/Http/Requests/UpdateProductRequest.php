@@ -26,4 +26,9 @@ class UpdateProductRequest extends FormRequest
 
         return $rules;
     }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge(StoreProductRequest::withDefaultUnit($this->all()));
+    }
 }

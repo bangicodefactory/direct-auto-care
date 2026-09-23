@@ -12,6 +12,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Product units (white-label feature toggle)
+    |--------------------------------------------------------------------------
+    | When true, every product quantity is shown with its stock unit ("2 L",
+    | "3 paires") across the app, the invoice PDF and the workshop, and the
+    | unit is a required field on product create / edit / import. When false
+    | the unit is hidden everywhere and product writes silently store the
+    | category default (ProductUnit::defaultFor). Set at provisioning.
+    */
+    'show_product_units' => filter_var(env('COMPANY_SHOW_PRODUCT_UNITS', true), FILTER_VALIDATE_BOOL),
+
+    /*
+    |--------------------------------------------------------------------------
     | Per-client theme (white-label)
     |--------------------------------------------------------------------------
     | Set at provisioning time in each client's .env. Hex values; converted to

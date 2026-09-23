@@ -92,6 +92,29 @@ enum ProductUnit: string
     }
 
     /**
+     * Short display form for a given quantity ("2 jeux", "1 jeu", "5 L").
+     * Singular when |quantity| <= 1, plural otherwise. Mirrors UNIT_DISPLAY
+     * in resources/js/lib/utils.ts — keep both in sync.
+     */
+    public function quantityLabel(float $quantity): string
+    {
+        [$singular, $plural] = match ($this) {
+            self::Unite => ['unité', 'unités'],
+            self::Litre => ['L', 'L'],
+            self::Millilitre => ['mL', 'mL'],
+            self::Kg => ['kg', 'kg'],
+            self::Bidon => ['bidon', 'bidons'],
+            self::Flacon => ['flacon', 'flacons'],
+            self::Boite => ['boîte', 'boîtes'],
+            self::Paire => ['paire', 'paires'],
+            self::Jeu => ['jeu', 'jeux'],
+            self::Kit => ['kit', 'kits'],
+        };
+
+        return abs($quantity) <= 1 ? $singular : $plural;
+    }
+
+    /**
      * Resolve a free-text unit ("L", " Litres ", "pièce", "PCS") to its
      * canonical case, or null when the spelling is not recognized.
      */
