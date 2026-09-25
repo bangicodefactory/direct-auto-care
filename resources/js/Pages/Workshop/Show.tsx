@@ -1,7 +1,9 @@
 import Modal from '@/Components/Modal';
 import VehicleConditionDiagram from '@/Components/VehicleConditionDiagram';
 import { Button } from '@/Components/ui/button';
+import UnitSuffix from '@/Components/UnitSuffix';
 import { useShowUnits } from '@/hooks/useShowUnits';
+import { useUnitByProductId } from '@/hooks/useUnitByProductId';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { pluralizeUnit } from '@/lib/utils';
 import type { Product, Service, ServiceOrderItem, ServiceOrderStatus } from '@/types/models';
@@ -143,9 +145,7 @@ function PartsManager({ order, products, services, editable }: PartsManagerProps
 
     const total = order.items.reduce((sum, item) => sum + Number(item.line_total_ht), 0);
 
-    const selectedProduct = data.product_id
-        ? products.find((p) => String(p.id) === String(data.product_id))
-        : undefined;
+    const unitOf = useUnitByProductId(products);
 
     // One <select> for both catalogues, encoded "p:12" / "s:3".
     const catalogSelected = data.product_id
@@ -314,11 +314,10 @@ function PartsManager({ order, products, services, editable }: PartsManagerProps
                                     onChange={(e) => setData('quantity', e.target.value)}
                                     className={FIELD}
                                 />
-                                {showUnits && selectedProduct && (
-                                    <span className="whitespace-nowrap text-xs text-muted-foreground">
-                                        {pluralizeUnit(Number(data.quantity), selectedProduct.unit)}
-                                    </span>
-                                )}
+                                <UnitSuffix
+                                    quantity={data.quantity}
+                                    unit={unitOf(data.product_id)}
+                                />
                             </div>
                             {errors.quantity && (
                                 <p className="mt-1 text-sm text-destructive">{errors.quantity}</p>

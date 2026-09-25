@@ -201,6 +201,7 @@ class InvoicesController extends Controller implements HasMiddleware
                     'service_id'    => $item->service_id,
                     'vehicle_id'    => $item->vehicle_id,
                     'description'   => $item->description,
+                    'unit'          => $item->unit,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
                 ]),

@@ -242,7 +242,7 @@ class ProductsControllerTest extends TestCase
         $this->assertDatabaseHas('products', ['name' => 'Pièce cachée', 'unit' => 'unite']);
     }
 
-    public function test_update_without_unit_defaults_by_category_when_units_are_hidden(): void
+    public function test_update_without_unit_keeps_the_existing_unit_when_units_are_hidden(): void
     {
         config(['company.show_product_units' => false]);
         $admin   = User::factory()->create()->assignRole('admin');
@@ -259,7 +259,29 @@ class ProductsControllerTest extends TestCase
             ->assertRedirect()
             ->assertSessionHasNoErrors();
 
-        $this->assertSame('litre', $product->refresh()->unit);
+        // A deliberately chosen unit is never clobbered by the category default.
+        $this->assertSame('bidon', $product->refresh()->unit);
+        $this->assertSame('Renommée', $product->name);
+    }
+
+    public function test_store_with_invalid_category_type_fails_validation_when_units_are_hidden(): void
+    {
+        config(['company.show_product_units' => false]);
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->from(route('products.create'))
+            ->post(route('products.store'), [
+                'category'            => ['huile'],
+                'name'                => 'Catégorie tableau',
+                'price_sell'          => 55.00,
+                'quantity_on_hand'    => 10,
+                'low_stock_threshold' => 3,
+            ])
+            ->assertRedirect(route('products.create'))
+            ->assertSessionHasErrors('category');
+
+        $this->assertDatabaseMissing('products', ['name' => 'Catégorie tableau']);
     }
 
     public function test_admin_can_access_edit(): void

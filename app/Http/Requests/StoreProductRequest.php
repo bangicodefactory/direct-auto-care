@@ -27,15 +27,19 @@ class StoreProductRequest extends FormRequest
 
     /**
      * When the deployment hides product units, the form has no unit field:
-     * fill the category default so the unchanged `required` rule still holds.
-     * When units are shown, an empty unit is left alone and rejected as usual.
+     * fill it so the unchanged `required` rule still holds. The fallback is the
+     * product's current unit on update ($existingUnit), otherwise the category
+     * default. When units are shown, an empty unit is left alone and rejected.
+     *
+     * Runs before validation, so `category` may be anything: a non-string value
+     * is treated as unknown and left for the enum rule to reject.
      *
      * Shared with UpdateProductRequest and the bulk import.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    public static function withDefaultUnit(array $data): array
+    public static function withDefaultUnit(array $data, ?string $existingUnit = null): array
     {
         if (config('company.show_product_units')) {
             return $data;
@@ -47,7 +51,16 @@ class StoreProductRequest extends FormRequest
             return $data;
         }
 
-        $category = ProductCategory::tryFrom((string) ($data['category'] ?? '')) ?? ProductCategory::Autre;
+        if ($existingUnit !== null && $existingUnit !== '') {
+            $data['unit'] = $existingUnit;
+
+            return $data;
+        }
+
+        $rawCategory = $data['category'] ?? null;
+        $category    = is_string($rawCategory)
+            ? (ProductCategory::tryFrom($rawCategory) ?? ProductCategory::Autre)
+            : ProductCategory::Autre;
 
         $data['unit'] = ProductUnit::defaultFor($category)->value;
 

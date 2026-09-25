@@ -466,12 +466,10 @@ class InvoicesControllerTest extends TestCase
         $this->assertSame($vehicle->id, $invoice->items->first()->vehicle_id);
     }
 
-    public function test_convert_keeps_the_line_unit_even_when_the_product_was_deleted(): void
+    /** A devis with one product line snapshotted as 'paire'. */
+    private function quoteWithProductLine(Product $product, Customer $customer): Invoice
     {
-        $admin    = User::factory()->create()->assignRole('admin');
-        $customer = Customer::factory()->create();
-        $product  = Product::factory()->create(['unit' => 'paire', 'quantity_on_hand' => 5]);
-        $quote    = Invoice::factory()->create([
+        $quote = Invoice::factory()->create([
             'type'        => InvoiceType::Quote->value,
             'customer_id' => $customer->id,
         ]);
@@ -483,13 +481,104 @@ class InvoicesControllerTest extends TestCase
             'unit_price_ht' => 300,
             'line_total_ht' => 300,
         ]);
-        // Quote conversion is a facture and decrements stock, so the product must
-        // still exist; the snapshot on the quote line is what carries the unit.
+
+        return $quote;
+    }
+
+    public function test_convert_keeps_the_quote_line_unit_when_the_product_unit_changed_since(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['unit' => 'paire', 'quantity_on_hand' => 5]);
+        $quote    = $this->quoteWithProductLine($product, $customer);
+
+        // The product is re-unitised after the devis was issued.
+        $product->update(['unit' => 'jeu']);
+
         $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertRedirect();
 
         $invoice = Invoice::where('converted_from_quote_id', $quote->id)->first();
         $this->assertNotNull($invoice);
         $this->assertSame('paire', $invoice->items->first()->unit);
+    }
+
+    public function test_convert_reports_a_deleted_product_instead_of_crashing(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['name' => 'Disques avant', 'unit' => 'paire', 'quantity_on_hand' => 5]);
+        $quote    = $this->quoteWithProductLine($product, $customer);
+
+        $product->delete();
+
+        $this->actingAs($admin)
+            ->from(route('invoices.show', $quote))
+            ->post(route('invoices.convert', $quote))
+            ->assertRedirect(route('invoices.show', $quote))
+            ->assertSessionHas('error', fn (string $message) => str_contains($message, 'Disques avant')
+                && str_contains($message, 'supprimé'));
+
+        $this->assertDatabaseMissing('invoices', ['converted_from_quote_id' => $quote->id]);
+        $this->assertSame(5, $product->refresh()->quantity_on_hand);
+    }
+
+    public function test_update_keeps_the_line_unit_snapshot_when_the_product_unit_changed_since(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['unit' => 'litre', 'quantity_on_hand' => 10]);
+        $invoice  = Invoice::factory()->create([
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+        $invoice->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        $product->update(['unit' => 'bidon']);
+
+        // The edit form re-sends the line without a unit (it never carries one).
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'notes' => 'Correction',
+                'items' => [[
+                    'product_id'    => $product->id,
+                    'description'   => 'Huile 5W30',
+                    'quantity'      => 2,
+                    'unit_price_ht' => 100,
+                ]],
+            ]))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertSame('litre', $invoice->refresh()->items->first()->unit);
+    }
+
+    public function test_edit_payload_includes_line_unit(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $invoice  = Invoice::factory()->create([
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+        $invoice->items()->create([
+            'product_id'    => null,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.edit', $invoice))
+            ->assertInertia(fn (Assert $page) => $page->where('invoice.items.0.unit', 'litre'));
     }
 
     public function test_show_payload_includes_line_unit(): void

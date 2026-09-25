@@ -10,9 +10,9 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
-import { useShowUnits } from '@/hooks/useShowUnits';
+import UnitSuffix from '@/Components/UnitSuffix';
+import { useUnitByProductId } from '@/hooks/useUnitByProductId';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { pluralizeUnit } from '@/lib/utils';
 import InvoiceVehicleField from '@/Pages/Invoices/Partials/InvoiceVehicleField';
 import LineVehicleSelect from '@/Pages/Invoices/Partials/LineVehicleSelect';
 import type { Customer, InvoiceType, Product, Service, Vehicle } from '@/types/models';
@@ -86,7 +86,7 @@ export default function Create({
     types,
     defaultType,
 }: CreateProps) {
-    const showUnits = useShowUnits();
+    const unitOf = useUnitByProductId(products);
     const { data, setData, post, processing, errors } = useForm<CreateForm>({
         type: defaultType,
         customer_id: '',
@@ -348,13 +348,6 @@ export default function Create({
                                                 const lineTotal =
                                                     (parseFloat(item.quantity as string) || 0) *
                                                     (parseFloat(item.unit_price_ht) || 0);
-                                                const lineUnit = item.product_id
-                                                    ? products.find(
-                                                          (p) =>
-                                                              String(p.id) ===
-                                                              String(item.product_id),
-                                                      )?.unit
-                                                    : undefined;
                                                 return (
                                                     <tr key={item._key}>
                                                         <td className="py-2 pe-3">
@@ -460,14 +453,10 @@ export default function Create({
                                                                         )
                                                                     }
                                                                 />
-                                                                {showUnits && lineUnit && (
-                                                                    <span className="whitespace-nowrap text-xs text-muted-foreground">
-                                                                        {pluralizeUnit(
-                                                                            Number(item.quantity),
-                                                                            lineUnit,
-                                                                        )}
-                                                                    </span>
-                                                                )}
+                                                                <UnitSuffix
+                                                                    quantity={item.quantity}
+                                                                    unit={unitOf(item.product_id)}
+                                                                />
                                                             </div>
                                                             <InputError
                                                                 message={

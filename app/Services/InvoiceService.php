@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\StockMovementType;
+use App\Exceptions\ProductUnavailableException;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\User;
@@ -76,6 +77,18 @@ class InvoiceService
     public function update(Invoice $invoice, array $data, User $user): Invoice
     {
         return DB::transaction(function () use ($invoice, $data, $user): Invoice {
+            // Keep the unit snapshot of lines that survive the edit: the form never
+            // sends `unit`, and re-reading it from the product would let a later
+            // product edit silently change what the document says.
+            $previousUnits = $invoice->items()->whereNotNull('product_id')->pluck('unit', 'product_id');
+            $data['items'] = array_map(function (array $item) use ($previousUnits): array {
+                if (! empty($item['product_id']) && ! isset($item['unit'])) {
+                    $item['unit'] = $previousUnits->get((int) $item['product_id']);
+                }
+
+                return $item;
+            }, $data['items'] ?? []);
+
             $this->reverseItemStock($invoice, $user);
 
             $invoice->items()->delete();
@@ -165,15 +178,24 @@ class InvoiceService
 
     private function insertItems(Invoice $invoice, array $items, User $user): void
     {
-        // Pre-load all referenced products in one query to avoid N+1.
+        // Pre-load all referenced products in one query to avoid N+1. Trashed
+        // products are included so a quote line whose product was deleted since
+        // still resolves (for its unit) and fails with a readable message below
+        // instead of a bare ModelNotFound.
         $productIds = collect($items)->pluck('product_id')->filter()->unique()->values()->all();
-        $products   = Product::findMany($productIds)->keyBy('id');
+        $products   = Product::withTrashed()->findMany($productIds)->keyBy('id');
 
         foreach ($items as $item) {
             $quantity  = (float) $item['quantity'];
             $unitPrice = (float) $item['unit_price_ht'];
             $productId = ! empty($item['product_id']) ? (int) $item['product_id'] : null;
             $product   = $productId !== null ? $products->get($productId) : null;
+
+            if ($product?->trashed() && $invoice->type === InvoiceType::Invoice) {
+                throw new ProductUnavailableException(
+                    "Le produit « {$product->name} » a été supprimé du catalogue ; retirez cette ligne avant de facturer."
+                );
+            }
 
             $invoice->items()->create([
                 'product_id'    => $productId,

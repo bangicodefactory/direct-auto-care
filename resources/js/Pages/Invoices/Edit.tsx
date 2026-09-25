@@ -10,9 +10,9 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
-import { useShowUnits } from '@/hooks/useShowUnits';
+import UnitSuffix from '@/Components/UnitSuffix';
+import { useUnitByProductId } from '@/hooks/useUnitByProductId';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { pluralizeUnit } from '@/lib/utils';
 import InvoiceVehicleField from '@/Pages/Invoices/Partials/InvoiceVehicleField';
 import LineVehicleSelect from '@/Pages/Invoices/Partials/LineVehicleSelect';
 import type { Customer, Invoice, InvoiceItem, Product, Service, Vehicle } from '@/types/models';
@@ -28,6 +28,8 @@ interface LineItem {
     service_id: string | number | null;
     vehicle_id: string | number | null;
     description: string;
+    /** Unit snapshotted on the saved line; undefined for lines added in this edit. */
+    unit?: string | null;
     quantity: string | number;
     unit_price_ht: string | number;
 }
@@ -64,7 +66,7 @@ function catalogValue(item: Pick<LineItem, 'product_id' | 'service_id'>): string
 }
 
 export default function Edit({ invoice, customers, products, services, vehicles }: EditProps) {
-    const showUnits = useShowUnits();
+    const unitOf = useUnitByProductId(products);
     const { data, setData, put, processing, errors } = useForm<EditForm>({
         customer_id: invoice.customer_id ?? '',
         vehicle_id: invoice.vehicle_id ?? '',
@@ -121,6 +123,8 @@ export default function Edit({ invoice, customers, products, services, vehicles 
                         ...it,
                         product_id: id,
                         service_id: '',
+                        // The saved snapshot belongs to the previous product.
+                        unit: undefined,
                         description: product ? product.name : it.description,
                         unit_price_ht: product ? String(product.price_sell) : it.unit_price_ht,
                     };
@@ -131,6 +135,7 @@ export default function Edit({ invoice, customers, products, services, vehicles 
                         ...it,
                         service_id: id,
                         product_id: '',
+                        unit: undefined,
                         description: service ? service.name : it.description,
                         unit_price_ht: service
                             ? String(service.default_price_ht)
@@ -321,13 +326,6 @@ export default function Edit({ invoice, customers, products, services, vehicles 
                                                 const lineTotal =
                                                     (parseFloat(item.quantity as string) || 0) *
                                                     (parseFloat(item.unit_price_ht as string) || 0);
-                                                const lineUnit = item.product_id
-                                                    ? products.find(
-                                                          (p) =>
-                                                              String(p.id) ===
-                                                              String(item.product_id),
-                                                      )?.unit
-                                                    : undefined;
                                                 return (
                                                     <tr key={item._key}>
                                                         <td className="py-2 pe-3">
@@ -463,14 +461,15 @@ export default function Edit({ invoice, customers, products, services, vehicles 
                                                                         )
                                                                     }
                                                                 />
-                                                                {showUnits && lineUnit && (
-                                                                    <span className="whitespace-nowrap text-xs text-muted-foreground">
-                                                                        {pluralizeUnit(
-                                                                            Number(item.quantity),
-                                                                            lineUnit,
-                                                                        )}
-                                                                    </span>
-                                                                )}
+                                                                {/* Prefer the line's snapshot so Edit agrees with Show/PDF;
+                                                                    fall back to the catalogue for newly picked products. */}
+                                                                <UnitSuffix
+                                                                    quantity={item.quantity}
+                                                                    unit={
+                                                                        item.unit ??
+                                                                        unitOf(item.product_id)
+                                                                    }
+                                                                />
                                                             </div>
                                                             <InputError
                                                                 message={
