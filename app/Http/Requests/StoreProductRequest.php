@@ -26,10 +26,13 @@ class StoreProductRequest extends FormRequest
     }
 
     /**
-     * When the deployment hides product units, the form has no unit field:
-     * fill it so the unchanged `required` rule still holds. The fallback is the
-     * product's current unit on update ($existingUnit), otherwise the category
-     * default. When units are shown, an empty unit is left alone and rejected.
+     * When the deployment hides product units, nobody can see or pick the unit,
+     * so the server owns it: on create/import an empty unit takes the category
+     * default; on update the existing unit is kept while the category is
+     * unchanged, and re-derived from the new category when it changes (an
+     * invisible stale unit would otherwise surface the day units are enabled).
+     * When units are shown, the data is returned untouched and the `required`
+     * rule applies as usual.
      *
      * Runs before validation, so `category` may be anything: a non-string value
      * is treated as unknown and left for the enum rule to reject.
@@ -39,26 +42,32 @@ class StoreProductRequest extends FormRequest
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    public static function withDefaultUnit(array $data, ?string $existingUnit = null): array
+    public static function withDefaultUnit(array $data, ?string $existingUnit = null, ?string $existingCategory = null): array
     {
         if (config('company.show_product_units')) {
             return $data;
         }
 
-        $unit = $data['unit'] ?? null;
+        $rawCategory     = $data['category'] ?? null;
+        $categoryChanged = $existingCategory !== null
+            && is_string($rawCategory)
+            && $rawCategory !== $existingCategory;
 
-        if ($unit !== null && $unit !== '') {
-            return $data;
+        if (! $categoryChanged) {
+            $unit = $data['unit'] ?? null;
+
+            if ($unit !== null && $unit !== '') {
+                return $data;
+            }
+
+            if ($existingUnit !== null && $existingUnit !== '') {
+                $data['unit'] = $existingUnit;
+
+                return $data;
+            }
         }
 
-        if ($existingUnit !== null && $existingUnit !== '') {
-            $data['unit'] = $existingUnit;
-
-            return $data;
-        }
-
-        $rawCategory = $data['category'] ?? null;
-        $category    = is_string($rawCategory)
+        $category = is_string($rawCategory)
             ? (ProductCategory::tryFrom($rawCategory) ?? ProductCategory::Autre)
             : ProductCategory::Autre;
 

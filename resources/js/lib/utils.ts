@@ -49,3 +49,20 @@ export function pluralizeUnit(quantity: number, unit: ProductUnit | string): str
 
     return Math.abs(quantity) <= 1 ? display.singular : display.plural;
 }
+
+/**
+ * A quantity with its unit for display ("30 L", "2 paires"), or the bare
+ * number when the deployment hides units or the row has none. The one place
+ * that decides how a quantity + unit pair is rendered across the app.
+ */
+export function formatQuantity(
+    quantity: number | string,
+    unit: ProductUnit | string | null | undefined,
+    showUnits: boolean,
+): string {
+    if (!showUnits || !unit) {
+        return String(quantity);
+    }
+
+    return `${quantity} ${pluralizeUnit(Number(quantity), unit)}`;
+}

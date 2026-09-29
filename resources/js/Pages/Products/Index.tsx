@@ -25,7 +25,7 @@ import {
 } from '@/Components/ui/table';
 import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { CATEGORY_LABELS, pluralizeUnit } from '@/lib/utils';
+import { CATEGORY_LABELS, formatQuantity } from '@/lib/utils';
 import type { Product, ProductCategory } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
@@ -235,9 +235,7 @@ export default function Index({ products, filters, categories, can }: IndexProps
                                                     : 'text-foreground'
                                             }`}
                                         >
-                                            {p.quantity_on_hand}
-                                            {showUnits &&
-                                                ` ${pluralizeUnit(p.quantity_on_hand, p.unit)}`}
+                                            {formatQuantity(p.quantity_on_hand, p.unit, showUnits)}
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-end">
                                             <DropdownMenu>

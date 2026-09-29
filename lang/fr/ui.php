@@ -78,4 +78,7 @@ return [
     'edit'   => 'Modifier',
     'back'   => '← Retour',
     'search' => 'Rechercher',
+
+    // Invoices
+    'invoice_product_unavailable' => 'Le produit « :name » a été supprimé du catalogue ; retirez cette ligne avant de facturer.',
 ];

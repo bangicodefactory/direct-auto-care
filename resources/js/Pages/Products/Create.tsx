@@ -154,14 +154,11 @@ export default function Create({ categories, units, unitDefaults }: CreateProps)
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <InputError message={errors.unit} className="mt-1" />
                                 </div>
                             )}
-                            {/* Field hidden: a server-side unit error must still surface,
-                                or the save fails silently. */}
-                            {!showUnits && errors.unit && (
-                                <InputError message={errors.unit} className="mt-1" />
-                            )}
+                            {/* Outside the toggle so a server-side unit error still surfaces
+                                when the field is hidden (InputError renders nothing when empty). */}
+                            <InputError message={errors.unit} className="mt-1" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

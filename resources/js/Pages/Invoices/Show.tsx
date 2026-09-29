@@ -16,7 +16,7 @@ import {
 } from '@/Components/ui/table';
 import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { pluralizeUnit } from '@/lib/utils';
+import { formatQuantity } from '@/lib/utils';
 import type { InvoiceStatus, InvoiceType } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ChevronDown, Printer } from 'lucide-react';
@@ -295,10 +295,7 @@ export default function Show({ invoice, can }: ShowProps) {
                                             </TableCell>
                                         )}
                                         <TableCell className="text-end text-muted-foreground">
-                                            {item.quantity}
-                                            {showUnits &&
-                                                item.unit &&
-                                                ` ${pluralizeUnit(Number(item.quantity), item.unit)}`}
+                                            {formatQuantity(item.quantity, item.unit, showUnits)}
                                         </TableCell>
                                         <TableCell className="text-end text-muted-foreground">
                                             {Number(item.unit_price_ht).toFixed(2)} DH

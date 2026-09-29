@@ -543,10 +543,48 @@ class InvoicesControllerTest extends TestCase
 
         $product->update(['unit' => 'bidon']);
 
-        // The edit form re-sends the line without a unit (it never carries one).
+        // The edit form re-sends a surviving line with its snapshot.
         $this->actingAs($employee)
             ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
                 'notes' => 'Correction',
+                'items' => [[
+                    'product_id'    => $product->id,
+                    'description'   => 'Huile 5W30',
+                    'unit'          => 'litre',
+                    'quantity'      => 2,
+                    'unit_price_ht' => 100,
+                ]],
+            ]))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertSame('litre', $invoice->refresh()->items->first()->unit);
+    }
+
+    public function test_update_re_added_product_line_takes_the_current_product_unit(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['unit' => 'litre', 'quantity_on_hand' => 10]);
+        $invoice  = Invoice::factory()->create([
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+        $invoice->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        $product->update(['unit' => 'bidon']);
+
+        // The user removed the line and picked the product again: the form sends
+        // no unit for the new line, so it takes what the catalogue says now.
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
                 'items' => [[
                     'product_id'    => $product->id,
                     'description'   => 'Huile 5W30',
@@ -556,7 +594,30 @@ class InvoicesControllerTest extends TestCase
             ]))
             ->assertRedirect(route('invoices.show', $invoice));
 
-        $this->assertSame('litre', $invoice->refresh()->items->first()->unit);
+        $this->assertSame('bidon', $invoice->refresh()->items->first()->unit);
+    }
+
+    public function test_update_rejects_an_unknown_line_unit(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        $invoice  = Invoice::factory()->create([
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'items' => [[
+                    'product_id'    => null,
+                    'description'   => "Main d'œuvre",
+                    'unit'          => 'tonneau',
+                    'quantity'      => 1,
+                    'unit_price_ht' => 200,
+                ]],
+            ]))
+            ->assertSessionHasErrors('items.0.unit');
     }
 
     public function test_edit_payload_includes_line_unit(): void

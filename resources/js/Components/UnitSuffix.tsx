@@ -17,9 +17,13 @@ export default function UnitSuffix({ quantity, unit }: UnitSuffixProps) {
         return null;
     }
 
+    // An empty or half-typed input is NaN; treat it as 1 so the label stays singular.
+    const parsed = Number(quantity);
+    const count = Number.isFinite(parsed) ? parsed : 1;
+
     return (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
-            {pluralizeUnit(Number(quantity), unit)}
+            {pluralizeUnit(count, unit)}
         </span>
     );
 }

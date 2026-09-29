@@ -5,7 +5,7 @@ import UnitSuffix from '@/Components/UnitSuffix';
 import { useShowUnits } from '@/hooks/useShowUnits';
 import { useUnitByProductId } from '@/hooks/useUnitByProductId';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { pluralizeUnit } from '@/lib/utils';
+import { formatQuantity } from '@/lib/utils';
 import type { Product, Service, ServiceOrderItem, ServiceOrderStatus } from '@/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Check, Trash2 } from 'lucide-react';
@@ -211,11 +211,8 @@ function PartsManager({ order, products, services, editable }: PartsManagerProps
                     {order.items.map((item) => (
                         <li key={item.id} className="flex items-center justify-between gap-3 py-2">
                             <span className="text-foreground">
-                                {item.quantity}
-                                {showUnits &&
-                                    item.unit &&
-                                    ` ${pluralizeUnit(item.quantity, item.unit)}`}{' '}
-                                × {item.description}
+                                {formatQuantity(item.quantity, item.unit, showUnits)} ×{' '}
+                                {item.description}
                             </span>
                             <span className="flex items-center gap-3">
                                 <span className="text-muted-foreground">
@@ -266,10 +263,8 @@ function PartsManager({ order, products, services, editable }: PartsManagerProps
                                 <optgroup label="Produits (stock)">
                                     {products.map((p) => (
                                         <option key={`p:${p.id}`} value={`p:${p.id}`}>
-                                            {p.sku} — {p.name} (stock : {p.quantity_on_hand}
-                                            {showUnits &&
-                                                ` ${pluralizeUnit(p.quantity_on_hand, p.unit)}`}
-                                            )
+                                            {p.sku} — {p.name} (stock :{' '}
+                                            {formatQuantity(p.quantity_on_hand, p.unit, showUnits)})
                                         </option>
                                     ))}
                                 </optgroup>

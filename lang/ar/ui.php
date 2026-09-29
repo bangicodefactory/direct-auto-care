@@ -78,4 +78,7 @@ return [
     'edit'   => 'تعديل',
     'back'   => 'رجوع →',
     'search' => 'بحث',
+
+    // Invoices
+    'invoice_product_unavailable' => 'تم حذف المنتج « :name » من الكتالوج؛ احذف هذا السطر قبل الفوترة.',
 ];

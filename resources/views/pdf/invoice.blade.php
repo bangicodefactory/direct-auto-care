@@ -302,7 +302,7 @@
                     @endif
                 </td>
                 @endif
-                <td class="col-qty text-center">{{ number_format((float)$item->quantity, 2, ',', ' ') }}@if(($showUnits ?? false) && $item->unit) {{ \App\Enums\ProductUnit::tryFrom($item->unit)?->quantityLabel((float)$item->quantity) ?? $item->unit }}@endif</td>
+                <td class="col-qty text-center">{{ number_format((float)$item->quantity, 2, ',', ' ') }}@if(config('company.show_product_units') && $item->unit) {{ \App\Enums\ProductUnit::tryFrom($item->unit)?->quantityLabel((float)$item->quantity) ?? $item->unit }}@endif</td>
                 <td class="col-unit text-right">{{ number_format((float)$item->unit_price_ht, 2, ',', ' ') }}</td>
                 <td class="col-total text-right">{{ number_format((float)$item->line_total_ht, 2, ',', ' ') }}</td>
             </tr>

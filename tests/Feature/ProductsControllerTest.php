@@ -264,6 +264,30 @@ class ProductsControllerTest extends TestCase
         $this->assertSame('Renommée', $product->name);
     }
 
+    public function test_update_recategorising_re_derives_the_hidden_unit(): void
+    {
+        config(['company.show_product_units' => false]);
+        $admin   = User::factory()->create()->assignRole('admin');
+        $product = Product::factory()->create(['category' => ProductCategory::Huile, 'unit' => 'litre']);
+
+        // The hidden form still posts the old unit; the server must not keep it
+        // once the category no longer matches.
+        $this->actingAs($admin)
+            ->put(route('products.update', $product), [
+                'category'            => 'filtre',
+                'name'                => $product->name,
+                'unit'                => 'litre',
+                'price_sell'          => $product->price_sell,
+                'quantity_on_hand'    => $product->quantity_on_hand,
+                'low_stock_threshold' => $product->low_stock_threshold,
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('unite', $product->refresh()->unit);
+        $this->assertSame(ProductCategory::Filtre, $product->category);
+    }
+
     public function test_store_with_invalid_category_type_fails_validation_when_units_are_hidden(): void
     {
         config(['company.show_product_units' => false]);

@@ -77,18 +77,9 @@ class InvoiceService
     public function update(Invoice $invoice, array $data, User $user): Invoice
     {
         return DB::transaction(function () use ($invoice, $data, $user): Invoice {
-            // Keep the unit snapshot of lines that survive the edit: the form never
-            // sends `unit`, and re-reading it from the product would let a later
-            // product edit silently change what the document says.
-            $previousUnits = $invoice->items()->whereNotNull('product_id')->pluck('unit', 'product_id');
-            $data['items'] = array_map(function (array $item) use ($previousUnits): array {
-                if (! empty($item['product_id']) && ! isset($item['unit'])) {
-                    $item['unit'] = $previousUnits->get((int) $item['product_id']);
-                }
-
-                return $item;
-            }, $data['items'] ?? []);
-
+            // Lines that survive the edit carry their `unit` snapshot back from the
+            // form (validated by UpdateInvoiceRequest); new or re-picked product
+            // lines omit it and take the product's current unit in insertItems().
             $this->reverseItemStock($invoice, $user);
 
             $invoice->items()->delete();
@@ -193,7 +184,7 @@ class InvoiceService
 
             if ($product?->trashed() && $invoice->type === InvoiceType::Invoice) {
                 throw new ProductUnavailableException(
-                    "Le produit « {$product->name} » a été supprimé du catalogue ; retirez cette ligne avant de facturer."
+                    trans('ui.invoice_product_unavailable', ['name' => $product->name])
                 );
             }
 

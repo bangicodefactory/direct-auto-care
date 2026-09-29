@@ -20,7 +20,18 @@ return [
     | the unit is hidden everywhere and product writes silently store the
     | category default (ProductUnit::defaultFor). Set at provisioning.
     */
-    'show_product_units' => filter_var(env('COMPANY_SHOW_PRODUCT_UNITS', true), FILTER_VALIDATE_BOOL),
+    // A blank or mistyped value keeps the default instead of silently switching
+    // units off. filter_var treats "" as false even with NULL_ON_FAILURE, so the
+    // blank case is handled explicitly. Evaluated once at config load.
+    'show_product_units' => (static function (): bool {
+        $raw = env('COMPANY_SHOW_PRODUCT_UNITS');
+
+        if ($raw === null || $raw === '') {
+            return true;
+        }
+
+        return filter_var($raw, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true;
+    })(),
 
     /*
     |--------------------------------------------------------------------------
