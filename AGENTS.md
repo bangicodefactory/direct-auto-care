@@ -10,8 +10,8 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
 - php - 8.4
-- inertiajs/inertia-laravel (INERTIA_LARAVEL) - v2
-- laravel/framework (LARAVEL) - v11
+- inertiajs/inertia-laravel (INERTIA_LARAVEL) - v3
+- laravel/framework (LARAVEL) - v13
 - laravel/prompts (PROMPTS) - v0
 - laravel/sanctum (SANCTUM) - v4
 - tightenco/ziggy (ZIGGY) - v2
@@ -21,12 +21,12 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/pail (PAIL) - v1
 - laravel/pint (PINT) - v1
 - laravel/sail (SAIL) - v1
-- phpunit/phpunit (PHPUNIT) - v11
-- @inertiajs/react (INERTIA_REACT) - v2
-- eslint (ESLINT) - v9
+- phpunit/phpunit (PHPUNIT) - v12
+- @inertiajs/react (INERTIA_REACT) - v3
+- eslint (ESLINT) - v10
 - prettier (PRETTIER) - v3
-- react (REACT) - v18
-- tailwindcss (TAILWINDCSS) - v3
+- react (REACT) - v19
+- tailwindcss (TAILWINDCSS) - v4
 
 ## Conventions
 
@@ -86,7 +86,6 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - Run Artisan commands directly via the command line (e.g., `php artisan route:list`). Use `php artisan list` to discover available commands and `php artisan [command] --help` to check parameters.
 - Inspect routes with `php artisan route:list`. Filter with: `--method=GET`, `--name=users`, `--path=api`, `--except-vendor`, `--only-vendor`.
 - Read configuration values using dot notation: `php artisan config:show app.name`, `php artisan config:show database.default`. Or read config files directly from the `config/` directory.
-- To check environment variables, read the `.env` file directly.
 
 ## Tinker
 
@@ -127,11 +126,19 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - ALWAYS use `search-docs` tool for version-specific Inertia documentation and updated code examples.
 - IMPORTANT: Activate `inertia-react-development` when working with Inertia client-side patterns.
 
-# Inertia v2
+# Inertia v3
 
-- Use all Inertia features from v1 and v2. Check the documentation before making changes to ensure the correct approach.
-- New features: deferred props, infinite scroll, merging props, polling, prefetching, once props, flash data.
+- Use all Inertia features from v1, v2, and v3. Check the documentation before making changes to ensure the correct approach.
+- New v3 features: standalone HTTP requests (`useHttp` hook), optimistic updates with automatic rollback, layout props (`useLayoutProps` hook), instant visits, simplified SSR via `@inertiajs/vite` plugin, custom exception handling for error pages.
+- Carried over from v2: deferred props, infinite scroll, merging props, polling, prefetching, once props, flash data.
 - When using deferred props, add an empty state with a pulsing or animated skeleton.
+- Axios has been removed. Use the built-in XHR client with interceptors, or install Axios separately if needed.
+- `Inertia::lazy()` / `LazyProp` has been removed. Use `Inertia::optional()` instead.
+- Prop types (`Inertia::optional()`, `Inertia::defer()`, `Inertia::merge()`) work inside nested arrays with dot-notation paths.
+- SSR works automatically in Vite dev mode with `@inertiajs/vite` - no separate Node.js server needed during development.
+- Event renames: `invalid` is now `httpException`, `exception` is now `networkError`.
+- `router.cancel()` replaced by `router.cancelAll()`.
+- The `future` configuration namespace has been removed - all v2 future options are now always enabled.
 
 === laravel/core rules ===
 
@@ -162,38 +169,6 @@ This application is a Laravel application and its main Laravel ecosystems packag
 ## Vite Error
 
 - If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
-
-=== laravel/v11 rules ===
-
-# Laravel 11
-
-- CRITICAL: ALWAYS use `search-docs` tool for version-specific Laravel documentation and updated code examples.
-- Laravel 11 brought a new streamlined file structure which this project now uses.
-
-## Laravel 11 Structure
-
-- In Laravel 11, middleware are no longer registered in `app\Http/Kernel.php`.
-- Middleware are configured declaratively in `bootstrap/app.php` using `Application::configure()->withMiddleware()`.
-- `bootstrap/app.php` is the file to register middleware, exceptions, and routing files.
-- `bootstrap/providers.php` contains application specific service providers.
-- No app\Console\Kernel.php - use `bootstrap/app.php` or `routes/console.php` for console configuration.
-- Commands auto-register - files in `app\Console/Commands/` are automatically available and do not require manual registration.
-
-## Database
-
-- When modifying a column, the migration must include all of the attributes that were previously defined on the column. Otherwise, they will be dropped and lost.
-- Laravel 11 allows limiting eagerly loaded records natively, without external packages: `$query->latest()->limit(10);`.
-
-### Models
-
-- Casts can and likely should be set in a `casts()` method on a model rather than the `$casts` property. Follow existing conventions from other models.
-
-## New Artisan Commands
-
-- List Artisan commands using Boost's MCP tool, if available. New commands available in Laravel 11:
-    - `php artisan make:enum`
-    - `php artisan make:class`
-    - `php artisan make:interface`
 
 === pint/core rules ===
 

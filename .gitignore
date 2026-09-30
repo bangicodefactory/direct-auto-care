@@ -58,3 +58,8 @@ docker-compose.override.yml
 *.sqlite
 *.sqlite-journal
 database/database.sqlite
+
+# Boost-generated per-agent skill copies (php artisan boost:install --skills)
+/.agents
+/.cursor/skills
+/.junie/skills
