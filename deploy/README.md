@@ -32,7 +32,11 @@ Environment** holding that client's secrets. See `.github/workflows/deploy.yml`.
    - `COMPANY_SHOW_PRODUCT_UNITS` — `true` (default) shows stock units next to
      product quantities in the app, on invoices/PDF and in the workshop; `false`
      hides them everywhere and makes the product unit field optional (category
-     default). A blank or unrecognised value keeps the default.
+     default). A blank or unrecognised value keeps the default. An Environment
+     **variable** of the same name (step 3) overrides this line, so the toggle
+     can be flipped without rewriting the secret:
+     `gh variable set COMPANY_SHOW_PRODUCT_UNITS --env <client> --body false`,
+     then redeploy.
    - `THEME_*` — hex brand colours (leave unset for the Direct Auto Care palette).
    - `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` for the seeded admin.
 
