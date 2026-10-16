@@ -12,7 +12,9 @@ name: Deploy (per-client)
 #   Secrets: CPANEL_SSH_HOST, CPANEL_SSH_PORT, CPANEL_SSH_USER, CPANEL_SSH_KEY,
 #            CPANEL_DEPLOY_PATH, CPANEL_ENV (that client's full server .env)
 #   Vars:    CPANEL_PHP_BIN (optional), SENTRY_ORG/SENTRY_PROJECT (optional,
-#            override the repo-level defaults for a per-client Sentry project)
+#            override the repo-level defaults for a per-client Sentry project),
+#            COMPANY_SHOW_PRODUCT_UNITS (optional boolean; overrides the same
+#            key in CPANEL_ENV; checked before anything reaches the server)
 # Repo-level:
 #   Vars:    DEPLOY_ENABLED ("true"), DEPLOY_CLIENTS (JSON array of environment
 #            names, e.g. ["garage-demo","directautocare"])
@@ -54,6 +56,18 @@ jobs:
     outputs:
       clients: ${{ steps.pick.outputs.clients }}
     steps:
+      # This job has no Environment, so any value seen here is repo- or
+      # org-level and would silently apply to every client that doesn't set
+      # its own. Per-client toggles must live on the client's Environment.
+      - name: Assert per-client toggles are not set repo-wide
+        env:
+          SHOW_PRODUCT_UNITS: ${{ vars.COMPANY_SHOW_PRODUCT_UNITS }}
+        run: |
+          if [ -n "$SHOW_PRODUCT_UNITS" ]; then
+            echo "::error::COMPANY_SHOW_PRODUCT_UNITS is set as a repo/org variable. Set it on each client's Environment instead (gh variable set COMPANY_SHOW_PRODUCT_UNITS --env <client>) and delete the repo-level one."
+            exit 1
+          fi
+
       - id: pick
         env:
           # A single manual client, or "all"/auto → the DEPLOY_CLIENTS repo var.
@@ -91,7 +105,11 @@ jobs:
       # Environment doesn't define. Without this, a client whose Environment is
       # missing a CPANEL_* secret would inherit ANOTHER client's server/path and
       # write its .env onto the wrong instance. Fail fast instead.
+      # Also validates the per-client toggle vars here, before anything touches
+      # the server: failing after rsync would leave new code live with no
+      # migrate and a stale config cache.
       - name: Assert environment secrets are set
+        id: assert
         env:
           CPANEL_SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
           CPANEL_SSH_PORT: ${{ secrets.CPANEL_SSH_PORT }}
@@ -99,6 +117,7 @@ jobs:
           CPANEL_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
           CPANEL_DEPLOY_PATH: ${{ secrets.CPANEL_DEPLOY_PATH }}
           CPANEL_ENV: ${{ secrets.CPANEL_ENV }}
+          SHOW_PRODUCT_UNITS: ${{ vars.COMPANY_SHOW_PRODUCT_UNITS }}
         run: |
           missing=
           for name in CPANEL_SSH_HOST CPANEL_SSH_PORT CPANEL_SSH_USER CPANEL_SSH_KEY CPANEL_DEPLOY_PATH CPANEL_ENV; do
@@ -108,6 +127,23 @@ jobs:
             echo "::error::Environment '${{ matrix.client }}' is missing secret(s):$missing — refusing to fall back to repo-level secrets."
             exit 1
           fi
+
+          # Same spellings config/company.php accepts (filter_var booleans,
+          # any case, surrounding whitespace), normalised to true/false.
+          units="${SHOW_PRODUCT_UNITS#"${SHOW_PRODUCT_UNITS%%[![:space:]]*}"}"
+          units="${units%"${units##*[![:space:]]}"}"
+          case "${units,,}" in
+            '') units= ;;
+            true | 1 | yes | on) units=true ;;
+            false | 0 | no | off) units=false ;;
+            *)
+              # The raw value is not echoed: a newline in it would be read as
+              # another workflow command.
+              echo "::error::COMPANY_SHOW_PRODUCT_UNITS on Environment '${{ matrix.client }}' is not a boolean. Use true or false."
+              exit 1
+              ;;
+          esac
+          echo "show_product_units=$units" >> "$GITHUB_OUTPUT"
 
       # ---- Build the front-end (shared hosting has no Node) ----
       - name: Set up Node
@@ -178,6 +214,8 @@ jobs:
             ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
       # ---- Write the server .env from this client's CPANEL_ENV secret ----
+      # Feature toggles kept as Environment *vars* (readable, settable with
+      # `gh variable set`) override the same key in the write-only secret.
       - name: Write server .env
         env:
           SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
@@ -185,8 +223,20 @@ jobs:
           SSH_USER: ${{ secrets.CPANEL_SSH_USER }}
           DEPLOY_PATH: ${{ secrets.CPANEL_DEPLOY_PATH }}
           ENV_CONTENT: ${{ secrets.CPANEL_ENV }}
+          # Validated and normalised (true/false/empty) by the assert step.
+          SHOW_PRODUCT_UNITS: ${{ steps.assert.outputs.show_product_units }}
         run: |
-          printf '%s' "$ENV_CONTENT" | ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+          {
+            if [ -n "$SHOW_PRODUCT_UNITS" ]; then
+              # Drop every spelling phpdotenv accepts (export, spaces) so the
+              # server .env holds exactly one definition.
+              printf '%s\n' "${ENV_CONTENT%$'\n'}" \
+                | grep -Ev '^[[:space:]]*(export[[:space:]]+)?COMPANY_SHOW_PRODUCT_UNITS[[:space:]]*=' || true
+              printf 'COMPANY_SHOW_PRODUCT_UNITS=%s\n' "$SHOW_PRODUCT_UNITS"
+            else
+              printf '%s' "$ENV_CONTENT"
+            fi
+          } | ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "umask 077 && cat > '$DEPLOY_PATH/.env'"
 
       # ---- Migrate + cache, on the server ----
