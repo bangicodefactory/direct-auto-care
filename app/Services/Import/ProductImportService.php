@@ -58,7 +58,9 @@ class ProductImportService
             ['huile', 'Huile moteur 5W-30 5L', 'HUI-5W30-5L', 'litre', 180, 260, 24, 5],
             [
                 'category doit être l\'une des valeurs : huile, filtre, piece, autre.',
-                'unit doit être l\'une des valeurs : unite, litre, millilitre, kg, bidon, flacon, boite, paire, jeu, kit (synonymes courants acceptés : L, ml, pcs, pièce, unité…).',
+                // Static on purpose: the template is cached on disk, so the wording
+                // must not depend on a setting that can change after the build.
+                'unit doit être l\'une des valeurs : unite, litre, millilitre, kg, bidon, flacon, boite, paire, jeu, kit (synonymes courants acceptés : L, ml, pcs, pièce, unité…). Optionnel si les unités sont désactivées (défaut selon la catégorie).',
                 'sku : optionnel mais unique s\'il est renseigné.',
                 'price_buy : optionnel. price_sell : obligatoire.',
                 'quantity_on_hand : entier ≥ 0 (stock initial).',
@@ -103,9 +105,16 @@ class ProductImportService
             // values are left as-is on purpose: the enum rule then rejects the
             // row into the report, where a human can fix the file — unlike the
             // data migration, which has nobody to ask and must coerce.
+            // Deployments that hide units are the exception: nobody there can
+            // see or fix the unit, so an unreadable cell is dropped and takes
+            // the category default like a blank one.
             if (isset($data['unit']) && is_string($data['unit'])) {
-                $data['unit'] = ProductUnit::tryFromSynonym($data['unit'])?->value ?? $data['unit'];
+                $resolved     = ProductUnit::tryFromSynonym($data['unit'])?->value;
+                $data['unit'] = $resolved ?? (config('company.show_product_units') ? $data['unit'] : null);
             }
+
+            // Deployments that hide units accept a blank cell (category default).
+            $data = StoreProductRequest::withDefaultUnit($data);
 
             $validator = Validator::make($data, $rules);
             foreach ($validator->errors()->all() as $message) {

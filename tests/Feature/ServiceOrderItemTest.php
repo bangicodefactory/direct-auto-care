@@ -49,6 +49,26 @@ class ServiceOrderItemTest extends TestCase
         ]);
     }
 
+    public function test_product_line_snapshots_the_product_unit(): void
+    {
+        $order   = ServiceOrder::factory()->inProgress()->create();
+        $product = Product::factory()->create(['unit' => 'litre', 'quantity_on_hand' => 5]);
+
+        $this->actingAs($this->employee())
+            ->post(route('workshop.items.store', $order), [
+                'product_id'    => $product->id,
+                'quantity'      => 2,
+                'unit_price_ht' => 90,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('service_order_items', [
+            'service_order_id' => $order->id,
+            'product_id'       => $product->id,
+            'unit'             => 'litre',
+        ]);
+    }
+
     public function test_product_line_defaults_description_to_product_name(): void
     {
         $order   = ServiceOrder::factory()->inProgress()->create();

@@ -78,4 +78,22 @@ return [
     'edit'   => 'Modifier',
     'back'   => '← Retour',
     'search' => 'Rechercher',
+
+    // Invoices
+    'invoice_product_unavailable' => 'Le produit « :name » a été supprimé du catalogue ; retirez cette ligne avant de facturer.',
+
+    // Stock units next to a quantity, keyed by ProductUnit value.
+    // `one` for |quantity| <= 1, `other` above (see ProductUnit::quantityLabel()).
+    'units' => [
+        'unite'      => ['one' => 'unité', 'other' => 'unités'],
+        'litre'      => ['one' => 'L', 'other' => 'L'],
+        'millilitre' => ['one' => 'mL', 'other' => 'mL'],
+        'kg'         => ['one' => 'kg', 'other' => 'kg'],
+        'bidon'      => ['one' => 'bidon', 'other' => 'bidons'],
+        'flacon'     => ['one' => 'flacon', 'other' => 'flacons'],
+        'boite'      => ['one' => 'boîte', 'other' => 'boîtes'],
+        'paire'      => ['one' => 'paire', 'other' => 'paires'],
+        'jeu'        => ['one' => 'jeu', 'other' => 'jeux'],
+        'kit'        => ['one' => 'kit', 'other' => 'kits'],
+    ],
 ];

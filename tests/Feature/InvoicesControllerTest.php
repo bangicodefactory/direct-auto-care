@@ -6,6 +6,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -464,6 +465,288 @@ class InvoicesControllerTest extends TestCase
         $invoice = Invoice::where('converted_from_quote_id', $quote->id)->first();
         $this->assertNotNull($invoice);
         $this->assertSame($vehicle->id, $invoice->items->first()->vehicle_id);
+    }
+
+    /** A devis with one product line snapshotted as 'paire'. */
+    private function quoteWithProductLine(Product $product, Customer $customer): Invoice
+    {
+        $quote = Invoice::factory()->create([
+            'type'        => InvoiceType::Quote->value,
+            'customer_id' => $customer->id,
+        ]);
+        $quote->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Disques avant',
+            'unit'          => 'paire',
+            'quantity'      => 1,
+            'unit_price_ht' => 300,
+            'line_total_ht' => 300,
+        ]);
+
+        return $quote;
+    }
+
+    public function test_convert_keeps_the_quote_line_unit_when_the_product_unit_changed_since(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['unit' => 'paire', 'quantity_on_hand' => 5]);
+        $quote    = $this->quoteWithProductLine($product, $customer);
+
+        // The product is re-unitised after the devis was issued.
+        $product->update(['unit' => 'jeu']);
+
+        $this->actingAs($admin)->post(route('invoices.convert', $quote))->assertRedirect();
+
+        $invoice = Invoice::where('converted_from_quote_id', $quote->id)->first();
+        $this->assertNotNull($invoice);
+        $this->assertSame('paire', $invoice->items->first()->unit);
+    }
+
+    public function test_convert_reports_a_deleted_product_instead_of_crashing(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['name' => 'Disques avant', 'unit' => 'paire', 'quantity_on_hand' => 5]);
+        $quote    = $this->quoteWithProductLine($product, $customer);
+
+        $product->delete();
+
+        $this->actingAs($admin)
+            ->from(route('invoices.show', $quote))
+            ->post(route('invoices.convert', $quote))
+            ->assertRedirect(route('invoices.show', $quote))
+            ->assertSessionHas('error', fn (string $message) => str_contains($message, 'Disques avant')
+                && str_contains($message, 'supprimé'));
+
+        $this->assertDatabaseMissing('invoices', ['converted_from_quote_id' => $quote->id]);
+        $this->assertSame(5, $product->refresh()->quantity_on_hand);
+    }
+
+    public function test_update_keeps_the_line_unit_snapshot_when_the_product_unit_changed_since(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['unit' => 'litre', 'quantity_on_hand' => 10]);
+        $invoice  = Invoice::factory()->create([
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+        $line = $invoice->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        $product->update(['unit' => 'bidon']);
+
+        // The edit form re-sends a surviving line by id; the server keeps its snapshot.
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'notes' => 'Correction',
+                'items' => [[
+                    'id'            => $line->id,
+                    'product_id'    => $product->id,
+                    'description'   => 'Huile 5W30',
+                    'quantity'      => 2,
+                    'unit_price_ht' => 100,
+                ]],
+            ]))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertSame('litre', $invoice->refresh()->items->first()->unit);
+    }
+
+    public function test_update_re_added_product_line_takes_the_current_product_unit(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        $product  = Product::factory()->create(['unit' => 'litre', 'quantity_on_hand' => 10]);
+        $invoice  = Invoice::factory()->create([
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+        $invoice->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        $product->update(['unit' => 'bidon']);
+
+        // The user removed the line and picked the product again: the form sends
+        // no unit for the new line, so it takes what the catalogue says now.
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'items' => [[
+                    'product_id'    => $product->id,
+                    'description'   => 'Huile 5W30',
+                    'quantity'      => 2,
+                    'unit_price_ht' => 100,
+                ]],
+            ]))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertSame('bidon', $invoice->refresh()->items->first()->unit);
+    }
+
+    /**
+     * A draft facture with one oil line (litre snapshot, 10 in stock).
+     *
+     * @return array{Invoice, InvoiceItem, Product}
+     */
+    private function draftWithOilLine(Customer $customer): array
+    {
+        $product = Product::factory()->create(['unit' => 'litre', 'quantity_on_hand' => 10]);
+        $invoice = Invoice::factory()->create([
+            'type'        => InvoiceType::Invoice->value,
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+        $line = $invoice->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        return [$invoice, $line, $product];
+    }
+
+    public function test_update_ignores_a_unit_sent_by_the_client(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        [$invoice, $line, $product] = $this->draftWithOilLine($customer);
+
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'items' => [
+                    // A surviving line trying to relabel its snapshot.
+                    ['id' => $line->id, 'product_id' => $product->id, 'description' => 'Huile 5W30', 'unit' => 'paire', 'quantity' => 2, 'unit_price_ht' => 100],
+                    // A free-text line trying to carry a unit.
+                    ['product_id' => null, 'description' => 'Main-d’œuvre', 'unit' => 'litre', 'quantity' => 1, 'unit_price_ht' => 200],
+                ],
+            ]))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $units = $invoice->refresh()->items->pluck('unit', 'description');
+        $this->assertSame('litre', $units['Huile 5W30']);
+        $this->assertNull($units['Main-d’œuvre']);
+    }
+
+    public function test_update_line_switched_to_free_text_drops_its_unit(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        [$invoice, $line] = $this->draftWithOilLine($customer);
+
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'items' => [[
+                    'id'            => $line->id,
+                    'product_id'    => null,
+                    'description'   => 'Main-d’œuvre vidange',
+                    'quantity'      => 2,
+                    'unit_price_ht' => 100,
+                ]],
+            ]))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertNull($invoice->refresh()->items->first()->unit);
+    }
+
+    public function test_update_line_switched_to_another_product_takes_that_products_unit(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        [$invoice, $line] = $this->draftWithOilLine($customer);
+        $discs = Product::factory()->create(['unit' => 'paire', 'quantity_on_hand' => 5]);
+
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'items' => [[
+                    'id'            => $line->id,
+                    'product_id'    => $discs->id,
+                    'description'   => 'Disques avant',
+                    'quantity'      => 1,
+                    'unit_price_ht' => 380,
+                ]],
+            ]))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertSame('paire', $invoice->refresh()->items->first()->unit);
+    }
+
+    public function test_update_rejects_a_line_id_from_another_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        [$invoice] = $this->draftWithOilLine($customer);
+        [, $foreignLine, $product] = $this->draftWithOilLine($customer);
+
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'items' => [[
+                    'id'            => $foreignLine->id,
+                    'product_id'    => $product->id,
+                    'description'   => 'Huile 5W30',
+                    'quantity'      => 2,
+                    'unit_price_ht' => 100,
+                ]],
+            ]))
+            ->assertSessionHasErrors('items.0.id');
+    }
+
+    public function test_edit_payload_includes_line_unit(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $invoice  = Invoice::factory()->create([
+            'status'      => InvoiceStatus::Draft->value,
+            'customer_id' => $customer->id,
+        ]);
+        $invoice->items()->create([
+            'product_id'    => null,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.edit', $invoice))
+            ->assertInertia(fn (Assert $page) => $page->where('invoice.items.0.unit', 'litre'));
+    }
+
+    public function test_show_payload_includes_line_unit(): void
+    {
+        $admin    = User::factory()->create()->assignRole('admin');
+        $customer = Customer::factory()->create();
+        $invoice  = Invoice::factory()->create(['customer_id' => $customer->id]);
+        $invoice->items()->create([
+            'product_id'    => null,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.show', $invoice))
+            ->assertInertia(fn (Assert $page) => $page->where('invoice.items.0.unit', 'litre'));
     }
 
     public function test_show_payload_includes_per_line_vehicle(): void

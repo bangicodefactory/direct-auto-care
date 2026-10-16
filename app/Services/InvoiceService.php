@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\StockMovementType;
+use App\Exceptions\ProductUnavailableException;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\User;
@@ -76,6 +77,8 @@ class InvoiceService
     public function update(Invoice $invoice, array $data, User $user): Invoice
     {
         return DB::transaction(function () use ($invoice, $data, $user): Invoice {
+            $items = $this->carryOverUnitSnapshots($invoice, $data['items'] ?? []);
+
             $this->reverseItemStock($invoice, $user);
 
             $invoice->items()->delete();
@@ -92,7 +95,7 @@ class InvoiceService
                 'notes'       => $data['notes'] ?? null,
             ]);
 
-            $this->insertItems($invoice, $data['items'] ?? [], $user);
+            $this->insertItems($invoice, $items, $user);
             $invoice->recomputeTotals()->save();
 
             return $invoice->load('items');
@@ -163,31 +166,71 @@ class InvoiceService
     // Internals
     // -------------------------------------------------------------------------
 
+    /**
+     * Decide each incoming line's unit from the saved rows, before update()
+     * deletes them. A line that edits a saved row (by `id`) and still points
+     * at the same product keeps that row's snapshot, so a later product edit
+     * cannot change what the document says. Any other line (new, re-picked,
+     * service or free text) gets no snapshot and insertItems() takes the
+     * product's current unit. Whatever unit the client sent is discarded.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function carryOverUnitSnapshots(Invoice $invoice, array $items): array
+    {
+        $saved = $invoice->items()->get(['id', 'product_id', 'unit'])->keyBy('id');
+
+        return array_map(function (array $item) use ($saved): array {
+            $row       = isset($item['id']) ? $saved->get((int) $item['id']) : null;
+            $productId = ! empty($item['product_id']) ? (int) $item['product_id'] : null;
+
+            $item['unit'] = $row !== null && $productId !== null && (int) $row->product_id === $productId
+                ? $row->unit
+                : null;
+
+            return $item;
+        }, $items);
+    }
+
     private function insertItems(Invoice $invoice, array $items, User $user): void
     {
-        // Pre-load all referenced products in one query to avoid N+1.
+        // Pre-load all referenced products in one query to avoid N+1. Trashed
+        // products are included so a quote line whose product was deleted since
+        // still resolves (for its unit) and fails with a readable message below
+        // instead of a bare ModelNotFound.
         $productIds = collect($items)->pluck('product_id')->filter()->unique()->values()->all();
-        $products   = Product::findMany($productIds)->keyBy('id');
+        $products   = Product::withTrashed()->findMany($productIds)->keyBy('id');
 
         foreach ($items as $item) {
             $quantity  = (float) $item['quantity'];
             $unitPrice = (float) $item['unit_price_ht'];
+            $productId = ! empty($item['product_id']) ? (int) $item['product_id'] : null;
+            $product   = $productId !== null ? $products->get($productId) : null;
+
+            if ($product?->trashed() && $invoice->type === InvoiceType::Invoice) {
+                throw new ProductUnavailableException(
+                    trans('ui.invoice_product_unavailable', ['name' => $product->name])
+                );
+            }
 
             $invoice->items()->create([
-                'product_id'    => $item['product_id'] ?? null,
+                'product_id'    => $productId,
                 'service_id'    => $item['service_id'] ?? null,
                 'vehicle_id'    => $item['vehicle_id'] ?? null,
                 'description'   => $item['description'],
+                // Snapshot the stock unit so the line survives later product
+                // edits/deletes. A carried-over snapshot (quote conversion, or a
+                // saved line kept by update()) wins. No product means no unit.
+                'unit'          => $product === null ? null : ($item['unit'] ?? $product->unit),
                 'quantity'      => $quantity,
                 'unit_price_ht' => $unitPrice,
                 'line_total_ht' => round($quantity * $unitPrice, 2),
             ]);
 
             // Only invoices (not quotes) decrement stock.
-            if (! empty($item['product_id']) && $invoice->type === InvoiceType::Invoice) {
-                $productId = (int) $item['product_id'];
-                $product   = $products->get($productId)
-                    ?? throw new ModelNotFoundException("Product [{$productId}] not found.");
+            if ($productId !== null && $invoice->type === InvoiceType::Invoice) {
+                $product ?? throw new ModelNotFoundException("Product [{$productId}] not found.");
 
                 // stock_movements.quantity is int — fractional item quantities are rounded.
                 $this->stock->recordMovement(

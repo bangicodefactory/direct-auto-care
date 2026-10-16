@@ -167,6 +167,7 @@ class ServiceOrderService
                 $invoice->items()->create([
                     'product_id'    => $item->product_id,
                     'description'   => $item->description,
+                    'unit'          => $item->unit,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
                     'line_total_ht' => $item->line_total_ht,
@@ -238,6 +239,7 @@ class ServiceOrderService
                 'product_id'    => $product?->id,
                 'service_id'    => $service?->id,
                 'description'   => $description,
+                'unit'          => $product?->unit,
                 'quantity'      => $quantity,
                 'unit_price_ht' => $unitPrice,
                 'line_total_ht' => round($quantity * $unitPrice, 2),

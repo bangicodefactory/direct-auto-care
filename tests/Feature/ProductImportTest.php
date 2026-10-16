@@ -93,8 +93,28 @@ class ProductImportTest extends TestCase
         $this->assertDatabaseHas('products', ['sku' => 'SKU-D', 'unit' => 'paire']);
     }
 
+    public function test_unknown_unit_defaults_by_category_when_units_are_hidden(): void
+    {
+        config(['company.show_product_units' => false]);
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $file = $this->xlsx([
+            ['huile', 'Huile en gallons', 'SKU-GAL', 'gallon', 10, 20, 5, 2],
+            ['piece', 'Pièce en tonneau', 'SKU-TON-H', 'tonneau', 10, 20, 5, 2],
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('products.index'))
+            ->post(route('products.import'), ['file' => $file])
+            ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 2 && $r['failed'] === []);
+
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-GAL', 'unit' => 'litre']);
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-TON-H', 'unit' => 'unite']);
+    }
+
     public function test_unknown_unit_row_is_reported_and_skipped(): void
     {
+        config(['company.show_product_units' => true]);
         $admin = User::factory()->create()->assignRole('admin');
 
         $file = $this->xlsx([
@@ -111,6 +131,45 @@ class ProductImportTest extends TestCase
 
         $this->assertDatabaseMissing('products', ['sku' => 'SKU-TON']);
         $this->assertDatabaseHas('products', ['sku' => 'SKU-OK2', 'unit' => 'litre']);
+    }
+
+    public function test_blank_unit_is_rejected_when_units_are_shown(): void
+    {
+        config(['company.show_product_units' => true]);
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $file = $this->xlsx([
+            ['huile', 'Sans unité', 'SKU-NOU', '', 10, 20, 5, 2],
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('products.index'))
+            ->post(route('products.import'), ['file' => $file])
+            ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 0 && count($r['failed']) === 1);
+
+        $this->assertDatabaseMissing('products', ['sku' => 'SKU-NOU']);
+    }
+
+    public function test_blank_unit_defaults_by_category_when_units_are_hidden(): void
+    {
+        config(['company.show_product_units' => false]);
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $file = $this->xlsx([
+            ['huile', 'Huile sans unité', 'SKU-NOU-H', '', 10, 20, 5, 2],
+            ['piece', 'Pièce sans unité', 'SKU-NOU-P', null, 10, 20, 5, 2],
+            ['piece', 'Pièce avec unité', 'SKU-AVEC', 'paire', 10, 20, 5, 2],
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('products.index'))
+            ->post(route('products.import'), ['file' => $file])
+            ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 3 && $r['failed'] === []);
+
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-NOU-H', 'unit' => 'litre']);
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-NOU-P', 'unit' => 'unite']);
+        // An explicit unit is never overridden by the default.
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-AVEC', 'unit' => 'paire']);
     }
 
     public function test_import_writes_quantity_without_stock_movement(): void

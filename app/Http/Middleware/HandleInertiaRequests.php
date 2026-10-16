@@ -30,8 +30,9 @@ class HandleInertiaRequests extends Middleware
                 'importReport' => $request->session()->get('importReport'),
             ],
             'appSettings' => [
-                'company_name' => config('company.name'),
-                'logo_url'     => Branding::logoUrl(),
+                'company_name'       => config('company.name'),
+                'logo_url'           => Branding::logoUrl(),
+                'show_product_units' => (bool) config('company.show_product_units'),
             ],
             'notifications' => fn () => $request->user()
                 ? $request->user()->notifications()->latest()->take(10)->get()->map(fn ($n) => [

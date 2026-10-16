@@ -9,6 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select';
+import { useShowUnits } from '@/hooks/useShowUnits';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ProductCategory, ProductUnit } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -32,6 +33,7 @@ interface CreateProps {
 }
 
 export default function Create({ categories, units, unitDefaults }: CreateProps) {
+    const showUnits = useShowUnits();
     // Picking a category pre-selects its usual unit (huile → litre), but only
     // until the user touches the unit themselves — their explicit choice must
     // survive later category changes.
@@ -117,7 +119,7 @@ export default function Create({ categories, units, unitDefaults }: CreateProps)
                             <InputError message={errors.name} className="mt-1" />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className={`grid gap-4 ${showUnits ? 'grid-cols-2' : ''}`}>
                             <div>
                                 <InputLabel htmlFor="sku" value="Référence" />
                                 <TextInput
@@ -128,28 +130,35 @@ export default function Create({ categories, units, unitDefaults }: CreateProps)
                                 />
                                 <InputError message={errors.sku} className="mt-1" />
                             </div>
-                            <div>
-                                <InputLabel htmlFor="unit" value="Unité *" />
-                                <Select
-                                    value={data.unit}
-                                    onValueChange={(v) => {
-                                        unitTouched.current = true;
-                                        setData('unit', v);
-                                    }}
-                                >
-                                    <SelectTrigger id="unit" className="mt-1 min-h-[44px] w-full">
-                                        <SelectValue placeholder="— Choisir —" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {units.map((u) => (
-                                            <SelectItem key={u.value} value={u.value}>
-                                                {u.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.unit} className="mt-1" />
-                            </div>
+                            {showUnits && (
+                                <div>
+                                    <InputLabel htmlFor="unit" value="Unité *" />
+                                    <Select
+                                        value={data.unit}
+                                        onValueChange={(v) => {
+                                            unitTouched.current = true;
+                                            setData('unit', v);
+                                        }}
+                                    >
+                                        <SelectTrigger
+                                            id="unit"
+                                            className="mt-1 min-h-[44px] w-full"
+                                        >
+                                            <SelectValue placeholder="— Choisir —" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {units.map((u) => (
+                                                <SelectItem key={u.value} value={u.value}>
+                                                    {u.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.unit} className="mt-1" />
+                                </div>
+                            )}
+                            {/* Hidden field: a server-side unit error still needs somewhere to show. */}
+                            {!showUnits && <InputError message={errors.unit} className="mt-1" />}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

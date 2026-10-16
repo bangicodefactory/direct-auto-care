@@ -92,6 +92,22 @@ enum ProductUnit: string
     }
 
     /**
+     * Short display form for a given quantity ("2 jeux", "1 jeu", "5 L"), from
+     * `ui.units` in lang/{locale}/ui.php — the current locale unless one is
+     * given (the invoice PDF is a French document whoever prints it). Singular
+     * when |quantity| <= 1, plural otherwise: an explicit rule rather than
+     * trans_choice(), whose locale rules would make negative stock movements
+     * singular. The React pages read the same table through the shared
+     * `translations` prop (pluralizeUnit() in resources/js/lib/utils.ts).
+     */
+    public function quantityLabel(float $quantity, ?string $locale = null): string
+    {
+        $form = abs($quantity) <= 1 ? 'one' : 'other';
+
+        return trans("ui.units.{$this->value}.{$form}", [], $locale);
+    }
+
+    /**
      * Resolve a free-text unit ("L", " Litres ", "pièce", "PCS") to its
      * canonical case, or null when the spelling is not recognized.
      */

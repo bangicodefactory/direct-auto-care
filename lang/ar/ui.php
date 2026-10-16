@@ -78,4 +78,22 @@ return [
     'edit'   => 'تعديل',
     'back'   => 'رجوع →',
     'search' => 'بحث',
+
+    // Invoices
+    'invoice_product_unavailable' => 'تم حذف المنتج « :name » من الكتالوج؛ احذف هذا السطر قبل الفوترة.',
+
+    // Stock units next to a quantity, keyed by ProductUnit value.
+    // `one` for |quantity| <= 1, `other` above (see ProductUnit::quantityLabel()).
+    'units' => [
+        'unite'      => ['one' => 'وحدة', 'other' => 'وحدات'],
+        'litre'      => ['one' => 'ل', 'other' => 'ل'],
+        'millilitre' => ['one' => 'مل', 'other' => 'مل'],
+        'kg'         => ['one' => 'كغ', 'other' => 'كغ'],
+        'bidon'      => ['one' => 'بيدون', 'other' => 'بيدونات'],
+        'flacon'     => ['one' => 'قارورة', 'other' => 'قوارير'],
+        'boite'      => ['one' => 'علبة', 'other' => 'علب'],
+        'paire'      => ['one' => 'زوج', 'other' => 'أزواج'],
+        'jeu'        => ['one' => 'طقم', 'other' => 'أطقم'],
+        'kit'        => ['one' => 'عدة', 'other' => 'عدد'],
+    ],
 ];

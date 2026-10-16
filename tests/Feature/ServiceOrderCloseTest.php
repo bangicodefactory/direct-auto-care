@@ -56,6 +56,27 @@ class ServiceOrderCloseTest extends TestCase
         return $order->load('items');
     }
 
+    public function test_closing_copies_the_line_unit_onto_the_invoice(): void
+    {
+        $order = ServiceOrder::factory()->readyPickup()->create();
+        ServiceOrderItem::factory()->create([
+            'service_order_id' => $order->id,
+            'description'      => 'Huile 5W30',
+            'unit'             => 'litre',
+            'quantity'         => 4,
+            'unit_price_ht'    => 60,
+            'line_total_ht'    => 240,
+        ]);
+
+        $this->actingAs($this->employee())
+            ->patch(route('workshop.advance', $order))
+            ->assertRedirect();
+
+        $invoice = Invoice::find($order->refresh()->invoice_id);
+        $this->assertNotNull($invoice);
+        $this->assertSame('litre', $invoice->items->first()->unit);
+    }
+
     public function test_closing_generates_an_issued_invoice_and_marks_the_order_closed(): void
     {
         $order = $this->orderReadyForPickup();

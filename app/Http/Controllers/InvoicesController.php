@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Exceptions\InsufficientStockException;
+use App\Exceptions\ProductUnavailableException;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Models\Customer;
@@ -105,7 +106,7 @@ class InvoicesController extends Controller implements HasMiddleware
     {
         try {
             $invoice = $service->create($request->validated(), $request->user());
-        } catch (InsufficientStockException $e) {
+        } catch (InsufficientStockException|ProductUnavailableException $e) {
             return back()->withErrors(['items' => $e->getMessage()]);
         }
 
@@ -154,6 +155,7 @@ class InvoicesController extends Controller implements HasMiddleware
                     'product_id'    => $item->product_id,
                     'service_id'    => $item->service_id,
                     'description'   => $item->description,
+                    'unit'          => $item->unit,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
                     'line_total_ht' => $item->line_total_ht,
@@ -200,6 +202,7 @@ class InvoicesController extends Controller implements HasMiddleware
                     'service_id'    => $item->service_id,
                     'vehicle_id'    => $item->vehicle_id,
                     'description'   => $item->description,
+                    'unit'          => $item->unit,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
                 ]),
@@ -215,7 +218,7 @@ class InvoicesController extends Controller implements HasMiddleware
     {
         try {
             $service->update($invoice, $request->validated(), $request->user());
-        } catch (InsufficientStockException $e) {
+        } catch (InsufficientStockException|ProductUnavailableException $e) {
             return back()->withErrors(['items' => $e->getMessage()]);
         }
 
@@ -275,11 +278,12 @@ class InvoicesController extends Controller implements HasMiddleware
                     'service_id'    => $item->service_id,
                     'vehicle_id'    => $item->vehicle_id,
                     'description'   => $item->description,
+                    'unit'          => $item->unit,
                     'quantity'      => $item->quantity,
                     'unit_price_ht' => $item->unit_price_ht,
                 ])->all(),
             ], $request->user());
-        } catch (InsufficientStockException $e) {
+        } catch (InsufficientStockException|ProductUnavailableException $e) {
             return back()->with('error', $e->getMessage());
         }
 

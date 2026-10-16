@@ -10,6 +10,8 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
+import UnitSuffix from '@/Components/UnitSuffix';
+import { useUnitByProductId } from '@/hooks/useUnitByProductId';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InvoiceVehicleField from '@/Pages/Invoices/Partials/InvoiceVehicleField';
 import LineVehicleSelect from '@/Pages/Invoices/Partials/LineVehicleSelect';
@@ -84,6 +86,7 @@ export default function Create({
     types,
     defaultType,
 }: CreateProps) {
+    const unitOf = useUnitByProductId(products);
     const { data, setData, post, processing, errors } = useForm<CreateForm>({
         type: defaultType,
         customer_id: '',
@@ -435,20 +438,26 @@ export default function Create({
                                                             </td>
                                                         )}
                                                         <td className="py-2 pe-3">
-                                                            <TextInput
-                                                                type="number"
-                                                                className="w-20"
-                                                                min="0.01"
-                                                                step="0.01"
-                                                                value={item.quantity}
-                                                                onChange={(e) =>
-                                                                    updateItem(
-                                                                        index,
-                                                                        'quantity',
-                                                                        e.target.value,
-                                                                    )
-                                                                }
-                                                            />
+                                                            <div className="flex items-center gap-1">
+                                                                <TextInput
+                                                                    type="number"
+                                                                    className="w-20"
+                                                                    min="0.01"
+                                                                    step="0.01"
+                                                                    value={item.quantity}
+                                                                    onChange={(e) =>
+                                                                        updateItem(
+                                                                            index,
+                                                                            'quantity',
+                                                                            e.target.value,
+                                                                        )
+                                                                    }
+                                                                />
+                                                                <UnitSuffix
+                                                                    quantity={item.quantity}
+                                                                    unit={unitOf(item.product_id)}
+                                                                />
+                                                            </div>
                                                             <InputError
                                                                 message={
                                                                     errors[

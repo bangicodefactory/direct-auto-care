@@ -4,8 +4,9 @@ namespace Tests\Unit\Enums;
 
 use App\Enums\ProductCategory;
 use App\Enums\ProductUnit;
+use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class ProductUnitTest extends TestCase
 {
@@ -73,6 +74,60 @@ class ProductUnitTest extends TestCase
         $this->assertSame(ProductUnit::Unite, ProductUnit::defaultFor(ProductCategory::Filtre));
         $this->assertSame(ProductUnit::Unite, ProductUnit::defaultFor(ProductCategory::Piece));
         $this->assertSame(ProductUnit::Unite, ProductUnit::defaultFor(ProductCategory::Autre));
+    }
+
+    // -------------------------------------------------------------------------
+    // quantityLabel — reads ui.units from lang/{locale}/ui.php
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<string, array{ProductUnit, string, string}>
+     */
+    public static function quantityLabelProvider(): array
+    {
+        return [
+            'unite'      => [ProductUnit::Unite, 'unité', 'unités'],
+            'litre'      => [ProductUnit::Litre, 'L', 'L'],
+            'millilitre' => [ProductUnit::Millilitre, 'mL', 'mL'],
+            'kg'         => [ProductUnit::Kg, 'kg', 'kg'],
+            'bidon'      => [ProductUnit::Bidon, 'bidon', 'bidons'],
+            'flacon'     => [ProductUnit::Flacon, 'flacon', 'flacons'],
+            'boite'      => [ProductUnit::Boite, 'boîte', 'boîtes'],
+            'paire'      => [ProductUnit::Paire, 'paire', 'paires'],
+            'jeu'        => [ProductUnit::Jeu, 'jeu', 'jeux'],
+            'kit'        => [ProductUnit::Kit, 'kit', 'kits'],
+        ];
+    }
+
+    #[DataProvider('quantityLabelProvider')]
+    public function test_quantity_label_is_singular_up_to_one_and_plural_above(
+        ProductUnit $unit,
+        string $singular,
+        string $plural,
+    ): void {
+        $this->assertSame($singular, $unit->quantityLabel(0));
+        $this->assertSame($singular, $unit->quantityLabel(1));
+        $this->assertSame($singular, $unit->quantityLabel(0.5));
+        $this->assertSame($singular, $unit->quantityLabel(-1));
+        $this->assertSame($plural, $unit->quantityLabel(1.5));
+        $this->assertSame($plural, $unit->quantityLabel(2));
+        $this->assertSame($plural, $unit->quantityLabel(-2));
+    }
+
+    public function test_quantity_label_follows_the_locale(): void
+    {
+        App::setLocale('ar');
+
+        $this->assertSame('زوج', ProductUnit::Paire->quantityLabel(1));
+        $this->assertSame('أزواج', ProductUnit::Paire->quantityLabel(2));
+    }
+
+    public function test_every_case_has_a_quantity_label(): void
+    {
+        foreach (ProductUnit::cases() as $unit) {
+            $this->assertNotSame('', $unit->quantityLabel(1));
+            $this->assertNotSame('', $unit->quantityLabel(2));
+        }
     }
 
     // -------------------------------------------------------------------------

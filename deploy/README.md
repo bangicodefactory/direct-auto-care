@@ -29,6 +29,10 @@ Environment** holding that client's secrets. See `.github/workflows/deploy.yml`.
      in the app header and on invoices.
    - `COMPANY_LOGO` — absolute URL or a public-relative path (e.g.
      `branding/acme-logo.svg`) shipped with the deploy. Empty = themed default mark.
+   - `COMPANY_SHOW_PRODUCT_UNITS` — `true` (default) shows stock units next to
+     product quantities in the app, on invoices/PDF and in the workshop; `false`
+     hides them everywhere and makes the product unit field optional (category
+     default). A blank or unrecognised value keeps the default.
    - `THEME_*` — hex brand colours (leave unset for the Direct Auto Care palette).
    - `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` for the seeded admin.
 
