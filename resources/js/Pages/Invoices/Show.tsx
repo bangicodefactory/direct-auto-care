@@ -14,9 +14,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table';
-import { useShowUnits } from '@/hooks/useShowUnits';
+import { useQuantityFormat } from '@/hooks/useQuantityFormat';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatQuantity } from '@/lib/utils';
 import type { InvoiceStatus, InvoiceType } from '@/types/models';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ChevronDown, Printer } from 'lucide-react';
@@ -110,7 +109,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function Show({ invoice, can }: ShowProps) {
-    const showUnits = useShowUnits();
+    const { formatQuantity } = useQuantityFormat();
     const typeLabel = invoice.type === 'quote' ? 'Devis' : 'Facture';
     const { post, delete: destroy, processing } = useForm({});
     const [confirmingCancel, setConfirmingCancel] = useState(false);
@@ -295,7 +294,7 @@ export default function Show({ invoice, can }: ShowProps) {
                                             </TableCell>
                                         )}
                                         <TableCell className="text-end text-muted-foreground">
-                                            {formatQuantity(item.quantity, item.unit, showUnits)}
+                                            {formatQuantity(item.quantity, item.unit)}
                                         </TableCell>
                                         <TableCell className="text-end text-muted-foreground">
                                             {Number(item.unit_price_ht).toFixed(2)} DH

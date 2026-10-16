@@ -24,12 +24,12 @@ const TYPE_LABELS: Record<string, string> = { invoice: 'Facture', quote: 'Devis'
 
 interface LineItem {
     _key: number;
+    /** The saved line this row edits; absent for lines added in this edit. */
+    id?: number;
     product_id: string | number | null;
     service_id: string | number | null;
     vehicle_id: string | number | null;
     description: string;
-    /** Unit snapshotted on the saved line; undefined for lines added in this edit. */
-    unit?: string | null;
     quantity: string | number;
     unit_price_ht: string | number;
 }
@@ -67,6 +67,24 @@ function catalogValue(item: Pick<LineItem, 'product_id' | 'service_id'>): string
 
 export default function Edit({ invoice, customers, products, services, vehicles }: EditProps) {
     const unitOf = useUnitByProductId(products);
+    const savedLines = useMemo(
+        () => new Map(invoice.items.map((it) => [it.id, it])),
+        [invoice.items],
+    );
+
+    // Same rule as InvoiceService::carryOverUnitSnapshots(): a saved line keeps
+    // its snapshot while it still points at the same product; anything else
+    // shows the product's current unit, and service / free-text lines none.
+    function lineUnit(item: LineItem): string | null | undefined {
+        const saved = item.id !== undefined ? savedLines.get(item.id) : undefined;
+
+        if (saved && item.product_id && String(saved.product_id) === String(item.product_id)) {
+            return saved.unit;
+        }
+
+        return unitOf(item.product_id);
+    }
+
     const { data, setData, put, processing, errors } = useForm<EditForm>({
         customer_id: invoice.customer_id ?? '',
         vehicle_id: invoice.vehicle_id ?? '',
@@ -75,7 +93,18 @@ export default function Edit({ invoice, customers, products, services, vehicles 
         discount: invoice.discount ?? '',
         tva_rate: invoice.tva_rate ?? '20',
         notes: invoice.notes ?? '',
-        items: invoice.items.map(withKey),
+        // The unit snapshot stays server-side; only the line id is sent back.
+        items: invoice.items.map((it) =>
+            withKey({
+                id: it.id,
+                product_id: it.product_id,
+                service_id: it.service_id,
+                vehicle_id: it.vehicle_id,
+                description: it.description,
+                quantity: it.quantity,
+                unit_price_ht: it.unit_price_ht,
+            }),
+        ),
     });
 
     const filteredVehicles = useMemo(
@@ -123,8 +152,6 @@ export default function Edit({ invoice, customers, products, services, vehicles 
                         ...it,
                         product_id: id,
                         service_id: '',
-                        // The saved snapshot belongs to the previous product.
-                        unit: undefined,
                         description: product ? product.name : it.description,
                         unit_price_ht: product ? String(product.price_sell) : it.unit_price_ht,
                     };
@@ -135,7 +162,6 @@ export default function Edit({ invoice, customers, products, services, vehicles 
                         ...it,
                         service_id: id,
                         product_id: '',
-                        unit: undefined,
                         description: service ? service.name : it.description,
                         unit_price_ht: service
                             ? String(service.default_price_ht)
@@ -461,14 +487,9 @@ export default function Edit({ invoice, customers, products, services, vehicles 
                                                                         )
                                                                     }
                                                                 />
-                                                                {/* Prefer the line's snapshot so Edit agrees with Show/PDF;
-                                                                    fall back to the catalogue for newly picked products. */}
                                                                 <UnitSuffix
                                                                     quantity={item.quantity}
-                                                                    unit={
-                                                                        item.unit ??
-                                                                        unitOf(item.product_id)
-                                                                    }
+                                                                    unit={lineUnit(item)}
                                                                 />
                                                             </div>
                                                             <InputError

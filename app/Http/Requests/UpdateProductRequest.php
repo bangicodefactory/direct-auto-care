@@ -29,12 +29,16 @@ class UpdateProductRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        if (config('company.show_product_units')) {
+            return;
+        }
+
         $product = $this->route('product');
 
-        $this->merge(StoreProductRequest::withDefaultUnit(
+        $this->merge(['unit' => StoreProductRequest::withDefaultUnit(
             $this->all(),
             $product?->unit,
             $product?->category?->value,
-        ));
+        )['unit']]);
     }
 }

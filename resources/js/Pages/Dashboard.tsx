@@ -1,8 +1,7 @@
 import BarChartCard from '@/Components/Charts/BarChartCard';
 import LineChartCard from '@/Components/Charts/LineChartCard';
-import { useShowUnits } from '@/hooks/useShowUnits';
+import { useQuantityFormat } from '@/hooks/useQuantityFormat';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatQuantity } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import { ReactNode } from 'react';
 
@@ -69,7 +68,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ kpis, isAdmin }: DashboardProps) {
-    const showUnits = useShowUnits();
+    const { formatQuantity } = useQuantityFormat();
     return (
         <AuthenticatedLayout
             header={
@@ -174,11 +173,7 @@ export default function Dashboard({ kpis, isAdmin }: DashboardProps) {
                                             </Link>
                                             <span className="text-destructive">
                                                 {p.quantity_on_hand} /{' '}
-                                                {formatQuantity(
-                                                    p.low_stock_threshold,
-                                                    p.unit,
-                                                    showUnits,
-                                                )}
+                                                {formatQuantity(p.low_stock_threshold, p.unit)}
                                             </span>
                                         </li>
                                     ))}

@@ -3,63 +3,60 @@
 namespace Tests\Unit\Enums;
 
 use App\Enums\ProductUnit;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * ProductUnit::quantityLabel() (PDF) and UNIT_DISPLAY in resources/js/lib/utils.ts
- * (React pages) must render the same singular/plural forms for every unit. This
- * test parses the TypeScript map so the two tables cannot drift silently.
+ * Unit labels live once, in `ui.units` of each lang/{locale}/ui.php: the PDF
+ * reads them through ProductUnit::quantityLabel() and the React pages through
+ * the shared `translations` prop. This keeps every locale's table in step with
+ * the enum, so a new case cannot ship without its labels.
  */
 class ProductUnitDisplaySyncTest extends TestCase
 {
     /**
-     * @return array<string, array{singular: string, plural: string}>
+     * @return array<string, array{string}>
      */
-    private function jsUnitDisplay(): array
+    public static function localeProvider(): array
     {
-        $source = file_get_contents(dirname(__DIR__, 3) . '/resources/js/lib/utils.ts');
-        $this->assertNotFalse($source, 'resources/js/lib/utils.ts must be readable');
-
-        $this->assertSame(
-            1,
-            preg_match('/const UNIT_DISPLAY[^=]*=\s*\{(.*?)\n\};/s', $source, $block),
-            'UNIT_DISPLAY map not found in utils.ts',
-        );
-
-        preg_match_all(
-            "/^\s*(\w+):\s*\{\s*singular:\s*'([^']*)',\s*plural:\s*'([^']*)'\s*\}/mu",
-            $block[1],
-            $rows,
-            PREG_SET_ORDER,
-        );
-
-        $map = [];
-        foreach ($rows as [, $key, $singular, $plural]) {
-            $map[$key] = ['singular' => $singular, 'plural' => $plural];
-        }
-
-        return $map;
+        return [
+            'fr' => ['fr'],
+            'ar' => ['ar'],
+        ];
     }
 
-    public function test_php_and_js_unit_tables_have_the_same_keys(): void
+    /**
+     * @return array<string, mixed>
+     */
+    private function unitTable(string $locale): array
     {
-        $js  = array_keys($this->jsUnitDisplay());
-        $php = array_map(fn (ProductUnit $u) => $u->value, ProductUnit::cases());
+        $ui = require dirname(__DIR__, 3) . "/lang/{$locale}/ui.php";
 
-        sort($js);
-        sort($php);
+        $this->assertIsArray($ui['units'] ?? null, "lang/{$locale}/ui.php must define `units`");
 
-        $this->assertSame($php, $js);
+        return $ui['units'];
     }
 
-    public function test_php_and_js_unit_tables_render_the_same_labels(): void
+    #[DataProvider('localeProvider')]
+    public function test_locale_labels_every_unit_and_nothing_else(string $locale): void
     {
-        $js = $this->jsUnitDisplay();
+        $keys = array_keys($this->unitTable($locale));
+        $enum = array_map(fn (ProductUnit $u) => $u->value, ProductUnit::cases());
 
-        foreach (ProductUnit::cases() as $unit) {
-            $this->assertArrayHasKey($unit->value, $js);
-            $this->assertSame($js[$unit->value]['singular'], $unit->quantityLabel(1), "{$unit->value} singular");
-            $this->assertSame($js[$unit->value]['plural'], $unit->quantityLabel(2), "{$unit->value} plural");
+        sort($keys);
+        sort($enum);
+
+        $this->assertSame($enum, $keys);
+    }
+
+    #[DataProvider('localeProvider')]
+    public function test_locale_has_both_forms_for_every_unit(string $locale): void
+    {
+        foreach ($this->unitTable($locale) as $unit => $forms) {
+            foreach (['one', 'other'] as $form) {
+                $this->assertIsString($forms[$form] ?? null, "{$locale} {$unit}.{$form}");
+                $this->assertNotSame('', $forms[$form], "{$locale} {$unit}.{$form}");
+            }
         }
     }
 }

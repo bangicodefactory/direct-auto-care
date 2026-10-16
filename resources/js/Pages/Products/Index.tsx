@@ -23,9 +23,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table';
-import { useShowUnits } from '@/hooks/useShowUnits';
+import { useQuantityFormat } from '@/hooks/useQuantityFormat';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { CATEGORY_LABELS, formatQuantity } from '@/lib/utils';
+import { CATEGORY_LABELS } from '@/lib/utils';
 import type { Product, ProductCategory } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
@@ -63,7 +63,7 @@ interface IndexProps {
 }
 
 export default function Index({ products, filters, categories, can }: IndexProps) {
-    const showUnits = useShowUnits();
+    const { formatQuantity } = useQuantityFormat();
     const [search, setSearch] = useState(filters?.search ?? '');
     const [deletingProduct, setDeletingProduct] = useState<ProductRow | null>(null);
     const [importing, setImporting] = useState(false);
@@ -235,7 +235,7 @@ export default function Index({ products, filters, categories, can }: IndexProps
                                                     : 'text-foreground'
                                             }`}
                                         >
-                                            {formatQuantity(p.quantity_on_hand, p.unit, showUnits)}
+                                            {formatQuantity(p.quantity_on_hand, p.unit)}
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-end">
                                             <DropdownMenu>

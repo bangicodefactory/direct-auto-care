@@ -4,8 +4,9 @@ namespace Tests\Unit\Enums;
 
 use App\Enums\ProductCategory;
 use App\Enums\ProductUnit;
+use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class ProductUnitTest extends TestCase
 {
@@ -76,7 +77,7 @@ class ProductUnitTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // quantityLabel — mirrors UNIT_DISPLAY in resources/js/lib/utils.ts
+    // quantityLabel — reads ui.units from lang/{locale}/ui.php
     // -------------------------------------------------------------------------
 
     /**
@@ -111,6 +112,14 @@ class ProductUnitTest extends TestCase
         $this->assertSame($plural, $unit->quantityLabel(1.5));
         $this->assertSame($plural, $unit->quantityLabel(2));
         $this->assertSame($plural, $unit->quantityLabel(-2));
+    }
+
+    public function test_quantity_label_follows_the_locale(): void
+    {
+        App::setLocale('ar');
+
+        $this->assertSame('زوج', ProductUnit::Paire->quantityLabel(1));
+        $this->assertSame('أزواج', ProductUnit::Paire->quantityLabel(2));
     }
 
     public function test_every_case_has_a_quantity_label(): void

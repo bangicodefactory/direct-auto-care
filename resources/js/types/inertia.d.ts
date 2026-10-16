@@ -1,3 +1,4 @@
+import type { UnitLabels } from '@/lib/utils';
 import { route as routeFn } from 'ziggy-js';
 import type { User } from './models';
 
@@ -54,6 +55,10 @@ declare module '@inertiajs/core' {
                 show_product_units: boolean;
             };
             locale: string;
+            /** lang/{locale}/ui.php, read by `useTranslation()`; `units` is typed for unit labels. */
+            translations: {
+                ui: Record<string, unknown> & { units?: UnitLabels };
+            };
             notifications: AppNotification[];
             unreadCount: number;
         };

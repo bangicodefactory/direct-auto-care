@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\ProductUnit;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,9 +25,10 @@ class UpdateInvoiceRequest extends FormRequest
             'notes'                 => ['nullable', 'string', 'max:2000'],
             'items'                 => ['required', 'array', 'min:1'],
             'items.*.product_id'    => ['nullable', 'integer', Rule::exists('products', 'id')->whereNull('deleted_at')],
-            // The unit snapshot of a line that survives the edit. The form omits it
-            // for new or re-picked product lines, which then take the product's unit.
-            'items.*.unit'          => ['nullable', 'string', Rule::enum(ProductUnit::class)],
+            // The saved line this row edits, so InvoiceService can keep its unit
+            // snapshot server-side. Absent for lines added in this edit. The unit
+            // itself is never accepted from the client.
+            'items.*.id'            => ['nullable', 'integer', 'distinct', Rule::exists('invoice_items', 'id')->where('invoice_id', $this->route('invoice')->id)],
             // No is_active filter: editing an old document that references a
             // since-deactivated service must still validate.
             'items.*.service_id'    => ['nullable', 'integer', Rule::exists('services', 'id')->whereNull('deleted_at'), $this->serviceExclusiveWithProduct()],

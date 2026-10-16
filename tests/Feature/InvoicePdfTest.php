@@ -305,6 +305,19 @@ class InvoicePdfTest extends TestCase
             ->assertDontSee('2,00 L');
     }
 
+    public function test_print_view_labels_units_in_french_whatever_the_users_locale(): void
+    {
+        config(['company.show_product_units' => true]);
+        $employee = User::factory()->create(['locale' => 'ar']);
+        $employee->assignRole('employee');
+
+        $this->actingAs($employee)
+            ->get(route('invoices.print', $this->invoiceWithUnitLine()))
+            ->assertOk()
+            ->assertSee('2,00 L')
+            ->assertDontSee('2,00 ل');
+    }
+
     public function test_user_without_role_cannot_access_pdf(): void
     {
         $user = User::factory()->create();

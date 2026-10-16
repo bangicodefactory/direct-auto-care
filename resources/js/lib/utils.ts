@@ -7,22 +7,12 @@ export function cn(...inputs: ClassValue[]): string {
 }
 
 /**
- * Display forms per canonical unit, mirroring the PHP ProductUnit enum the
- * same way the ProductCategory union does. Record<ProductUnit, …> makes tsc
- * refuse to compile if the union gains a case this map forgets.
+ * Singular/plural display forms of each stock unit, keyed by ProductUnit value.
+ * Served from `ui.units` in lang/{locale}/ui.php through the shared
+ * `translations` prop, the same table ProductUnit::quantityLabel() reads for
+ * the PDF. Get it with useQuantityFormat() rather than passing it around.
  */
-const UNIT_DISPLAY: Record<ProductUnit, { singular: string; plural: string }> = {
-    unite: { singular: 'unité', plural: 'unités' },
-    litre: { singular: 'L', plural: 'L' },
-    millilitre: { singular: 'mL', plural: 'mL' },
-    kg: { singular: 'kg', plural: 'kg' },
-    bidon: { singular: 'bidon', plural: 'bidons' },
-    flacon: { singular: 'flacon', plural: 'flacons' },
-    boite: { singular: 'boîte', plural: 'boîtes' },
-    paire: { singular: 'paire', plural: 'paires' },
-    jeu: { singular: 'jeu', plural: 'jeux' },
-    kit: { singular: 'kit', plural: 'kits' },
-};
+export type UnitLabels = Partial<Record<string, { one: string; other: string }>>;
 
 /**
  * French display label for a product category value ('piece' -> 'Pièce'),
@@ -37,17 +27,22 @@ export const CATEGORY_LABELS: Record<ProductCategory, string> = {
 
 /**
  * The display form of a stock unit for a given quantity ("2 jeux", "1 jeu",
- * "5 L"). Unknown values — legacy rows not yet normalized by the migration —
- * are returned untouched rather than guessed at.
+ * "5 L"). Singular when |quantity| <= 1, as on the PHP side. Unknown values —
+ * legacy rows not yet normalized by the migration — are returned untouched
+ * rather than guessed at.
  */
-export function pluralizeUnit(quantity: number, unit: ProductUnit | string): string {
-    const display = UNIT_DISPLAY[unit as ProductUnit];
+export function pluralizeUnit(
+    quantity: number,
+    unit: ProductUnit | string,
+    labels: UnitLabels,
+): string {
+    const display = labels[unit];
 
     if (!display) {
         return unit;
     }
 
-    return Math.abs(quantity) <= 1 ? display.singular : display.plural;
+    return Math.abs(quantity) <= 1 ? display.one : display.other;
 }
 
 /**
@@ -59,10 +54,11 @@ export function formatQuantity(
     quantity: number | string,
     unit: ProductUnit | string | null | undefined,
     showUnits: boolean,
+    labels: UnitLabels,
 ): string {
     if (!showUnits || !unit) {
         return String(quantity);
     }
 
-    return `${quantity} ${pluralizeUnit(Number(quantity), unit)}`;
+    return `${quantity} ${pluralizeUnit(Number(quantity), unit, labels)}`;
 }

@@ -11,9 +11,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table';
-import { useShowUnits } from '@/hooks/useShowUnits';
+import { useQuantityFormat } from '@/hooks/useQuantityFormat';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { CATEGORY_LABELS, formatQuantity, pluralizeUnit } from '@/lib/utils';
+import { CATEGORY_LABELS } from '@/lib/utils';
 import type { ProductCategory, StockMovementType } from '@/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
@@ -54,7 +54,7 @@ interface ShowProps {
 }
 
 export default function Show({ product, movements, can }: ShowProps) {
-    const showUnits = useShowUnits();
+    const { showUnits, formatQuantity, unitLabel } = useQuantityFormat();
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [adjusting, setAdjusting] = useState(false);
 
@@ -99,7 +99,7 @@ export default function Show({ product, movements, can }: ShowProps) {
                                     CATEGORY_LABELS[product.category] ?? product.category,
                                 ],
                                 ['Référence', product.sku ?? '—'],
-                                ...(showUnits ? [['Unité', pluralizeUnit(1, product.unit)]] : []),
+                                ...(showUnits ? [['Unité', unitLabel(1, product.unit)]] : []),
                                 [
                                     "Prix d'achat",
                                     product.price_buy
@@ -109,11 +109,7 @@ export default function Show({ product, movements, can }: ShowProps) {
                                 ['Prix de vente', `${Number(product.price_sell).toFixed(2)} DH`],
                                 [
                                     'Quantité en stock',
-                                    formatQuantity(
-                                        product.quantity_on_hand,
-                                        product.unit,
-                                        showUnits,
-                                    ),
+                                    formatQuantity(product.quantity_on_hand, product.unit),
                                 ],
                                 ["Seuil d'alerte", product.low_stock_threshold],
                             ].map(([label, value]) => (
@@ -191,7 +187,8 @@ export default function Show({ product, movements, can }: ShowProps) {
                                             <TableCell
                                                 className={`whitespace-nowrap text-end font-semibold tabular-nums ${m.quantity > 0 ? 'text-emerald-600' : 'text-destructive'}`}
                                             >
-                                                {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                                                {m.quantity > 0 && '+'}
+                                                {formatQuantity(m.quantity, product.unit)}
                                             </TableCell>
                                             <TableCell className="text-muted-foreground">
                                                 {m.reason ?? '—'}
@@ -243,7 +240,7 @@ export default function Show({ product, movements, can }: ShowProps) {
                     <p className="mt-1 text-sm text-muted-foreground">
                         Stock actuel :{' '}
                         <span className="font-semibold">
-                            {formatQuantity(product.quantity_on_hand, product.unit, showUnits)}
+                            {formatQuantity(product.quantity_on_hand, product.unit)}
                         </span>
                         . Entrez une valeur positive pour ajouter, négative pour retirer.
                     </p>

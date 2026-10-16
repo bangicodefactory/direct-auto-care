@@ -1,5 +1,4 @@
-import { useShowUnits } from '@/hooks/useShowUnits';
-import { pluralizeUnit } from '@/lib/utils';
+import { useQuantityFormat } from '@/hooks/useQuantityFormat';
 
 interface UnitSuffixProps {
     quantity: number | string;
@@ -11,7 +10,7 @@ interface UnitSuffixProps {
  * Renders nothing when the deployment hides units or the line has no unit.
  */
 export default function UnitSuffix({ quantity, unit }: UnitSuffixProps) {
-    const showUnits = useShowUnits();
+    const { showUnits, unitLabel } = useQuantityFormat();
 
     if (!showUnits || !unit) {
         return null;
@@ -23,7 +22,7 @@ export default function UnitSuffix({ quantity, unit }: UnitSuffixProps) {
 
     return (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
-            {pluralizeUnit(count, unit)}
+            {unitLabel(count, unit)}
         </span>
     );
 }

@@ -93,8 +93,28 @@ class ProductImportTest extends TestCase
         $this->assertDatabaseHas('products', ['sku' => 'SKU-D', 'unit' => 'paire']);
     }
 
+    public function test_unknown_unit_defaults_by_category_when_units_are_hidden(): void
+    {
+        config(['company.show_product_units' => false]);
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $file = $this->xlsx([
+            ['huile', 'Huile en gallons', 'SKU-GAL', 'gallon', 10, 20, 5, 2],
+            ['piece', 'Pièce en tonneau', 'SKU-TON-H', 'tonneau', 10, 20, 5, 2],
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('products.index'))
+            ->post(route('products.import'), ['file' => $file])
+            ->assertSessionHas('importReport', fn ($r) => $r['imported'] === 2 && $r['failed'] === []);
+
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-GAL', 'unit' => 'litre']);
+        $this->assertDatabaseHas('products', ['sku' => 'SKU-TON-H', 'unit' => 'unite']);
+    }
+
     public function test_unknown_unit_row_is_reported_and_skipped(): void
     {
+        config(['company.show_product_units' => true]);
         $admin = User::factory()->create()->assignRole('admin');
 
         $file = $this->xlsx([

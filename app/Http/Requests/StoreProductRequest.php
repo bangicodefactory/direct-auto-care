@@ -22,7 +22,11 @@ class StoreProductRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge(self::withDefaultUnit($this->all()));
+        if (config('company.show_product_units')) {
+            return;
+        }
+
+        $this->merge(['unit' => self::withDefaultUnit($this->all())['unit']]);
     }
 
     /**

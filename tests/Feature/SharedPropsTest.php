@@ -45,4 +45,20 @@ class SharedPropsTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('appSettings.show_product_units', false));
     }
+
+    public function test_unit_labels_are_shared_in_the_users_locale(): void
+    {
+        $this->actingAs($this->admin)
+            ->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('translations.ui.units.paire.one', 'paire')
+                ->where('translations.ui.units.paire.other', 'paires'));
+
+        $this->admin->update(['locale' => 'ar']);
+
+        $this->actingAs($this->admin)
+            ->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('translations.ui.units.paire.other', 'أزواج'));
+    }
 }

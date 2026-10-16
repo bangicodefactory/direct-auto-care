@@ -6,6 +6,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -532,7 +533,7 @@ class InvoicesControllerTest extends TestCase
             'status'      => InvoiceStatus::Draft->value,
             'customer_id' => $customer->id,
         ]);
-        $invoice->items()->create([
+        $line = $invoice->items()->create([
             'product_id'    => $product->id,
             'description'   => 'Huile 5W30',
             'unit'          => 'litre',
@@ -543,14 +544,14 @@ class InvoicesControllerTest extends TestCase
 
         $product->update(['unit' => 'bidon']);
 
-        // The edit form re-sends a surviving line with its snapshot.
+        // The edit form re-sends a surviving line by id; the server keeps its snapshot.
         $this->actingAs($employee)
             ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
                 'notes' => 'Correction',
                 'items' => [[
+                    'id'            => $line->id,
                     'product_id'    => $product->id,
                     'description'   => 'Huile 5W30',
-                    'unit'          => 'litre',
                     'quantity'      => 2,
                     'unit_price_ht' => 100,
                 ]],
@@ -597,27 +598,114 @@ class InvoicesControllerTest extends TestCase
         $this->assertSame('bidon', $invoice->refresh()->items->first()->unit);
     }
 
-    public function test_update_rejects_an_unknown_line_unit(): void
+    /**
+     * A draft facture with one oil line (litre snapshot, 10 in stock).
+     *
+     * @return array{Invoice, InvoiceItem, Product}
+     */
+    private function draftWithOilLine(Customer $customer): array
     {
-        $employee = User::factory()->create()->assignRole('employee');
-        $customer = Customer::factory()->create();
-        $invoice  = Invoice::factory()->create([
+        $product = Product::factory()->create(['unit' => 'litre', 'quantity_on_hand' => 10]);
+        $invoice = Invoice::factory()->create([
             'type'        => InvoiceType::Invoice->value,
             'status'      => InvoiceStatus::Draft->value,
             'customer_id' => $customer->id,
         ]);
+        $line = $invoice->items()->create([
+            'product_id'    => $product->id,
+            'description'   => 'Huile 5W30',
+            'unit'          => 'litre',
+            'quantity'      => 2,
+            'unit_price_ht' => 100,
+            'line_total_ht' => 200,
+        ]);
+
+        return [$invoice, $line, $product];
+    }
+
+    public function test_update_ignores_a_unit_sent_by_the_client(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        [$invoice, $line, $product] = $this->draftWithOilLine($customer);
+
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'items' => [
+                    // A surviving line trying to relabel its snapshot.
+                    ['id' => $line->id, 'product_id' => $product->id, 'description' => 'Huile 5W30', 'unit' => 'paire', 'quantity' => 2, 'unit_price_ht' => 100],
+                    // A free-text line trying to carry a unit.
+                    ['product_id' => null, 'description' => 'Main-d’œuvre', 'unit' => 'litre', 'quantity' => 1, 'unit_price_ht' => 200],
+                ],
+            ]))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $units = $invoice->refresh()->items->pluck('unit', 'description');
+        $this->assertSame('litre', $units['Huile 5W30']);
+        $this->assertNull($units['Main-d’œuvre']);
+    }
+
+    public function test_update_line_switched_to_free_text_drops_its_unit(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        [$invoice, $line] = $this->draftWithOilLine($customer);
 
         $this->actingAs($employee)
             ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
                 'items' => [[
+                    'id'            => $line->id,
                     'product_id'    => null,
-                    'description'   => "Main d'œuvre",
-                    'unit'          => 'tonneau',
-                    'quantity'      => 1,
-                    'unit_price_ht' => 200,
+                    'description'   => 'Main-d’œuvre vidange',
+                    'quantity'      => 2,
+                    'unit_price_ht' => 100,
                 ]],
             ]))
-            ->assertSessionHasErrors('items.0.unit');
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertNull($invoice->refresh()->items->first()->unit);
+    }
+
+    public function test_update_line_switched_to_another_product_takes_that_products_unit(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        [$invoice, $line] = $this->draftWithOilLine($customer);
+        $discs = Product::factory()->create(['unit' => 'paire', 'quantity_on_hand' => 5]);
+
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'items' => [[
+                    'id'            => $line->id,
+                    'product_id'    => $discs->id,
+                    'description'   => 'Disques avant',
+                    'quantity'      => 1,
+                    'unit_price_ht' => 380,
+                ]],
+            ]))
+            ->assertRedirect(route('invoices.show', $invoice));
+
+        $this->assertSame('paire', $invoice->refresh()->items->first()->unit);
+    }
+
+    public function test_update_rejects_a_line_id_from_another_invoice(): void
+    {
+        $employee = User::factory()->create()->assignRole('employee');
+        $customer = Customer::factory()->create();
+        [$invoice] = $this->draftWithOilLine($customer);
+        [, $foreignLine, $product] = $this->draftWithOilLine($customer);
+
+        $this->actingAs($employee)
+            ->put(route('invoices.update', $invoice), $this->updatePayload($customer, [
+                'items' => [[
+                    'id'            => $foreignLine->id,
+                    'product_id'    => $product->id,
+                    'description'   => 'Huile 5W30',
+                    'quantity'      => 2,
+                    'unit_price_ht' => 100,
+                ]],
+            ]))
+            ->assertSessionHasErrors('items.0.id');
     }
 
     public function test_edit_payload_includes_line_unit(): void

@@ -105,8 +105,12 @@ class ProductImportService
             // values are left as-is on purpose: the enum rule then rejects the
             // row into the report, where a human can fix the file — unlike the
             // data migration, which has nobody to ask and must coerce.
+            // Deployments that hide units are the exception: nobody there can
+            // see or fix the unit, so an unreadable cell is dropped and takes
+            // the category default like a blank one.
             if (isset($data['unit']) && is_string($data['unit'])) {
-                $data['unit'] = ProductUnit::tryFromSynonym($data['unit'])?->value ?? $data['unit'];
+                $resolved     = ProductUnit::tryFromSynonym($data['unit'])?->value;
+                $data['unit'] = $resolved ?? (config('company.show_product_units') ? $data['unit'] : null);
             }
 
             // Deployments that hide units accept a blank cell (category default).
