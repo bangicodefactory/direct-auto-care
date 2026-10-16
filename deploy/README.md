@@ -47,8 +47,9 @@ Environment** holding that client's secrets. See `.github/workflows/deploy.yml`.
      server `.env` from step 2, pasted).
    - Vars (optional): `CPANEL_PHP_BIN` (PHP 8.4 CLI path),
      `SENTRY_ORG` / `SENTRY_PROJECT` (to use a per-client Sentry project),
-     `COMPANY_SHOW_PRODUCT_UNITS` (`true` / `false`, overrides the line in
-     `CPANEL_ENV`; anything else fails the deploy). Set it on the Environment
+     `COMPANY_SHOW_PRODUCT_UNITS` (`true` / `false`, or `1`/`0`, `yes`/`no`,
+     `on`/`off` in any case; overrides the line in `CPANEL_ENV`). Anything else
+     fails the deploy before it touches the server. Set it on the Environment
      only: a repo-level variable of that name fails every deploy.
 
 4. **Register the client** in the repo variable `DEPLOY_CLIENTS` (a JSON array of
