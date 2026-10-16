@@ -119,7 +119,7 @@ export default function Create({ categories, units, unitDefaults }: CreateProps)
                             <InputError message={errors.name} className="mt-1" />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className={`grid gap-4 ${showUnits ? 'grid-cols-2' : ''}`}>
                             <div>
                                 <InputLabel htmlFor="sku" value="Référence" />
                                 <TextInput
