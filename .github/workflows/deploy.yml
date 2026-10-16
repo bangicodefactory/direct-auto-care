@@ -56,6 +56,18 @@ jobs:
     outputs:
       clients: ${{ steps.pick.outputs.clients }}
     steps:
+      # This job has no Environment, so any value seen here is repo- or
+      # org-level and would silently apply to every client that doesn't set
+      # its own. Per-client toggles must live on the client's Environment.
+      - name: Assert per-client toggles are not set repo-wide
+        env:
+          SHOW_PRODUCT_UNITS: ${{ vars.COMPANY_SHOW_PRODUCT_UNITS }}
+        run: |
+          if [ -n "$SHOW_PRODUCT_UNITS" ]; then
+            echo "::error::COMPANY_SHOW_PRODUCT_UNITS is set as a repo/org variable. Set it on each client's Environment instead (gh variable set COMPANY_SHOW_PRODUCT_UNITS --env <client>) and delete the repo-level one."
+            exit 1
+          fi
+
       - id: pick
         env:
           # A single manual client, or "all"/auto → the DEPLOY_CLIENTS repo var.
@@ -191,9 +203,19 @@ jobs:
           ENV_CONTENT: ${{ secrets.CPANEL_ENV }}
           SHOW_PRODUCT_UNITS: ${{ vars.COMPANY_SHOW_PRODUCT_UNITS }}
         run: |
+          case "$SHOW_PRODUCT_UNITS" in
+            '' | true | false) ;;
+            *)
+              echo "::error::COMPANY_SHOW_PRODUCT_UNITS must be true or false (got '$SHOW_PRODUCT_UNITS')."
+              exit 1
+              ;;
+          esac
           {
             if [ -n "$SHOW_PRODUCT_UNITS" ]; then
-              printf '%s\n' "$ENV_CONTENT" | grep -v '^COMPANY_SHOW_PRODUCT_UNITS=' || true
+              # Drop every spelling phpdotenv accepts (export, spaces) so the
+              # server .env holds exactly one definition.
+              printf '%s\n' "${ENV_CONTENT%$'\n'}" \
+                | grep -Ev '^[[:space:]]*(export[[:space:]]+)?COMPANY_SHOW_PRODUCT_UNITS[[:space:]]*=' || true
               printf 'COMPANY_SHOW_PRODUCT_UNITS=%s\n' "$SHOW_PRODUCT_UNITS"
             else
               printf '%s' "$ENV_CONTENT"
