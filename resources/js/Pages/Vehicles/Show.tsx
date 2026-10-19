@@ -37,6 +37,8 @@ interface ShowVehicle {
     };
     service_records: ServiceRecordRow[];
     appointments: AppointmentRow[];
+    /** Number of fleet notes, or null when the owner isn't a fleet client. */
+    fleet_notes_count: number | null;
 }
 
 interface ShowProps {
@@ -185,6 +187,13 @@ export default function Show({ vehicle, can }: ShowProps) {
                         <span className="font-normal text-muted-foreground">({vehicle.year})</span>
                     </h2>
                     <div className="flex gap-2">
+                        {vehicle.fleet_notes_count !== null && (
+                            <Button variant="outline" asChild>
+                                <Link href={route('fleet-notes.show', vehicle.id)}>
+                                    Notes flotte ({vehicle.fleet_notes_count})
+                                </Link>
+                            </Button>
+                        )}
                         {can.create_service_record && (
                             <Button asChild>
                                 <Link href={route('vehicles.service-records.create', vehicle.id)}>

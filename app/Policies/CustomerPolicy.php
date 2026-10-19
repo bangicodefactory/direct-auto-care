@@ -35,6 +35,14 @@ class CustomerPolicy
     }
 
     /**
+     * Turning the "Notes flotte" logbook on or off for a client.
+     */
+    public function manageFleetNotes(User $user): bool
+    {
+        return $user->hasRole('admin');
+    }
+
+    /**
      * A client holding a facture cannot be deleted, by anyone.
      *
      * The facture carries a fiscal number issued the moment it was created, so

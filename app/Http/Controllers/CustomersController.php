@@ -109,6 +109,7 @@ class CustomersController extends Controller
             'type'            => CustomerType::Individual->value,
             'notify_email'    => false,
             'notify_whatsapp' => false,
+            'fleet_notes_enabled' => false,
         ];
 
         return array_merge($blank, $defaults, Arr::except($request->validated(), ['confirm_restore']));
@@ -140,12 +141,15 @@ class CustomersController extends Controller
         ]);
     }
 
-    public function edit(Customer $customer)
+    public function edit(Request $request, Customer $customer)
     {
         $this->authorize('update', $customer);
 
         return Inertia::render('Customers/Edit', [
             'customer' => $customer,
+            'can'      => [
+                'manage_fleet_notes' => $request->user()->can('manageFleetNotes', Customer::class),
+            ],
         ]);
     }
 

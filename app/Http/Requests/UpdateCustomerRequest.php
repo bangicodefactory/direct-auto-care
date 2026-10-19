@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\CustomerType;
+use App\Models\Customer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -34,7 +35,15 @@ class UpdateCustomerRequest extends FormRequest
     {
         $customer = $this->route('customer');
 
+        // Only admins may switch the fleet notes logbook on or off. Without the
+        // rule the key never reaches validated(), so an employee's submitted
+        // value is silently ignored rather than written.
+        $fleetNotes = $this->user()?->can('manageFleetNotes', Customer::class)
+            ? ['fleet_notes_enabled' => ['sometimes', 'boolean']]
+            : [];
+
         return [
+            ...$fleetNotes,
             'type'            => ['nullable', Rule::enum(CustomerType::class)],
             'company_name'    => ['nullable', 'required_if:type,company', 'string', 'max:191'],
             'ice'             => ['nullable', 'string', 'max:50'],

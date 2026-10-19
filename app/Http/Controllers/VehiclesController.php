@@ -155,6 +155,9 @@ class VehiclesController extends Controller
                         'id'         => $a->id,
                         'created_at' => $a->created_at->translatedFormat('d/m/Y'),
                     ]),
+                    'fleet_notes_count' => $vehicle->customer->fleet_notes_enabled
+                        ? $vehicle->notes()->count()
+                        : null,
                 ]
             ),
             'can' => [

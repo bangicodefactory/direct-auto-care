@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Customer;
 use App\Support\Branding;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -45,6 +46,8 @@ class HandleInertiaRequests extends Middleware
                 ])
                 : [],
             'unreadCount'  => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
+            // Drives the "Notes flotte" menu entry: hidden until a client is flagged.
+            'fleetNotesEnabled' => fn () => $request->user() !== null && Customer::fleetNotes()->exists(),
             'locale'       => fn () => app()->getLocale(),
             'translations' => fn () => ['ui' => trans('ui')],
         ];

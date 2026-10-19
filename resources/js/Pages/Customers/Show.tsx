@@ -130,6 +130,24 @@ export default function Show({ customer, can }: ShowProps) {
                                     {customer.type === 'company' ? 'Entreprise' : 'Particulier'}
                                 </dd>
 
+                                {customer.fleet_notes_enabled && (
+                                    <>
+                                        <dt className="font-medium text-muted-foreground">
+                                            Client flotte
+                                        </dt>
+                                        <dd>
+                                            <Link
+                                                href={route('fleet-notes.index', {
+                                                    customer: customer.id,
+                                                })}
+                                                className="text-primary hover:underline"
+                                            >
+                                                Voir les notes flotte
+                                            </Link>
+                                        </dd>
+                                    </>
+                                )}
+
                                 {customer.type === 'company' && (
                                     <>
                                         <dt className="font-medium text-muted-foreground">

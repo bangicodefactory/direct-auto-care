@@ -33,6 +33,7 @@ import {
     LayoutDashboard,
     LogOut,
     type LucideIcon,
+    NotebookPen,
     Package,
     UserCog,
     Users,
@@ -88,6 +89,14 @@ const navMain: NavItem[] = [
     { labelKey: 'ui.nav_workshop', routeName: 'workshop.index', icon: Wrench, match: 'workshop.*' },
 ];
 
+// Only shown once a client is flagged as a fleet client (see `fleetNotesEnabled`).
+const navFleetNotes: NavItem = {
+    labelKey: 'ui.nav_fleet_notes',
+    routeName: 'fleet-notes.index',
+    icon: NotebookPen,
+    match: 'fleet-notes.*',
+};
+
 const navAdmin: NavItem[] = [
     {
         labelKey: 'ui.nav_reminders',
@@ -112,7 +121,8 @@ type AppSidebarProps = { user: User; role: string | null } & Omit<
 
 export default function AppSidebar({ user, role, ...props }: AppSidebarProps) {
     const { t } = useTranslation();
-    const { locale, appSettings } = usePage().props;
+    const { locale, appSettings, fleetNotesEnabled } = usePage().props;
+    const mainItems = fleetNotesEnabled ? [...navMain, navFleetNotes] : navMain;
     const isAdmin = role === 'admin';
     const initials = user.name.charAt(0).toUpperCase();
     const side = locale === 'ar' ? 'right' : 'left';
@@ -143,7 +153,7 @@ export default function AppSidebar({ user, role, ...props }: AppSidebarProps) {
                 <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {navMain.map((item) => (
+                            {mainItems.map((item) => (
                                 <SidebarMenuItem key={item.labelKey}>
                                     <SidebarMenuButton
                                         asChild
