@@ -70,8 +70,12 @@ class Vehicle extends Model
         return $this->hasMany(VehicleNote::class)->latest()->latest('id');
     }
 
+    /**
+     * Same ordering as {@see notes()}, so the list and the timeline agree on
+     * which note is the latest.
+     */
     public function latestNote(): HasOne
     {
-        return $this->hasOne(VehicleNote::class)->latestOfMany();
+        return $this->hasOne(VehicleNote::class)->latestOfMany(['created_at', 'id']);
     }
 }

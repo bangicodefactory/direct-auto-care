@@ -109,6 +109,22 @@ class FleetNotesTest extends TestCase
                 ->where('vehicles.data.1.latest_note.excerpt', 'Dernière note'));
     }
 
+    public function test_latest_note_follows_creation_date_not_insertion_order(): void
+    {
+        $vehicle = $this->fleetVehicle();
+        VehicleNote::factory()->for($vehicle)->create(['body' => 'Plus récente']);
+        VehicleNote::factory()->for($vehicle)->create(['body' => 'Antidatée', 'created_at' => now()->subWeek()]);
+
+        $this->actingAs($this->employee())
+            ->get(route('fleet-notes.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('vehicles.data.0.latest_note.excerpt', 'Plus récente'));
+
+        $this->actingAs($this->employee())
+            ->get(route('fleet-notes.show', $vehicle))
+            ->assertInertia(fn (Assert $page) => $page->where('notes.0.body', 'Plus récente'));
+    }
+
     public function test_index_search_filters_by_plate(): void
     {
         $match = $this->fleetVehicle(['license_plate' => '777-B-12']);
@@ -267,6 +283,26 @@ class FleetNotesTest extends TestCase
         $this->assertModelMissing($note);
     }
 
+    public function test_notes_become_read_only_once_the_client_leaves_the_fleet(): void
+    {
+        $author = $this->employee();
+        $vehicle = $this->fleetVehicle();
+        $note = VehicleNote::factory()->for($vehicle)->for($author)->create(['body' => 'Original']);
+        $vehicle->customer->update(['fleet_notes_enabled' => false]);
+
+        foreach ([$author, $this->admin()] as $user) {
+            $this->actingAs($user)
+                ->put(route('vehicle-notes.update', $note), ['body' => 'Modifié'])
+                ->assertForbidden();
+
+            $this->actingAs($user)
+                ->delete(route('vehicle-notes.destroy', $note))
+                ->assertForbidden();
+        }
+
+        $this->assertSame('Original', $note->fresh()->body);
+    }
+
     // -------------------------------------------------------------------------
     // Fleet flag on the customer — admin only
     // -------------------------------------------------------------------------
@@ -340,6 +376,15 @@ class FleetNotesTest extends TestCase
         Customer::factory()->create();
 
         $this->actingAs($this->employee())
+            ->get(route('dashboard'))
+            ->assertInertia(fn (Assert $page) => $page->where('fleetNotesEnabled', false));
+    }
+
+    public function test_menu_flag_is_off_for_a_user_without_role(): void
+    {
+        Customer::factory()->fleetNotes()->create();
+
+        $this->actingAs(User::factory()->create())
             ->get(route('dashboard'))
             ->assertInertia(fn (Assert $page) => $page->where('fleetNotesEnabled', false));
     }
