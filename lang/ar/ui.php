@@ -21,6 +21,7 @@ return [
     'nav_appointments' => 'المواعيد',
     'nav_today'        => 'اليوم',
     'nav_workshop'     => 'الورشة',
+    'nav_fleet_notes'  => 'ملاحظات الأسطول',
     'nav_reminders'    => 'التذكيرات',
     'nav_users'        => 'المستخدمون',
     'nav_settings'     => 'الإعدادات',

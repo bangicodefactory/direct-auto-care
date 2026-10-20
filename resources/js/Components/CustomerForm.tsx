@@ -38,6 +38,7 @@ interface CustomerFormData {
     notes: string;
     notify_whatsapp: boolean;
     notify_email: boolean;
+    fleet_notes_enabled?: boolean;
 }
 
 interface CustomerFormProps {
@@ -48,6 +49,8 @@ interface CustomerFormProps {
     onSubmit: (e: React.FormEvent) => void;
     cancelHref: string;
     autoFocus?: boolean;
+    /** Admin-only: show the "Notes flotte" toggle (enforced server-side too). */
+    showFleetNotesToggle?: boolean;
 }
 
 const TYPE_OPTIONS: { value: CustomerType; label: string }[] = [
@@ -63,6 +66,7 @@ export default function CustomerForm({
     onSubmit,
     cancelHref,
     autoFocus = true,
+    showFleetNotesToggle = false,
 }: CustomerFormProps) {
     const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
     const isCompany = data.type === 'company';
@@ -305,6 +309,27 @@ export default function CustomerForm({
                     </label>
                 </div>
             </fieldset>
+
+            {showFleetNotesToggle && (
+                <fieldset>
+                    <legend className="text-sm font-medium text-foreground">Flotte</legend>
+                    <label className="mt-2 flex items-start gap-2">
+                        <Checkbox
+                            id="fleet_notes_enabled"
+                            className="mt-0.5"
+                            checked={data.fleet_notes_enabled ?? false}
+                            onChange={(e) => setData('fleet_notes_enabled', e.target.checked)}
+                        />
+                        <span className="text-sm text-foreground">
+                            Client flotte — activer les notes par véhicule
+                            <span className="block text-xs text-muted-foreground">
+                                Ses véhicules apparaissent dans le menu « Notes flotte ».
+                            </span>
+                        </span>
+                    </label>
+                    <InputError message={errors.fleet_notes_enabled} className="mt-2" />
+                </fieldset>
+            )}
 
             <div className="flex items-center justify-end gap-4">
                 <Button variant="ghost" asChild>

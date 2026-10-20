@@ -4,6 +4,7 @@ use App\Http\Controllers\AppointmentsController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\BrandingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FleetNotesController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\InvoicesController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\ServiceOrderItemController;
 use App\Http\Controllers\ServiceRecordsController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\VehicleNotesController;
 use App\Http\Controllers\VehiclesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -59,6 +61,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('workshop/{serviceOrder}/cancel', [ServiceOrderController::class, 'cancel'])->name('workshop.cancel');
     Route::post('workshop/{serviceOrder}/items', [ServiceOrderItemController::class, 'store'])->name('workshop.items.store');
     Route::delete('workshop/{serviceOrder}/items/{item}', [ServiceOrderItemController::class, 'destroy'])->name('workshop.items.destroy');
+});
+
+// Notes flotte — per-vehicle notes logbook for fleet clients.
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('fleet-notes', [FleetNotesController::class, 'index'])->name('fleet-notes.index');
+    Route::get('fleet-notes/{vehicle}', [FleetNotesController::class, 'show'])->name('fleet-notes.show');
+    Route::post('fleet-notes/{vehicle}/notes', [VehicleNotesController::class, 'store'])->name('fleet-notes.notes.store');
+    Route::put('vehicle-notes/{vehicleNote}', [VehicleNotesController::class, 'update'])->name('vehicle-notes.update');
+    Route::delete('vehicle-notes/{vehicleNote}', [VehicleNotesController::class, 'destroy'])->name('vehicle-notes.destroy');
 });
 
 Route::resource('invoices', InvoicesController::class)

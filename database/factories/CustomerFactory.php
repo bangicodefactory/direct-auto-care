@@ -64,6 +64,7 @@ class CustomerFactory extends Factory
             'notes' => fake()->optional(0.3)->sentence(),
             'notify_email' => fake()->boolean(30),
             'notify_whatsapp' => fake()->boolean(40),
+            'fleet_notes_enabled' => false,
         ];
     }
 
@@ -80,6 +81,16 @@ class CustomerFactory extends Factory
             'if' => fake()->numerify('#######'),
             'patente' => fake()->optional(0.5)->numerify('########'),
             'ville' => fake()->randomElement(['Casablanca', 'Rabat', 'Tanger', 'Marrakech', 'Fès', 'Agadir']),
+        ]);
+    }
+
+    /**
+     * A fleet client: its vehicles get the "Notes flotte" logbook.
+     */
+    public function fleetNotes(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'fleet_notes_enabled' => true,
         ]);
     }
 }

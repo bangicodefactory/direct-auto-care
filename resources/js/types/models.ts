@@ -98,6 +98,8 @@ export interface Customer {
     notes: string | null;
     notify_email: boolean;
     notify_whatsapp: boolean;
+    /** Fleet client: its vehicles get the "Notes flotte" logbook. */
+    fleet_notes_enabled: boolean;
     created_at: string;
     updated_at: string;
     deleted_at?: string | null;

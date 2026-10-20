@@ -38,6 +38,7 @@ class Customer extends Model
         'notes',
         'notify_email',
         'notify_whatsapp',
+        'fleet_notes_enabled',
     ];
 
     /**
@@ -54,6 +55,7 @@ class Customer extends Model
             'type' => CustomerType::class,
             'notify_email' => 'boolean',
             'notify_whatsapp' => 'boolean',
+            'fleet_notes_enabled' => 'boolean',
         ];
     }
 
@@ -87,6 +89,14 @@ class Customer extends Model
 
             return trim("{$this->first_name} {$this->last_name}");
         });
+    }
+
+    /**
+     * Fleet clients whose vehicles get a notes logbook under "Notes flotte".
+     */
+    public function scopeFleetNotes(Builder $query): void
+    {
+        $query->where('fleet_notes_enabled', true);
     }
 
     public function vehicles(): HasMany

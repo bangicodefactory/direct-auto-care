@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vehicle extends Model
@@ -54,5 +55,27 @@ class Vehicle extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function serviceOrders(): HasMany
+    {
+        return $this->hasMany(ServiceOrder::class);
+    }
+
+    /**
+     * Fleet notes logbook, newest first.
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(VehicleNote::class)->latest()->latest('id');
+    }
+
+    /**
+     * Same ordering as {@see notes()}, so the list and the timeline agree on
+     * which note is the latest.
+     */
+    public function latestNote(): HasOne
+    {
+        return $this->hasOne(VehicleNote::class)->latestOfMany(['created_at', 'id']);
     }
 }

@@ -21,6 +21,7 @@ return [
     'nav_appointments' => 'Rendez-vous',
     'nav_today'        => "Aujourd'hui",
     'nav_workshop'     => 'Atelier',
+    'nav_fleet_notes'  => 'Notes flotte',
     'nav_reminders'    => 'Rappels',
     'nav_users'        => 'Utilisateurs',
     'nav_settings'     => 'Paramètres',

@@ -5,9 +5,10 @@ import { Head, useForm } from '@inertiajs/react';
 
 interface EditProps {
     customer: Customer;
+    can: { manage_fleet_notes: boolean };
 }
 
-export default function Edit({ customer }: EditProps) {
+export default function Edit({ customer, can }: EditProps) {
     const { data, setData, put, processing, errors } = useForm({
         type: customer.type,
         company_name: customer.company_name ?? '',
@@ -23,6 +24,7 @@ export default function Edit({ customer }: EditProps) {
         notes: customer.notes ?? '',
         notify_whatsapp: customer.notify_whatsapp,
         notify_email: customer.notify_email,
+        fleet_notes_enabled: customer.fleet_notes_enabled,
     });
 
     function submit(e: React.FormEvent) {
@@ -51,6 +53,7 @@ export default function Edit({ customer }: EditProps) {
                             onSubmit={submit}
                             cancelHref={route('customers.show', customer.id)}
                             autoFocus={false}
+                            showFleetNotesToggle={can.manage_fleet_notes}
                         />
                     </div>
                 </div>

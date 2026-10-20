@@ -61,6 +61,8 @@ declare module '@inertiajs/core' {
             };
             notifications: AppNotification[];
             unreadCount: number;
+            /** True once at least one client is flagged for "Notes flotte" — shows the menu entry. */
+            fleetNotesEnabled: boolean;
         };
     }
 }
