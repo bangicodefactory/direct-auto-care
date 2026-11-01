@@ -53,10 +53,18 @@ const CSS = `
 .dc-snippet{flex:1 1 320px;min-width:0;align-self:center;background:var(--dc-ink-2);border:1px solid var(--dc-line);border-radius:6px;padding:16px;font-size:14px;}
 .dc-row{display:flex;justify-content:space-between;gap:16px;}
 .dc-modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));column-gap:48px;}
+.dc-module-line{text-align:right;}
+/* The app's body is light paper; keep the overscroll / bounce area dark here (= --dc-ink). */
+body:has(.dc-landing){background:#15130F;}
 @media (max-width:640px){
   .dc-stage{grid-template-columns:minmax(0,1fr);row-gap:12px;padding:32px 0;}
   .dc-stage-spine{height:8px;}
   .dc-masthead-strap{justify-content:center !important;text-align:center;}
+  /* 44px tap target; the link itself keeps its look. */
+  .dc-strap-action{min-height:44px;}
+  /* Name above its line instead of a ragged right-aligned column. */
+  .dc-module{flex-direction:column;gap:4px;}
+  .dc-module-line{text-align:left;}
   /* French and Arabic each get a whole line instead of the Arabic breaking mid-phrase. */
   .dc-strap-sep{display:none;}
   .dc-strap-ar{display:block;margin-top:4px;}
@@ -470,7 +478,7 @@ export default function Welcome({ auth }: WelcomeProps) {
                         {auth.user ? (
                             <Link
                                 href={route('dashboard')}
-                                className="dc-link"
+                                className="dc-link dc-strap-action"
                                 style={{
                                     fontFamily: 'var(--dc-body)',
                                     fontWeight: 600,
@@ -488,8 +496,10 @@ export default function Welcome({ auth }: WelcomeProps) {
                             <button
                                 type="button"
                                 onClick={scrollToLogin}
-                                className="dc-link"
+                                className="dc-link dc-strap-action"
                                 style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
                                     background: 'none',
                                     border: 0,
                                     padding: 0,
@@ -630,7 +640,7 @@ export default function Welcome({ auth }: WelcomeProps) {
                         {MODULES.map(([name, line]) => (
                             <div
                                 key={name}
-                                className="dc-row"
+                                className="dc-row dc-module"
                                 style={{ padding: '16px 0', borderTop: '1px solid var(--dc-line)' }}
                             >
                                 <span
@@ -642,7 +652,7 @@ export default function Welcome({ auth }: WelcomeProps) {
                                 >
                                     {name}
                                 </span>
-                                <span style={{ textAlign: 'right' }}>{line}</span>
+                                <span className="dc-module-line">{line}</span>
                             </div>
                         ))}
                     </div>
