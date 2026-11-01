@@ -15,5 +15,5 @@ export default function BrandLogo({ className }: { className?: string }) {
         );
     }
 
-    return <ApplicationLogo className={className} />;
+    return <ApplicationLogo className={className} aria-label={appSettings.brand_name} />;
 }

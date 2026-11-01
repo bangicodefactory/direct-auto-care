@@ -24,7 +24,7 @@ class AppointmentConfirmationNotification extends Notification
         $vehicle     = $appointment->vehicle;
 
         $mail = (new MailMessage())
-            ->subject('Confirmation de votre rendez-vous — Direct Auto Care')
+            ->subject('Confirmation de votre rendez-vous — ' . config('company.brand'))
             ->greeting("Bonjour {$customer->display_name},")
             ->line('Votre rendez-vous a été confirmé.')
             ->line('**Date :** ' . $appointment->scheduled_at->format('d/m/Y'))
@@ -34,6 +34,6 @@ class AppointmentConfirmationNotification extends Notification
             $mail->line('**Véhicule :** ' . $vehicle->license_plate);
         }
 
-        return $mail->salutation("L'équipe Direct Auto Care");
+        return $mail->salutation("L'équipe " . config('company.brand'));
     }
 }

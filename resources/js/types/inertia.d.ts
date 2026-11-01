@@ -50,6 +50,8 @@ declare module '@inertiajs/core' {
             /** Per-client white-label identity, resolved from config on the server. */
             appSettings: {
                 company_name: string;
+                /** COMPANY_BRAND — the app's public name (landing, tab titles, emails). */
+                brand_name: string;
                 logo_url: string | null;
                 /** COMPANY_SHOW_PRODUCT_UNITS — show stock units next to product quantities. */
                 show_product_units: boolean;
