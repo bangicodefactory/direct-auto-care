@@ -57,7 +57,11 @@ const CSS = `
   .dc-stage{grid-template-columns:minmax(0,1fr);row-gap:12px;padding:32px 0;}
   .dc-stage-spine{height:8px;}
   .dc-masthead-strap{justify-content:center !important;text-align:center;}
+  /* French and Arabic each get a whole line instead of the Arabic breaking mid-phrase. */
+  .dc-strap-sep{display:none;}
+  .dc-strap-ar{display:block;margin-top:4px;}
 }
+.dc-strap-ar{white-space:nowrap;}
 @media (prefers-reduced-motion:reduce){
   .dc-landing *{transition-duration:0ms !important;}
 }
@@ -452,8 +456,14 @@ export default function Welcome({ auth }: WelcomeProps) {
                         }}
                     >
                         <span>
-                            Logiciel de gestion d&apos;atelier ·{' '}
-                            <span lang="ar" dir="rtl" style={{ fontFamily: 'var(--dc-ar)' }}>
+                            Logiciel de gestion d&apos;atelier
+                            <span className="dc-strap-sep"> · </span>
+                            <span
+                                lang="ar"
+                                dir="rtl"
+                                className="dc-strap-ar"
+                                style={{ fontFamily: 'var(--dc-ar)' }}
+                            >
                                 نظام تسيير الورشة
                             </span>
                         </span>
