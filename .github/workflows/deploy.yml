@@ -158,11 +158,17 @@ jobs:
           echo "show_product_units=$units" >> "$GITHUB_OUTPUT"
 
           # Text overrides land on one .env line, so a line break would inject
-          # extra keys. The value is not echoed (see above).
+          # extra keys, and phpdotenv expands ${…} inside double quotes, so a
+          # "$" could pull another key (even a secret) into the name. The value
+          # is not echoed (see above).
           for name in COMPANY_BRAND COMPANY_NAME; do
             case "${!name}" in
               *$'\n'* | *$'\r'*)
                 echo "::error::$name on Environment '${{ matrix.client }}' must be a single line."
+                exit 1
+                ;;
+              *'$'*)
+                echo "::error::$name on Environment '${{ matrix.client }}' must not contain \"\$\"."
                 exit 1
                 ;;
             esac

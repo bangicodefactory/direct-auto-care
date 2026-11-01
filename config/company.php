@@ -11,7 +11,7 @@ return [
     | email subjects / signatures. Distinct from `name`, which is the garage's
     | legal name printed on invoices. Set per deployment at provisioning.
     */
-    'brand'   => env('COMPANY_BRAND', 'Direct Auto Care'),
+    'brand'   => env('COMPANY_BRAND') ?: 'Direct Auto Care',
     'address' => env('COMPANY_ADDRESS', 'Casablanca, Maroc'),
     'phone'   => env('COMPANY_PHONE', ''),
     'email'   => env('COMPANY_EMAIL', ''),

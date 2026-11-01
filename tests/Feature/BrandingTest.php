@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Notifications\AppointmentCancellationNotification;
 use App\Notifications\AppointmentConfirmationNotification;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -91,6 +92,49 @@ class BrandingTest extends TestCase
         $this->assertSame("L'équipe Garagio", $confirmation->salutation);
         $this->assertSame('Annulation de votre rendez-vous — Garagio', $cancellation->subject);
         $this->assertSame("L'équipe Garagio", $cancellation->salutation);
+    }
+
+    public function test_blank_company_brand_falls_back_to_the_default(): void
+    {
+        $previous = getenv('COMPANY_BRAND');
+        putenv('COMPANY_BRAND=');
+        $_ENV['COMPANY_BRAND']    = '';
+        $_SERVER['COMPANY_BRAND'] = '';
+
+        try {
+            $company = require config_path('company.php');
+
+            $this->assertSame('Direct Auto Care', $company['brand']);
+        } finally {
+            putenv($previous === false ? 'COMPANY_BRAND' : "COMPANY_BRAND={$previous}");
+            unset($_ENV['COMPANY_BRAND'], $_SERVER['COMPANY_BRAND']);
+        }
+    }
+
+    public function test_server_rendered_title_uses_the_brand(): void
+    {
+        config(['company.brand' => 'Garagio']);
+
+        $this->get('/')->assertSee('<title inertia>Garagio</title>', false);
+    }
+
+    public function test_reminder_mail_signature_uses_the_brand(): void
+    {
+        config(['company.brand' => 'Garagio']);
+        $reminder = Reminder::factory()->create(['type' => ReminderType::Vidange]);
+
+        (new ReminderMail($reminder->load(['customer', 'vehicle'])))
+            ->assertSeeInHtml('Garagio');
+    }
+
+    public function test_password_reset_mail_signature_uses_the_brand(): void
+    {
+        config(['company.brand' => 'Garagio']);
+        $user = User::factory()->create();
+
+        $mail = (new ResetPassword('token'))->toMail($user);
+
+        $this->assertSame('Cordialement, Garagio', $mail->salutation);
     }
 
     public function test_appointment_mails_keep_the_default_brand(): void

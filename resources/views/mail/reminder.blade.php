@@ -20,5 +20,5 @@ Prendre rendez-vous
 </x-mail::button>
 
 Cordialement,<br>
-{{ config('app.name') }}
+{{ config('company.brand') }}
 </x-mail::message>
