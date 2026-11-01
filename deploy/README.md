@@ -27,6 +27,10 @@ Environment** holding that client's secrets. See `.github/workflows/deploy.yml`.
    - `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` for the client's DB.
    - `COMPANY_*` — the client's legal identity (name, address, ICE, IF, RC) shown
      in the app header and on invoices.
+   - `COMPANY_BRAND` — the app's public name on the landing page, browser tab
+     titles, the logo label and email subjects / signatures. Defaults to
+     `Direct Auto Care`; the demo uses `Garagio`. Separate from `COMPANY_NAME`,
+     which is the legal name on invoices.
    - `COMPANY_LOGO` — absolute URL or a public-relative path (e.g.
      `branding/acme-logo.svg`) shipped with the deploy. Empty = themed default mark.
    - `COMPANY_SHOW_PRODUCT_UNITS` — `true` (default) shows stock units next to
@@ -51,6 +55,12 @@ Environment** holding that client's secrets. See `.github/workflows/deploy.yml`.
      `on`/`off` in any case; overrides the line in `CPANEL_ENV`). Anything else
      fails the deploy before it touches the server. Set it on the Environment
      only: a repo-level variable of that name fails every deploy.
+   - Vars (optional): `COMPANY_BRAND`, `COMPANY_NAME` — single-line text that
+     overrides the same key in `CPANEL_ENV`, so a client can be renamed without
+     re-pasting the secret, e.g.
+     `gh variable set COMPANY_BRAND --env garage-demo --body "Garagio"`.
+     Same rule: Environment only. A repo-level variable would rename every
+     client, so it fails every deploy.
 
 4. **Register the client** in the repo variable `DEPLOY_CLIENTS` (a JSON array of
    environment names), e.g. `["garage-demo","directautocare"]`. Auto-deploys on

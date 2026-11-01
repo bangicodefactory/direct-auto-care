@@ -21,7 +21,7 @@ class ReminderMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->reminder->type->label() . ' — Direct Auto Care',
+            subject: $this->reminder->type->label() . ' — ' . config('company.brand'),
         );
     }
 

@@ -22,10 +22,13 @@ if (sentryDsn) {
     });
 }
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+// The brand is per deployment (COMPANY_BRAND), shared at runtime as
+// appSettings.brand_name — the single CI bundle can't bake it in. setup() fills
+// it from the first page before anything renders a <Head>.
+let brandName = 'Direct Auto Care';
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => (title ? `${title} - ${brandName}` : brandName),
     resolve: (name) =>
         resolvePageComponent<ResolvedComponent>(
             [`./Pages/${name}.tsx`, `./Pages/${name}.jsx`],
@@ -33,6 +36,8 @@ createInertiaApp({
         ),
     setup({ el, App, props }) {
         const root = createRoot(el);
+
+        brandName = props.initialPage.props.appSettings?.brand_name || brandName;
 
         const locale = (props.initialPage.props.locale as string | undefined) ?? 'fr';
         document.documentElement.lang = locale;

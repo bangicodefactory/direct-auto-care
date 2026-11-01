@@ -65,7 +65,7 @@ class AppServiceProvider extends ServiceProvider
                 ->action('Réinitialiser le mot de passe', $url)
                 ->line("Ce lien de réinitialisation expirera dans {$expire} minutes.")
                 ->line("Si vous n'avez pas demandé de réinitialisation, aucune action n'est requise.")
-                ->salutation('Cordialement, ' . config('app.name'));
+                ->salutation('Cordialement, ' . config('company.brand'));
         });
     }
 }

@@ -33,6 +33,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'appSettings' => [
                 'company_name'       => config('company.name'),
+                'brand_name'         => config('company.brand'),
                 'logo_url'           => Branding::logoUrl(),
                 'show_product_units' => (bool) config('company.show_product_units'),
             ],

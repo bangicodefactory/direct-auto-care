@@ -25,6 +25,8 @@
         <!-- Dedicated test DB — keeps `php artisan test` from wiping dev data.
              MySQL (not sqlite) because tests rely on real row locks and YEAR()/MONTH(). -->
         <env name="DB_DATABASE" value="direct_auto_care_test"/>
+        <!-- Pin the default brand so a local .env (e.g. the Garagio demo template) cannot change test results. -->
+        <env name="COMPANY_BRAND" value="Direct Auto Care"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

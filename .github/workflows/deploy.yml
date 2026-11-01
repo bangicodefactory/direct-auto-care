@@ -14,7 +14,9 @@ name: Deploy (per-client)
 #   Vars:    CPANEL_PHP_BIN (optional), SENTRY_ORG/SENTRY_PROJECT (optional,
 #            override the repo-level defaults for a per-client Sentry project),
 #            COMPANY_SHOW_PRODUCT_UNITS (optional boolean; overrides the same
-#            key in CPANEL_ENV; checked before anything reaches the server)
+#            key in CPANEL_ENV; checked before anything reaches the server),
+#            COMPANY_BRAND / COMPANY_NAME (optional single-line text; override
+#            the same keys in CPANEL_ENV, e.g. "Garagio" on garage-demo)
 # Repo-level:
 #   Vars:    DEPLOY_ENABLED ("true"), DEPLOY_CLIENTS (JSON array of environment
 #            names, e.g. ["garage-demo","directautocare"])
@@ -59,14 +61,22 @@ jobs:
       # This job has no Environment, so any value seen here is repo- or
       # org-level and would silently apply to every client that doesn't set
       # its own. Per-client toggles must live on the client's Environment.
+      # A repo-level COMPANY_BRAND/COMPANY_NAME would rename every client that
+      # doesn't set its own — e.g. put the demo's name on a live client.
       - name: Assert per-client toggles are not set repo-wide
         env:
-          SHOW_PRODUCT_UNITS: ${{ vars.COMPANY_SHOW_PRODUCT_UNITS }}
+          COMPANY_SHOW_PRODUCT_UNITS: ${{ vars.COMPANY_SHOW_PRODUCT_UNITS }}
+          COMPANY_BRAND: ${{ vars.COMPANY_BRAND }}
+          COMPANY_NAME: ${{ vars.COMPANY_NAME }}
         run: |
-          if [ -n "$SHOW_PRODUCT_UNITS" ]; then
-            echo "::error::COMPANY_SHOW_PRODUCT_UNITS is set as a repo/org variable. Set it on each client's Environment instead (gh variable set COMPANY_SHOW_PRODUCT_UNITS --env <client>) and delete the repo-level one."
-            exit 1
-          fi
+          failed=
+          for name in COMPANY_SHOW_PRODUCT_UNITS COMPANY_BRAND COMPANY_NAME; do
+            if [ -n "${!name}" ]; then
+              echo "::error::$name is set as a repo/org variable. Set it on each client's Environment instead (gh variable set $name --env <client>) and delete the repo-level one."
+              failed=1
+            fi
+          done
+          [ -z "$failed" ]
 
       - id: pick
         env:
@@ -118,6 +128,8 @@ jobs:
           CPANEL_DEPLOY_PATH: ${{ secrets.CPANEL_DEPLOY_PATH }}
           CPANEL_ENV: ${{ secrets.CPANEL_ENV }}
           SHOW_PRODUCT_UNITS: ${{ vars.COMPANY_SHOW_PRODUCT_UNITS }}
+          COMPANY_BRAND: ${{ vars.COMPANY_BRAND }}
+          COMPANY_NAME: ${{ vars.COMPANY_NAME }}
         run: |
           missing=
           for name in CPANEL_SSH_HOST CPANEL_SSH_PORT CPANEL_SSH_USER CPANEL_SSH_KEY CPANEL_DEPLOY_PATH CPANEL_ENV; do
@@ -144,6 +156,23 @@ jobs:
               ;;
           esac
           echo "show_product_units=$units" >> "$GITHUB_OUTPUT"
+
+          # Text overrides land on one .env line, so a line break would inject
+          # extra keys, and phpdotenv expands ${…} inside double quotes, so a
+          # "$" could pull another key (even a secret) into the name. The value
+          # is not echoed (see above).
+          for name in COMPANY_BRAND COMPANY_NAME; do
+            case "${!name}" in
+              *$'\n'* | *$'\r'*)
+                echo "::error::$name on Environment '${{ matrix.client }}' must be a single line."
+                exit 1
+                ;;
+              *'$'*)
+                echo "::error::$name on Environment '${{ matrix.client }}' must not contain \"\$\"."
+                exit 1
+                ;;
+            esac
+          done
 
       # ---- Build the front-end (shared hosting has no Node) ----
       - name: Set up Node
@@ -225,14 +254,40 @@ jobs:
           ENV_CONTENT: ${{ secrets.CPANEL_ENV }}
           # Validated and normalised (true/false/empty) by the assert step.
           SHOW_PRODUCT_UNITS: ${{ steps.assert.outputs.show_product_units }}
+          # Single-line text, checked by the assert step.
+          COMPANY_BRAND: ${{ vars.COMPANY_BRAND }}
+          COMPANY_NAME: ${{ vars.COMPANY_NAME }}
         run: |
+          content="$ENV_CONTENT"
+          extra=
+
+          # Drop every spelling phpdotenv accepts (export, spaces) so the
+          # server .env holds exactly one definition of an overridden key.
+          override() {
+            content=$(printf '%s\n' "${content%$'\n'}" \
+              | grep -Ev "^[[:space:]]*(export[[:space:]]+)?$1[[:space:]]*=" || true)
+            extra+="$1=$2"$'\n'
+          }
+          # Double-quoted dotenv value: escape backslashes first, then quotes.
+          quote() {
+            local value=${1//\\/\\\\}
+            value=${value//\"/\\\"}
+            printf '"%s"' "$value"
+          }
+
+          if [ -n "$SHOW_PRODUCT_UNITS" ]; then
+            override COMPANY_SHOW_PRODUCT_UNITS "$SHOW_PRODUCT_UNITS"
+          fi
+          if [ -n "$COMPANY_BRAND" ]; then
+            override COMPANY_BRAND "$(quote "$COMPANY_BRAND")"
+          fi
+          if [ -n "$COMPANY_NAME" ]; then
+            override COMPANY_NAME "$(quote "$COMPANY_NAME")"
+          fi
+
           {
-            if [ -n "$SHOW_PRODUCT_UNITS" ]; then
-              # Drop every spelling phpdotenv accepts (export, spaces) so the
-              # server .env holds exactly one definition.
-              printf '%s\n' "${ENV_CONTENT%$'\n'}" \
-                | grep -Ev '^[[:space:]]*(export[[:space:]]+)?COMPANY_SHOW_PRODUCT_UNITS[[:space:]]*=' || true
-              printf 'COMPANY_SHOW_PRODUCT_UNITS=%s\n' "$SHOW_PRODUCT_UNITS"
+            if [ -n "$extra" ]; then
+              printf '%s\n%s' "${content%$'\n'}" "$extra"
             else
               printf '%s' "$ENV_CONTENT"
             fi
